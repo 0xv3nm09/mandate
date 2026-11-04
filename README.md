@@ -6,16 +6,21 @@
 
 ## The 30-second architecture
 
-```
-You (operator) ──► AI Agent ──PROPOSES──► Control Plane ──ALLOW──► PayPal (sandbox)
- (React)          (LLM or        │         (deterministic:  │
-                   rule-based)   │          policy engine ·  ├─GATE──► approval inbox → one-tap approve/deny
-                                 │          signed mandate ·  │
-                                 └─never────┘ approval queue ·  └─BLOCK──► refused + logged, no bypass
-                                            hash-chained audit)
+```mermaid
+flowchart LR
+  U["Operator<br/>console + approval inbox"] --> A["AI Agent<br/>proposes only"]
+  A -- "proposal" --> CP["Control Plane<br/>deterministic: policy engine ·<br/>signed mandate · audit chain"]
+  CP -- "ALLOW" --> PP["PayPal Sandbox<br/>Invoicing · Payouts"]
+  CP -- "GATE" --> INBOX["Human gate<br/>AI risk summary · one tap"]
+  CP -- "BLOCK" --> REF["Refused + audited<br/>no bypass"]
+  INBOX -- "approve" --> CP
 ```
 
-**Code owns the facts; the model only writes language.** No LLM call sits anywhere on the decision path — a hallucination can't move money.
+**The trust boundary sits between the control plane and PayPal**: money leaves the account only after a policy pass (plus a human approval when gated). The agent holds no PayPal credentials for money movement. **Code owns the facts; the model only writes language** — no LLM call sits anywhere on the decision path, so a hallucination can't move money.
+
+**Full technical diagram set** — [docs/diagrams.md](docs/diagrams.md): system zones · policy decision flowchart · gated-payout and standing-payout sequences · inbound-verification flow · dispute evidence pack sequence · action lifecycle state machine · invoice lifecycle · audit hash-chain construction · data model (ER) · deployment architecture · evidence workflow.
+
+## The 30-second demo
 
 ## Quick start (zero external keys needed)
 
