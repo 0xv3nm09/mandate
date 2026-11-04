@@ -4,6 +4,19 @@
 
 > Built for the [PayPal AI Hackathon](https://paypalaihackathon.devpost.com/) · aligned with **AP2** (Google's Agent Payments Protocol, backed by PayPal): *"verifiable intent, not inferred action — an agent's reasoning is never the authorization; a signed mandate is."*
 
+## For judges — run it in 60 seconds
+
+Zero keys needed. The bundled mock gateway implements PayPal's exact semantics (stateful invoices, idempotent payouts, webhook events), so the entire trust layer runs offline:
+
+```bash
+git clone https://github.com/0xv3nm09/mandate && cd mandate/server
+npm install && npm run dev        # Node ≥ 24 → http://localhost:8787
+```
+
+Then open **Usecases → "Run all 12 sequentially"** — every trace is a real control-plane decision. To exercise the **live PayPal sandbox REST** instead, create free credentials at [developer.paypal.com](https://developer.paypal.com), copy `.env.example` → `.env`, set `PAYPAL_CLIENT_ID` / `PAYPAL_CLIENT_SECRET` (plus `PAYPAL_SANDBOX_RECIPIENT` = your sandbox personal account email so invoices/payouts route to a real test account), restart — the health pill flips to `SANDBOX` and all money movement hits `api-m.sandbox.paypal.com`.
+
+**Built during the Submission Period:** the entire project was created between Oct 28 and Nov 5, 2026 (see commit history) — first commit is the scaffold, latest commits are live-sandbox evidence.
+
 ## The 30-second architecture
 
 ```mermaid
@@ -77,6 +90,8 @@ Set `ANTHROPIC_API_KEY` (or `OPENAI_API_KEY`) to upgrade the agent from the dete
 ## Stack
 
 React 18 · Vite · TypeScript · Tailwind · AG Grid (community) · Hono · Vercel AI SDK (optional) · `jose` · `node:sqlite` · PayPal REST (Invoicing, Payouts, Webhooks) · SSE.
+
+**AG Grid (sponsor tool) usage:** the hash-chained audit ledger is rendered in AG Grid Community — column sorting/resizing, pagination, pinned receipt-export column, live refresh on SSE events. It is the primary inspection surface for every decision the engine makes (Console → Audit Grid), plus the Invoices table. See `evidence/audit-chain.json` for the data it renders.
 
 ## Repo layout
 
