@@ -1,0 +1,21 @@
+{
+  "note": "Real PayPal sandbox payout batches created by Mandate (POST /v1/payments/payouts)",
+  "batches": [
+    {
+      "batchId": "CM9XMWV3ZZYFC",
+      "status": "SUCCESS",
+      "amount": 300,
+      "payee": "vita@va.test",
+      "idempotencyKey": "standing:vita@va.test:2026-W45",
+      "createdAt": "2026-11-04T20:27:49.951Z"
+    },
+    {
+      "batchId": "6PGW6UEXRJ2DQ",
+      "status": "PENDING",
+      "amount": 500,
+      "payee": "sam@contractor.test",
+      "idempotencyKey": "approval:mw2kj81md0dra1",
+      "createdAt": "2026-11-04T20:27:47.022Z"
+    }
+  ]
+}

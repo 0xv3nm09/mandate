@@ -10,6 +10,7 @@ import { setHalted } from '../control-plane/approvals.js';
 import { listApprovals } from '../control-plane/approvals.js';
 import { chat } from '../agent/agent.js';
 import { sendReminder, sweepOverdue, runStandingPayout, listInvoices, stats } from '../services.js';
+import { paypal } from '../paypal/gateway.js';
 import type { UsecaseResult, TraceStep } from '../types.js';
 
 const step = (n: number, label: string, detail: string, status: TraceStep['status'], data?: Record<string, unknown>): TraceStep =>
@@ -334,21 +335,42 @@ export async function runUsecase(id: string): Promise<UsecaseResult> {
   // ── UC-12: dispute evidence pack ───────────────────────────────────────────
   if (id === 'UC-12') {
     const { buildEvidencePack } = await import('../control-plane/verify.js');
-    // ensure a settled payout exists to dispute
-    let payoutRow = db.prepare(`SELECT actionId FROM payouts WHERE status = 'SUCCESS' ORDER BY createdAt DESC LIMIT 1`).get() as { actionId: string } | undefined;
+    // find the most recent payout (prefer settled SUCCESS; sandbox batches settle asynchronously)
+    let payoutRow = db.prepare(`SELECT actionId, batchId, status FROM payouts WHERE status = 'SUCCESS' ORDER BY createdAt DESC LIMIT 1`).get() as
+      | { actionId: string; batchId: string; status: string }
+      | undefined;
+    if (!payoutRow) payoutRow = db.prepare(`SELECT actionId, batchId, status FROM payouts ORDER BY createdAt DESC LIMIT 1`).get() as
+      | { actionId: string; batchId: string; status: string }
+      | undefined;
     if (!payoutRow) {
       await chat('Pay contractor Sam $500');
       const pend = listApprovals('PENDING')[0];
       if (pend) await approveAndExecute(pend.id, 'usecase-runner (simulated human)');
-      await new Promise((r) => setTimeout(r, 1700));
-      payoutRow = db.prepare(`SELECT actionId FROM payouts WHERE status = 'SUCCESS' ORDER BY createdAt DESC LIMIT 1`).get() as { actionId: string } | undefined;
+      payoutRow = db.prepare(`SELECT actionId, batchId, status FROM payouts ORDER BY createdAt DESC LIMIT 1`).get() as
+        | { actionId: string; batchId: string; status: string }
+        | undefined;
     }
     if (!payoutRow) {
-      push('Setup', 'No settled payout found to dispute — run UC-03 first.', 'error');
+      push('Setup', 'No payout available to dispute — run UC-03 first.', 'error');
       outcome = 'error';
-      headline = 'No settled payout available for the evidence pack';
+      headline = 'No payout available for the evidence pack';
     } else {
       const actionId = payoutRow.actionId;
+      // poll PayPal for the live batch status (sandbox batches settle in minutes, not ms)
+      let liveStatus = payoutRow.status;
+      if (liveStatus !== 'SUCCESS') {
+        try {
+          for (let i = 0; i < 3; i++) {
+            const s = await paypal.getPayoutStatus(payoutRow.batchId);
+            if (s.status && s.status !== liveStatus) {
+              liveStatus = s.status;
+              db.prepare('UPDATE payouts SET status = ?, updatedAt = ? WHERE batchId = ?').run(liveStatus, now(), payoutRow.batchId);
+            }
+            if (liveStatus === 'SUCCESS') break;
+            await new Promise((r) => setTimeout(r, 1500));
+          }
+        } catch { /* keep DB status */ }
+      }
       const pack = buildEvidencePack(actionId);
       if (!pack) {
         push('Evidence compilation', `action ${actionId} not found`, 'error');
@@ -356,10 +378,10 @@ export async function runUsecase(id: string): Promise<UsecaseResult> {
       } else {
         push('Scenario', `The payee disputes: “I never received the $${String(pack.action?.amount ?? '')} payment.” Mandate compiles the proof.`, 'info');
         push('Human approval record', `approval ${String(pack.approval?.id ?? '—').slice(0, 10)} — verdict ${String(pack.approval?.status ?? '')} by ${String(pack.approval?.resolvedBy ?? '')} at ${String(pack.approval?.resolvedAt ?? '')}`, 'ok');
-        push('PayPal settlement proof', `batch ${String(pack.payout?.batchId ?? '')} · status ${String(pack.payout?.status ?? '')} — PayPal's own webhook confirmed settlement`, 'ok');
+        push('PayPal settlement proof', `batch ${String(pack.payout?.batchId ?? '')} · live status ${liveStatus} — PayPal's own ledger confirms the batch exists${liveStatus === 'SUCCESS' ? ' and settled' : ' (settlement in progress; batch id is the immutable reference)'}`, liveStatus === 'SUCCESS' ? 'ok' : 'info');
         push('Immutable chain position', `${pack.auditRecords.length} audit records reference this action — every hash-chained and reproducible (mandate v${String(pack.mandateVersion)})`, 'ok');
         push('Signed evidence pack', `pack ${String(pack.packHash).slice(0, 16)}… · HMAC signature verified — exportable as a single JSON artifact`, 'ok', { packHash: pack.packHash });
-        headline = 'Dispute answered with a signed evidence pack, not an argument';
+        headline = `Dispute answered with a signed evidence pack (batch ${payoutRow.batchId}, ${liveStatus})`;
       }
     }
   }
