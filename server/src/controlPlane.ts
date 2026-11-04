@@ -1,0 +1,295 @@
+// The control plane orchestrator. The ONLY path by which money moves.
+// Agent proposes → evaluate() → ALLOW: execute + audit · GATE: explain + enqueue · BLOCK: refuse + audit.
+// This file contains no model calls on the decision path; the LLM is only ever asked for language.
+
+import { db, now, uid, getMeta, setMeta } from './db.js';
+import { isoWeekTag } from './util.js';
+import { evaluate } from './control-plane/policy.js';
+import { ensureMandate } from './control-plane/mandate.js';
+import { appendAudit, dailySpent, recentPayouts10m } from './control-plane/audit.js';
+import { enqueueApproval, isHalted, publish, resolveApproval } from './control-plane/approvals.js';
+import { paypal, onPaypalEvent } from './paypal/gateway.js';
+import { riskExplanation } from './agent/textgen.js';
+import type { Decision, ProposedAction } from './types.js';
+
+// ── Action persistence ───────────────────────────────────────────────────────
+export interface ActionRow {
+  id: string; type: string; amount: number; currency: string; payee: string; payeeName: string | null;
+  memo: string; decision: string | null; reasonCode: string | null; status: string;
+  paypalRef: string | null; mandateVersion: number | null; source: string; standing: number;
+  createdAt: string; updatedAt: string;
+}
+
+export function getAction(id: string): ActionRow | undefined {
+  return db.prepare('SELECT * FROM actions WHERE id = ?').get(id) as ActionRow | undefined;
+}
+function updateAction(id: string, fields: Partial<ActionRow>): void {
+  const sets = Object.keys(fields).map((k) => `${k} = ?`).join(', ');
+  db.prepare(`UPDATE actions SET ${sets}, updatedAt = ? WHERE id = ?`).run(
+    ...Object.values(fields).map((v) => (typeof v === 'boolean' ? (v ? 1 : 0) : v)), now(), id
+  );
+}
+
+function saveAction(a: ProposedAction, source: string): ActionRow {
+  const row: ActionRow = {
+    id: uid(), type: a.type, amount: a.amount, currency: a.currency, payee: a.payee,
+    payeeName: a.payeeName ?? null, memo: a.memo, decision: null, reasonCode: null,
+    status: 'PROPOSED', paypalRef: null, mandateVersion: null, source,
+    standing: a.standing ? 1 : 0, createdAt: now(), updatedAt: now(),
+  };
+  db.prepare(
+    `INSERT INTO actions (id, type, amount, currency, payee, payeeName, memo, status, source, standing, createdAt, updatedAt)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run(row.id, row.type, row.amount, row.currency, row.payee, row.payeeName, row.memo, row.status, row.source, row.standing, row.createdAt, row.updatedAt);
+  return row;
+}
+
+export interface HandleResult {
+  actionId: string;
+  decision: Decision | null;
+  status: string;
+  approvalId?: string;
+  explanation?: string;
+  execution?: { paypalRef: string; status: string } | null;
+}
+
+// ── The gate (FR-05): every money-out passes through handle() — no exceptions ──
+export async function handle(action: ProposedAction, source: 'chat' | 'usecase' | 'standing' = 'chat'): Promise<HandleResult> {
+  const mandate = await ensureMandate();
+
+  // Global stop: the agent halts, nothing executes, nothing is approved (FR-15)
+  if (isHalted()) {
+    const row = saveAction(action, source);
+    updateAction(row.id, { status: 'HALTED' });
+    const decision: Decision = {
+      decision: 'BLOCK',
+      reasonCode: 'R_BLOCK_HALT',
+      reasonText: 'Global stop is engaged — all agent action is frozen. Resume the agent to proceed.',
+      policyHits: [{ rule: 'R-00', detail: 'Kill switch' }],
+      mandateVersion: mandate.version,
+    };
+    updateAction(row.id, { decision: decision.decision, reasonCode: decision.reasonCode, mandateVersion: mandate.version });
+    appendAudit({ kind: 'ACTION_DECISION', actionId: row.id, decision: 'BLOCK', payload: decisionPayload(row, action, decision) });
+    publish('action.decision', { actionId: row.id, decision });
+    return { actionId: row.id, decision, status: 'HALTED' };
+  }
+
+  const decision = evaluate(action, mandate, {
+    dailySpent: dailySpent(),
+    recentPayouts10m: recentPayouts10m(),
+  });
+
+  const row = saveAction(action, source);
+  updateAction(row.id, { decision: decision.decision, reasonCode: decision.reasonCode, mandateVersion: mandate.version });
+
+  appendAudit({
+    kind: 'ACTION_DECISION',
+    actionId: row.id,
+    decision: decision.decision,
+    payload: decisionPayload(row, action, decision),
+  });
+
+  if (action.type === 'invoice') {
+    return handleInvoice(row, action, decision);
+  }
+
+  if (decision.decision === 'ALLOW') {
+    // Idempotency (FR-13): standing-mandate runs use the per-week envelope key so a week's
+    // authorized run executes exactly once; per-action proposals use the row key.
+    const idemKey =
+      action.standing && decision.reasonCode === 'R_STANDING_ALLOW'
+        ? `standing:${action.payee}:${isoWeekTag()}`
+        : `governed:${row.id}`;
+    const execution = await executePayout(row.id, idemKey);
+    return { actionId: row.id, decision, status: 'EXECUTED', execution };
+  }
+
+  if (decision.decision === 'GATE') {
+    // The model writes the *explanation* only — the decision above is already final. (FR-09)
+    const explanation = await riskExplanation(action, decision, {
+      dailySpent: dailySpent(),
+      perTxn: mandate.limits.perTxn,
+      allowlisted: mandate.payeeAllowlist.some((p) => p.toLowerCase() === action.payee.toLowerCase()),
+    });
+    const approval = enqueueApproval(row.id, decision, explanation);
+    updateAction(row.id, { status: 'AWAIT_APPROVAL' });
+    publish('action.decision', { actionId: row.id, decision, approvalId: approval.id, explanation });
+    return { actionId: row.id, decision, status: 'AWAIT_APPROVAL', approvalId: approval.id, explanation };
+  }
+
+  updateAction(row.id, { status: 'BLOCKED' });
+  publish('action.decision', { actionId: row.id, decision });
+  return { actionId: row.id, decision, status: 'BLOCKED' };
+}
+
+function decisionPayload(row: ActionRow, action: ProposedAction, decision: Decision) {
+  return {
+    event:
+      decision.decision === 'ALLOW'
+        ? `Policy ALLOW: ${action.type} $${action.amount} → ${action.payee}`
+        : decision.decision === 'GATE'
+          ? `Policy GATE: ${action.type} $${action.amount} → ${action.payee} awaits human approval`
+          : `Policy BLOCK: ${action.type} $${action.amount} → ${action.payee} refused`,
+    actionType: action.type,
+    amount: action.amount,
+    currency: action.currency,
+    payee: action.payee,
+    memo: action.memo,
+    reasonCode: decision.reasonCode,
+    reasonText: decision.reasonText,
+    policyHits: decision.policyHits,
+    mandateVersion: decision.mandateVersion,
+  };
+}
+
+// ── Money-in: invoices (autonomous) ──────────────────────────────────────────
+async function handleInvoice(row: ActionRow, action: ProposedAction, decision: Decision): Promise<HandleResult> {
+  const inv = await paypal.createInvoice({
+    payee: action.payee, payeeName: action.payeeName, amount: action.amount, currency: action.currency, memo: action.memo,
+    requestId: `mandate-invoice-${row.id}`, // PayPal-Request-Id: 1-hour idempotency on retry (docs)
+  });
+  // Send may 422 (USER_NOT_FOUND) when the recipient isn't a real sandbox account — the invoice
+  // still exists on PayPal as DRAFT. Record honestly; POST /api/invoices/:id/resend completes it.
+  let sendStatus = 'SENT';
+  let sendNote: string | undefined;
+  try {
+    await paypal.sendInvoice(inv.id);
+  } catch (e: unknown) {
+    sendStatus = 'CREATED';
+    sendNote = String(e).slice(0, 300);
+  }
+  maybeSetupNativeAutoReminders(inv.id);
+  db.prepare(
+    `INSERT INTO invoices (id, paypalId, invoiceNumber, payee, payeeName, amount, currency, memo, status, dueDate, createdAt, updatedAt)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run(row.id, inv.id, inv.invoiceNumber, action.payee, action.payeeName ?? null, action.amount, action.currency, action.memo, sendStatus, dueDateFor(), row.createdAt, now());
+
+  updateAction(row.id, { status: 'EXECUTED', paypalRef: inv.id });
+  appendAudit({
+    kind: 'EXECUTION',
+    actionId: row.id,
+    payload: {
+      event: sendStatus === 'SENT'
+        ? `Invoice ${inv.invoiceNumber} created and sent to ${action.payee} ($${action.amount})`
+        : `Invoice ${inv.invoiceNumber} created on PayPal as DRAFT — send pending recipient fix ($${action.amount})`,
+      actionType: 'invoice', moneyOut: 0, amount: action.amount, currency: action.currency,
+      payee: action.payee, paypalRef: inv.id, invoiceNumber: inv.invoiceNumber,
+      sendStatus, ...(sendNote ? { sendError: sendNote } : {}),
+      ...(inv.sandboxRecipient ? { sandboxRecipient: inv.sandboxRecipient, note: 'sandbox override: routed to the configured sandbox personal account' } : {}),
+    },
+  });
+  publish('invoice.updated', { actionId: row.id, invoiceId: inv.id, status: sendStatus });
+  return { actionId: row.id, decision, status: 'EXECUTED', execution: { paypalRef: inv.id, status: sendStatus } };
+}
+
+/** Best-effort one-time: configure PayPal's NATIVE invoice auto reminders alongside our AI reminders
+ *  (docs: POST /v2/invoicing/setup-reminders). Failure (422 already-configured, endpoint absence) is non-fatal. */
+function maybeSetupNativeAutoReminders(invoiceId: string): void {
+  if (getMeta('native-auto-reminders') === '1') return;
+  const gw = paypal as typeof paypal & { setupAutoReminders?: () => Promise<unknown> };
+  if (!gw.setupAutoReminders) return;
+  setMeta('native-auto-reminders', '1');
+  gw.setupAutoReminders()
+    .then(() => {
+      appendAudit({
+        kind: 'SYSTEM',
+        payload: { event: `PayPal native auto reminders configured (BEFORE_DUE 2d ×1, AFTER_DUE 2d ×2) — reference invoice ${invoiceId}` },
+      });
+    })
+    .catch((e: unknown) => {
+      appendAudit({
+        kind: 'SYSTEM',
+        payload: { event: `PayPal native auto reminder setup skipped: ${String(e).slice(0, 180)}` },
+      });
+    });
+}
+
+function dueDateFor(): string {
+  const d = new Date(Date.now() + 14 * 24 * 3600 * 1000);
+  return d.toISOString().slice(0, 10);
+}
+
+// ── Money-out execution: idempotent payout (FR-13) ──────────────────────────
+export async function executePayout(actionId: string, idempotencyKey: string): Promise<{ paypalRef: string; status: string } | null> {
+  const row = getAction(actionId);
+  if (!row) throw new Error('unknown action');
+  if (row.status === 'EXECUTED') return { paypalRef: row.paypalRef ?? '', status: 'ALREADY_EXECUTED' }; // idempotent re-submit
+
+  updateAction(actionId, { status: 'EXECUTING' });
+  const res = await paypal.createPayout({
+    payee: row.payee, amount: row.amount, currency: row.currency, note: row.memo || 'Mandate governed payout', idempotencyKey,
+  });
+  db.prepare(
+    `INSERT INTO payouts (id, actionId, batchId, status, amount, currency, payee, idempotencyKey, createdAt, updatedAt)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run(uid(), actionId, res.batchId, res.status, row.amount, row.currency, row.payee, idempotencyKey, now(), now());
+
+  updateAction(actionId, { status: 'EXECUTED', paypalRef: res.batchId });
+  appendAudit({
+    kind: 'EXECUTION',
+    actionId,
+    payload: {
+      event: `Payout executed: $${row.amount} → ${row.payee} (batch ${res.batchId}, ${res.status})`,
+      actionType: row.type, moneyOut: 1, amount: row.amount, currency: row.currency,
+      payee: row.payee, paypalRef: res.batchId, idempotencyKey,
+    },
+  });
+  publish('payout.updated', { actionId, batchId: res.batchId, status: res.status });
+  return { paypalRef: res.batchId, status: res.status };
+}
+
+// ── Approval resolution → execution (FR-10) ─────────────────────────────────
+export async function approveAndExecute(approvalId: string, by: string): Promise<HandleResult> {
+  const res = resolveApproval(approvalId, 'APPROVE', by);
+  if (!res.ok) return { actionId: '', decision: null, status: res.error ?? 'ERROR' };
+  const approval = res.approval!;
+  const execution = await executePayout(approval.actionId, `approval:${approvalId}`);
+  return { actionId: approval.actionId, decision: null, status: 'EXECUTED', execution };
+}
+
+export function denyApproval(approvalId: string, by: string): HandleResult {
+  const res = resolveApproval(approvalId, 'DENY', by);
+  if (!res.ok) return { actionId: '', decision: null, status: res.error ?? 'ERROR' };
+  const approval = res.approval!;
+  updateAction(approval.actionId, { status: 'DENIED' });
+  return { actionId: approval.actionId, decision: null, status: 'DENIED' };
+}
+
+// ── Webhook ingestion (FR-03): verified in sandbox; deduped by event id ──────
+export function handlePaypalEvent(e: { id: string; eventType: string; resourceId?: string; summary?: string; payload?: Record<string, unknown> }): void {
+  const dup = db.prepare('SELECT id FROM events WHERE id = ?').get(e.id);
+  if (dup) return; // replay/dedupe by event id
+
+  if (e.eventType === 'PAYMENT.PAYOUTS.EVENT' && e.resourceId) {
+    const payout = db.prepare('SELECT actionId, status FROM payouts WHERE batchId = ?').get(e.resourceId) as
+      | { actionId: string; status: string }
+      | undefined;
+    const status = (e.payload?.batch_status as string) ?? 'SUCCESS';
+    if (payout) {
+      db.prepare('UPDATE payouts SET status = ?, updatedAt = ? WHERE batchId = ?').run(status, now(), e.resourceId);
+      appendAudit({
+        kind: 'WEBHOOK',
+        actionId: payout.actionId,
+        payload: {
+          event: `PayPal webhook: payout batch ${e.resourceId} → ${status}`,
+          eventType: e.eventType, resourceId: e.resourceId, status,
+        },
+      });
+      publish('payout.updated', { actionId: payout.actionId, batchId: e.resourceId, status });
+    }
+  }
+
+  if (e.eventType === 'INVOICING.INVOICE.PAID' && e.resourceId) {
+    const inv = db.prepare('SELECT id FROM invoices WHERE paypalId = ?').get(e.resourceId) as { id: string } | undefined;
+    if (inv) {
+      db.prepare('UPDATE invoices SET status = ?, updatedAt = ? WHERE paypalId = ?').run('PAID', now(), e.resourceId);
+      appendAudit({
+        kind: 'WEBHOOK',
+        payload: { event: `PayPal webhook: invoice ${e.resourceId} PAID`, eventType: e.eventType, resourceId: e.resourceId },
+      });
+      publish('invoice.updated', { invoiceId: e.resourceId, status: 'PAID' });
+    }
+  }
+}
+
+onPaypalEvent(handlePaypalEvent);

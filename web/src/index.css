@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-bg text-ink font-sans antialiased;
+  font-feature-settings: 'tnum' 1; /* tabular numerals — data-dense fintech UI */
+  background-image:
+    radial-gradient(70rem 44rem at 92% -15%, rgba(99, 102, 241, 0.20), transparent 60%),
+    radial-gradient(56rem 40rem at -15% 8%, rgba(20, 184, 166, 0.13), transparent 55%),
+    radial-gradient(52rem 38rem at 55% 118%, rgba(192, 38, 211, 0.11), transparent 62%),
+    radial-gradient(40rem 30rem at 30% 60%, rgba(139, 92, 246, 0.06), transparent 60%);
+  background-attachment: fixed;
+}
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { @apply bg-edge rounded-full; border: 2px solid #070b14; }
+::-webkit-scrollbar-track { background: transparent; }
+::selection { background: rgba(99, 102, 241, 0.4); }
+
+.card {
+  @apply bg-surface border border-edge/70 rounded-xl2 shadow-card;
+}
+.card-gradient {
+  background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0) 38%);
+}
+
+.kicker {
+  @apply font-mono text-[11px] font-medium uppercase tracking-[0.22em] text-accent-bright;
+}
+
+.text-aurora {
+  background-image: linear-gradient(100deg, #a5b4fc 0%, #e879f9 45%, #5eead4 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.pill {
+  @apply inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold tracking-wide;
+}
+
+.btn {
+  @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed;
+}
+.btn-primary {
+  @apply btn text-white shadow-glow;
+  background-image: linear-gradient(135deg, #6366f1 0%, #8b5cf6 45%, #d946ef 110%);
+}
+.btn-primary:hover:not(:disabled) { filter: brightness(1.14) saturate(1.1); }
+.btn-teal { @apply btn bg-teal text-[#04211d] hover:bg-teal/90 shadow-glow-teal; }
+.btn-ghost { @apply btn bg-raised text-ink border border-edge hover:border-slate-500; }
+.btn-danger { @apply btn bg-danger/15 text-danger border border-danger/40 hover:bg-danger/25; }
+
+.input {
+  @apply w-full bg-raised border border-edge rounded-lg px-3 py-2 text-sm text-ink placeholder-muted/50 focus:outline-none focus:border-accent/70 focus:ring-2 focus:ring-accent/20 transition-shadow;
+}
+
+.mono-hash { @apply font-mono text-[11px] text-muted; }
+
+/* AG Grid dark theming — Linear-ish, depth over borders */
+.ag-theme-quartz {
+  --ag-background-color: transparent;
+  --ag-odd-row-background-color: rgba(255, 255, 255, 0.018);
+  --ag-header-background-color: #0a101f;
+  --ag-header-foreground-color: #8fa0b8;
+  --ag-border-color: #1c2740;
+  --ag-row-border-color: rgba(28, 39, 64, 0.55);
+  --ag-font-size: 12.5px;
+  --ag-font-family: Inter, sans-serif;
+  --ag-header-column-resize-handle-color: #1c2740;
+}
+.ag-theme-quartz .ag-root-wrapper { border: none !important; }

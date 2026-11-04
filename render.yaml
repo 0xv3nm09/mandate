@@ -1,0 +1,28 @@
+# Render blueprint — web service (serves API + built console) for Mandate
+# Deploy: push this repo → Render → New → Blueprint → point at the repo.
+services:
+  - type: web
+    name: mandate
+    runtime: node
+    plan: free
+    rootDir: .
+    buildCommand: |
+      cd web && npm install && npm run build &&
+      cd ../server && npm install
+    startCommand: cd server && npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "24"
+      - key: MANDATE_SIGNING_SECRET
+        generateValue: true
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: PAYPAL_WEBHOOK_ID
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: DB_PATH
+        value: /tmp/mandate.db
