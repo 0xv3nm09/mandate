@@ -20,6 +20,9 @@ export const env = {
     /** Sandbox-only: PayPal requires recipients to be real sandbox personal accounts.
      *  Set to your sb-…@personal.example.com address; the ledger still records the logical payee. */
     invoiceRecipient: required('PAYPAL_SANDBOX_RECIPIENT'),
+    /** Invoicer identity shown on real invoices (defaults to the demo merchant). */
+    invoicerName: process.env.PAYPAL_INVOICER_NAME ?? 'Mandate Demo Merchant',
+    invoicerEmail: process.env.PAYPAL_INVOICER_EMAIL ?? 'merchant@mandate.demo',
   },
 
   llm: {

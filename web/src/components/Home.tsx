@@ -3,7 +3,7 @@ import {
   ArrowRight, Bot, CheckCircle2, FileSignature, Fingerprint, GitBranch, Lock, Scale,
   ShieldCheck, Sparkles, TrendingUp, Webhook, XCircle, Zap,
 } from 'lucide-react';
-import { api, money, type Stats } from '../lib/api';
+import { api, money, shortTime, type Stats, type RunSummary } from '../lib/api';
 
 interface Health {
   mode: { paypal: string; llm: string };
@@ -14,11 +14,13 @@ interface Health {
 export function Home({ go }: { go: (page: 'dashboard' | 'console' | 'usecases') => void }) {
   const [stats, setStats] = useState<Stats | null>(null);
   const [health, setHealth] = useState<Health | null>(null);
+  const [runs, setRuns] = useState<RunSummary[]>([]);
 
   useEffect(() => {
     const load = () => {
       api<Stats>('/stats').then(setStats).catch(() => {});
       api<Health>('/health').then(setHealth).catch(() => {});
+      api<RunSummary[]>('/runs').then(setRuns).catch(() => {});
     };
     load();
     const t = setInterval(load, 5000);
@@ -27,13 +29,13 @@ export function Home({ go }: { go: (page: 'dashboard' | 'console' | 'usecases') 
 
   return (
     <div className="mx-auto max-w-6xl px-4 pb-16">
-      <Hero go={go} stats={stats} health={health} />
+      <Hero go={go} stats={stats} health={health} runs={runs} />
       <LiveProof stats={stats} />
       <WhatItIs />
       <Worth />
       <Values />
       <HowItWorks />
-      <UseCaseStrip go={go} />
+      <UseCaseStrip go={go} runs={runs} />
       <Stack />
       <FinalCta go={go} />
     </div>
@@ -43,7 +45,7 @@ export function Home({ go }: { go: (page: 'dashboard' | 'console' | 'usecases') 
 // ── Hero ─────────────────────────────────────────────────────────────────────
 type GoTo = (p: 'dashboard' | 'console' | 'usecases') => void;
 
-function Hero({ go, stats, health }: { go: GoTo; stats: Stats | null; health: Health | null }) {
+function Hero({ go, stats, health, runs }: { go: GoTo; stats: Stats | null; health: Health | null; runs: RunSummary[] }) {
   return (
     <section className="relative overflow-hidden rounded-2xl border border-edge/60 bg-surface/60 px-6 py-14 text-center shadow-card md:px-12 md:py-20">
       {/* aurora */}
@@ -86,6 +88,12 @@ function Hero({ go, stats, health }: { go: GoTo; stats: Stats | null; health: He
           <span>agent: <b className="text-slate-300">{health?.mode.llm === 'LLM' ? 'llm/ai-sdk' : 'deterministic'}</b></span>
           <span>intent-mandate: <b className="text-slate-300">v{health?.mandateVersion ?? '…'} · JWS</b></span>
           {stats && <span>audit-chain: <b className="text-slate-300">{stats.auditRecords} records ✓</b></span>}
+          {runs.length > 0 && (
+            <span>
+              live suite: <b className="text-slate-300">{runs.length} recorded runs</b> ·{' '}
+              <b className="text-teal">{runs.filter((r) => r.outcome !== 'error').length} clean</b>
+            </span>
+          )}
         </div>
       </div>
     </section>
@@ -305,24 +313,43 @@ function HowItWorks() {
 }
 
 // ── Use case strip ───────────────────────────────────────────────────────────
-function UseCaseStrip({ go }: { go: GoTo }) {
+function UseCaseStrip({ go, runs }: { go: GoTo; runs: RunSummary[] }) {
+  // map each strip row to its recorded use case so the strip shows LIVE outcomes
   const cases = [
-    { t: '“Invoice Acme $1,200 for October design”', r: 'sent autonomously — money-in', c: 'text-ok' },
-    { t: '“Chase Acme”', r: 'AI reminder, tone escalates each retry', c: 'text-teal' },
-    { t: '“Pay contractor Sam $500”', r: 'GATE → AI risk summary → one tap → paid + logged', c: 'text-amber' },
-    { t: '“Pay NewVendor $800”', r: 'BLOCKED — payee not on the signed allowlist', c: 'text-danger' },
-    { t: '“Pay Vita $300 weekly”', r: 'signed once, runs unattended while in-bounds', c: 'text-teal' },
+    { t: '“Invoice Acme $1,200 for October design”', uc: 'UC-01', r: 'sent autonomously — money-in', c: 'text-ok' },
+    { t: '“Chase Acme”', uc: 'UC-02', r: 'AI reminder, tone escalates each retry', c: 'text-teal' },
+    { t: '“Pay contractor Sam $500”', uc: 'UC-03', r: 'GATE → AI risk summary → one tap → paid + logged', c: 'text-amber' },
+    { t: '“Pay NewVendor $800”', uc: 'UC-04', r: 'BLOCKED — payee not on the signed allowlist', c: 'text-danger' },
+    { t: '“Pay Vita $300 weekly”', uc: 'UC-08', r: 'signed once, runs unattended while in-bounds', c: 'text-teal' },
   ];
+  const latestByUc = new Map(runs.map((r) => [r.ucId, r]));
   return (
     <Section title="Say it, watch it, verify it" kicker="Use cases" accent="text-teal">
       <div className="card card-gradient divide-y divide-edge/60">
-        {cases.map((c) => (
-          <div key={c.t} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-5 py-3 transition-colors hover:bg-raised/40">
-            <p className="font-mono text-[13px] text-ink/90">{c.t}</p>
-            <span className="ml-auto text-xs text-muted">→ <span className={c.c}>{c.r}</span></span>
-          </div>
-        ))}
+        {cases.map((c) => {
+          const live = latestByUc.get(c.uc);
+          return (
+            <div key={c.t} className="flex flex-wrap items-center gap-x-4 gap-y-1 px-5 py-3 transition-colors hover:bg-raised/40">
+              <p className="font-mono text-[13px] text-ink/90">{c.t}</p>
+              {live ? (
+                <span className="ml-auto flex items-center gap-2 text-xs">
+                  <span className={`pill ${live.outcome === 'ok' ? 'bg-ok/15 text-ok border border-ok/30' : live.outcome === 'gate' ? 'bg-amber/15 text-amber border border-amber/30' : live.outcome === 'block' ? 'bg-danger/15 text-danger border border-danger/30' : 'bg-danger/20 text-danger border border-danger/40'}`}>
+                    {live.outcome.toUpperCase()} · {shortTime(live.ranAt)} · {live.durationMs}ms
+                  </span>
+                  <span className="hidden text-muted md:inline">→ <span className={c.c}>{c.r}</span></span>
+                </span>
+              ) : (
+                <span className="ml-auto text-xs text-muted">→ <span className={c.c}>{c.r}</span></span>
+              )}
+            </div>
+          );
+        })}
       </div>
+      <p className="mt-2 text-center font-mono text-[10.5px] text-slate-500">
+        {runs.length > 0
+          ? `pills above are the recorded outcomes of the last live run of each command · ${runs.length} runs in the ledger`
+          : 'run the suite once and this strip fills with the recorded outcomes'}
+      </p>
       <div className="mt-4 text-center">
         <button className="btn-primary" onClick={() => go('usecases')}>
           Run all twelve live — real engine, real traces <ArrowRight size={15} />
