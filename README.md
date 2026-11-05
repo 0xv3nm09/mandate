@@ -1,6 +1,19 @@
 # Mandate — the trust layer for agentic money movement
 
-**Mandate** is a PayPal-native autonomous finance agent that *invoices, collects, and pays out on its own* — wrapped in a deterministic approval gate that makes **every dollar it moves accountable**. Low-risk money-in flows autonomously; risky money-out is checked against a signed policy (an **Intent Mandate**), explained by an AI risk summary, and held for one-tap human approval. Everything lands in a SHA-256 **hash-chained audit log**.
+<p align="center">
+  <img src="docs/screenshots/demo.gif" alt="Mandate walkthrough: live landing page with the policy verdict strip, Dashboard with recorded-run ledger, 12-use-case grid with real outcome pills, and the operator console with the approval inbox" width="800">
+</p>
+
+<p align="center">
+  <a href="docs/screenshots/home.png"><img src="docs/screenshots/home.png" width="32%" alt="Home — live verdict strip"></a>
+  <a href="docs/screenshots/dashboard.png"><img src="docs/screenshots/dashboard.png" width="32%" alt="Dashboard — KPIs, signed mandate, recorded runs"></a>
+  <a href="docs/screenshots/usecases.png"><img src="docs/screenshots/usecases.png" width="32%" alt="Usecases — 12 real run cards"></a>
+</p>
+<p align="center">
+  <i>Home (live policy verdict strip) · Dashboard (KPIs + signed mandate + recorded runs) · Usecases (12 real run cards)</i>
+</p>
+
+**Mandate** is a PayPal-native autonomous finance agent that *invoices, collects, and pays out on its own* — wrapped in a deterministic approval gate that makes **every dollar it moves accountable**. Low-risk money-in flows autonomously; risky money-out is checked against a signed policy (an **Intent Mandate**), explained by an AI risk summary, and held for one-tap human approval. Everything lands in a SHA-256 **hash-chained audit log** — and inbound invoices claiming to be from "Netflix" get stamped **VERIFIED** or **IMPOSTOR** by a known-merchant directory check.
 
 > Built for the [PayPal AI Hackathon](https://paypalaihackathon.devpost.com/) · aligned with **AP2** (Google's Agent Payments Protocol, backed by PayPal): *"verifiable intent, not inferred action — an agent's reasoning is never the authorization; a signed mandate is."*
 
