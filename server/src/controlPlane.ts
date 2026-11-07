@@ -216,9 +216,45 @@ export async function executePayout(actionId: string, idempotencyKey: string): P
   if (row.status === 'EXECUTED') return { paypalRef: row.paypalRef ?? '', status: 'ALREADY_EXECUTED' }; // idempotent re-submit
 
   updateAction(actionId, { status: 'EXECUTING' });
-  const res = await paypal.createPayout({
-    payee: row.payee, amount: row.amount, currency: row.currency, note: row.memo || 'Mandate governed payout', idempotencyKey,
-  });
+  let res: { batchId: string; status: string };
+  try {
+    res = await paypal.createPayout({
+      payee: row.payee, amount: row.amount, currency: row.currency, note: row.memo || 'Mandate governed payout', idempotencyKey,
+    });
+  } catch (e: unknown) {
+    const msg = String(e);
+    // PayPal-side idempotency: a duplicate sender_batch_id within PayPal's retention window
+    // (e.g. after a local reset) means the batch already exists — treat as a no-op, never a failure.
+    if (msg.includes('already exists')) {
+      const m = msg.match(/payouts\/([A-Z0-9]+)/);
+      const existingId = m ? m[1] : null;
+      updateAction(actionId, { status: 'EXECUTED', paypalRef: existingId });
+      db.prepare(
+        `INSERT INTO payouts (id, actionId, batchId, status, amount, currency, payee, idempotencyKey, createdAt, updatedAt)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ).run(uid(), actionId, existingId ?? 'duplicate', 'SUCCESS', row.amount, row.currency, row.payee, idempotencyKey, now(), now());
+      appendAudit({
+        kind: 'EXECUTION',
+        actionId,
+        payload: {
+          event: `Payout idempotent no-op: PayPal reports sender_batch_id already exists${existingId ? ` (batch ${existingId})` : ''} — no double-pay`,
+          actionType: row.type, moneyOut: 0, amount: row.amount, currency: row.currency,
+          payee: row.payee, paypalRef: existingId, idempotencyKey, duplicateOf: existingId,
+        },
+      });
+      publish('payout.updated', { actionId, batchId: existingId, status: 'ALREADY_EXISTS' });
+      return { paypalRef: existingId ?? 'duplicate', status: 'ALREADY_EXISTS' };
+    }
+    // Any other gateway failure: mark FAILED and surface — never silently execute (FR-14).
+    updateAction(actionId, { status: 'FAILED' });
+    appendAudit({
+      kind: 'SYSTEM',
+      actionId,
+      payload: { event: `Payout execution failed: ${msg.slice(0, 220)}`, actionType: row.type, payee: row.payee },
+    });
+    publish('payout.updated', { actionId, status: 'FAILED' });
+    throw e;
+  }
   db.prepare(
     `INSERT INTO payouts (id, actionId, batchId, status, amount, currency, payee, idempotencyKey, createdAt, updatedAt)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
