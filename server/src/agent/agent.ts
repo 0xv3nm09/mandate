@@ -1,6 +1,6 @@
 // Agent facade: natural language in → governed actions out.
 // LLM path (AI SDK tool loop) when a key exists; deterministic parser otherwise.
-// Either way the agent can only PROPOSE — the control plane decides (workbook §4.1, §5).
+// Either way the agent can only PROPOSE — the control plane decides (see SYSTEM_CARD.md).
 
 import { parse, emailFor, type ParsedIntent } from './parser.js';
 import { handle, type HandleResult } from '../controlPlane.js';
@@ -185,7 +185,7 @@ export async function parserChat(message: string): Promise<AgentReply> {
   return { reply, actions, ui, mode: 'DEMO' };
 }
 
-// ── LLM path: AI SDK v5 tool loop with governed tools (workbook A5) ─────────
+// ── LLM path: AI SDK v5 tool loop with governed tools (propose-not-execute) ──
 // create_invoice EXECUTES inline (money-in, ALLOW by policy). propose_payout /
 // propose_mandate_change have NO execute: the SDK returns the tool-call as a
 // proposal, which we route through the control plane.

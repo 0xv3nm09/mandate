@@ -1,5 +1,5 @@
 // The deterministic policy engine. Pure function: no I/O, no LLM, no randomness.
-// Code owns the facts; the model only writes language. (Workbook §4.1 / §6)
+// Code owns the facts; the model only writes language. (See SYSTEM_CARD.md)
 
 import type { Decision, IntentMandate, PolicyContext, PolicyHit, ProposedAction } from '../types.js';
 

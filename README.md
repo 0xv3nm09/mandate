@@ -145,6 +145,6 @@ Then publish the repo to GitHub and enable **Pages → Deploy from branch → ro
 - **Meaningful AI use** — Vercel AI SDK v5 tool loop (a PayPal-supported framework) with governed tools (`propose_payout` has no `execute`, by design), LLM-written risk explanations / reminders / mandate drafts, NL audit interrogation (UC-09), and a deterministic fallback agent so the trust layer never depends on a model.
 - **Functional demo** — hosted URL (Render blueprint included) or copy-paste repo run steps: `cd server && npm i && npm run dev`.
 - **Open source + license** — MIT at repo root; make it visible in the GitHub About/sidebar.
-- **Video (<3 min, YouTube)** — script in the build workbook §14; no third-party trademarks presented as ours (see footer disclaimer).
+- **Video (<3 min, YouTube)** — demonstrates the app end-to-end on the sandbox; no third-party trademarks presented as ours (see footer disclaimer).
 
 MIT licensed.
