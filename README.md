@@ -58,11 +58,6 @@ flowchart LR
 
 **Full technical diagram set** — [docs/diagrams.md](docs/diagrams.md): system zones · policy decision flowchart · gated-payout and standing-payout sequences · inbound-verification flow · dispute evidence pack sequence · action lifecycle state machine · invoice lifecycle · audit hash-chain construction · data model (ER) · deployment architecture · evidence workflow.
 
-<p align="center">
-  <img src="docs/media/mandate-explainer.gif" alt="Animated: the agent proposes a $500 payout → the policy engine gates it (5× the signed threshold) → the AI risk summary explains why → one human tap approves → PayPal executes the payout → the hash-chained audit ledger records every step" width="480">
-  <br><i>The governed payout, animated — propose → gate → explain → approve → pay → audit.</i>
-</p>
-
 ## Quick start (zero external keys needed)
 
 ```bash
