@@ -1,11 +1,31 @@
-# Mandate — Technical Diagrams
+# Mandate — Architecture & flow diagrams
 
-Every diagram below matches the shipped code (file names, routes, rule ids). GitHub renders Mermaid natively.
-Companion docs: [SYSTEM_CARD.md](../SYSTEM_CARD.md) (agent boundaries) · [evidence/](../evidence/) (live-sandbox JSON artifacts).
+Twelve diagrams of the shipped system — every node, route and rule id matches the code as it
+runs (not a design mockup). GitHub renders Mermaid natively, so each block below is live.
+
+**How to read this page:** each diagram is followed by a short _What it tells you_ note —
+the one thing the diagram proves and where to look. Deeper prose lives in
+[SYSTEM_CARD.md](../SYSTEM_CARD.md) (agent boundaries), [PAYPAL.md](PAYPAL.md) (every PayPal
+call), [RESULTS.md](RESULTS.md) (live numbers) and [evidence/](../evidence/) (raw artifacts).
+
+**Contents:** 1. [System zones](#1-system-zones--where-authority-lives) ·
+2. [Policy flow](#2-policy-engine-decision-flow--policyts-evaluate) ·
+3. [Gated payout](#3-sequence--the-gated-payout-uc03-the-money-shot) ·
+4. [Standing payout](#4-sequence--standing-payout-autonomous-when-in-bounds-gates-on-drift-uc08) ·
+5. [Inbound verification](#5-flow--inbound-claim-verification-the-netflix-check-uc1011) ·
+6. [Evidence pack](#6-sequence--dispute-evidence-pack-uc12) ·
+7. [Action lifecycle](#7-action-lifecycle-state-machine) ·
+8. [Invoice lifecycle](#8-invoice-lifecycle-money-in-uc0102) ·
+9. [Audit chain](#9-audit-hash-chain--how-tampering-is-detectable) ·
+10. [Data model](#10-data-model-sqlite--nodesqlite-zero-native-deps) ·
+11. [Deployment](#11-deployment-architecture) ·
+12. [Evidence workflow](#12-workflow--how-a-use-case-run-becomes-dashboard-evidence)
 
 ---
 
 ## 1. System zones — where authority lives
+
+**What it tells you:** Mandate is four zones with one hard rule — PayPal credentials for money movement exist **only** in zone 4, and the only path into zone 4 runs through the deterministic control plane (zone 3). The AI agent (zone 2) has *no* PayPal credentials at all: it can draw up a proposal, and that is all. This single picture is the whole security argument — everything else on this page is a zoom-in.
 
 ```mermaid
 flowchart LR
@@ -55,6 +75,8 @@ flowchart LR
 
 ## 2. Policy engine decision flow — `policy.ts evaluate()`
 
+**What it tells you:** the exact order the engine checks a proposal, and why order matters. Hard BLOCKs (payee, currency, daily cap) are evaluated **first** — so no approval, prompt or reasoning can reach them. Standing envelopes are matched before thresholds so a pre-authorized run never trips its own limit. Read it top-to-bottom as: *can I refuse instantly? → is this pre-signed? → does a human need to see it? → otherwise, run it.*
+
 Pure function. Input: `ProposedAction` + signed `IntentMandate` + engine-owned counters (dailySpent, recent payouts). Output: `ALLOW | GATE | BLOCK` with reason codes.
 
 ```mermaid
@@ -83,6 +105,8 @@ Gate ≠ block: a GATE queues an approval card (AI-written risk summary attached
 ---
 
 ## 3. Sequence — the gated payout (UC-03, the money shot)
+
+**What it tells you:** the full life of the $500 payout, from a plain-English sentence to a real PayPal batch. Follow the audit chain on the right — a record is committed at every decision point (proposal verdict, human approval, execution, settlement), so the finished payout has a complete, independently verifiable paper trail. The DENY path skips everything after the approval card.
 
 ```mermaid
 sequenceDiagram
@@ -117,6 +141,8 @@ A **DENY** at the approval step skips everything after the card: action → DENI
 
 ## 4. Sequence — standing payout: autonomous when in-bounds, gates on drift (UC-08)
 
+**What it tells you:** how autonomy without abdication works. The human signs the envelope *once* ($300/week → vita@va.test); from then on the engine's idempotency guard + envelope check run the payout unattended. The moment any parameter drifts ($150 instead of $300), the same mandate that granted autonomy withdraws it — no re-prompting, no new rules.
+
 ```mermaid
 sequenceDiagram
   actor Op as Operator
@@ -143,6 +169,8 @@ The signed envelope moves the human to **authorization time, not execution time*
 ---
 
 ## 5. Flow — inbound claim verification (the Netflix check, UC-10/11)
+
+**What it tells you:** how an inbound "Netflix" claim is judged without trusting its branding. Four independent checks run in order — directory, sender domain (exact vs lookalike), amount envelope, payment history — and the worst flag wins. A lookalike domain plus an inflated amount is an IMPOSTOR; a genuine price hike from the real domain is only SUSPICIOUS. The verdict is signed and committed like any other record.
 
 ```mermaid
 flowchart TD
@@ -180,6 +208,8 @@ Same checks, both directions: UC-10 catches the impostor; UC-11 shows the genuin
 
 ## 6. Sequence — dispute evidence pack (UC-12)
 
+**What it tells you:** what happens when a payee disputes a payment. Instead of an argument, Mandate compiles a single signed artifact — the human approval record, the PayPal batch id with its **live** status (polled, since sandbox batches settle asynchronously), and the audit-chain position. The packHash + HMAC make the pack independently verifiable.
+
 ```mermaid
 sequenceDiagram
   actor Payee as Payee ("I never got paid")
@@ -201,6 +231,8 @@ The dispute is answered with **PayPal's own ledger + the immutable chain**, not 
 ---
 
 ## 7. Action lifecycle state machine
+
+**What it tells you:** every state an action can be in, and the only transitions between them. Two details to notice: resubmission of an EXECUTED action is a self-loop (idempotency — it can never double-pay), and HALTED is reachable from anywhere while the kill switch is on. DENIED and EXPIRED actions are terminal — they can never execute later.
 
 ```mermaid
 stateDiagram-v2
@@ -224,6 +256,8 @@ stateDiagram-v2
 
 ## 8. Invoice lifecycle (money-in, UC-01/02)
 
+**What it tells you:** the money-in loop the agent runs unattended — create, send, sweep overdue, chase with escalating AI reminders (PayPal allows 2 reminders/invoice/day), plus PayPal's own native auto-reminders configured once at bootstrap. The CREATED → resend path is the honest handling of the sandbox's send restriction.
+
 ```mermaid
 flowchart TD
   NL["NL instruction<br/>'Invoice Acme $1,200 for October design'"] --> PE["Policy: ALLOW (money-in)<br/>R_ALLOW_INVOICE"]
@@ -244,6 +278,8 @@ flowchart TD
 
 ## 9. Audit hash chain — how tampering is detectable
 
+**What it tells you:** why the audit log is tamper-*evident*, not just stored. Each record hashes the previous record's hash into its own, so changing any historical record breaks every hash after it — `verifyChain()` recomputes all links and pins the exact break point. Money-out totals are computed from this chain, never from the model's memory.
+
 ```mermaid
 flowchart LR
   R0["#1 · genesis<br/>prevHash = 0…0"] --> R1["#2<br/>prevHash = h1"]
@@ -262,6 +298,8 @@ Kinds appended: `ACTION_DECISION` · `EXECUTION` · `APPROVAL` · `MANDATE_SIGNE
 ---
 
 ## 10. Data model (SQLite — `node:sqlite`, zero native deps)
+
+**What it tells you:** the entire persistent state of the product — nine tables, no more. Actions are the spine; approvals, payouts and invoices hang off them; the audit chain is append-only and rebuildable. Note there is no session or credential table: the kill switch and policy live in the signed mandate, not in server memory.
 
 ```mermaid
 erDiagram
@@ -335,6 +373,8 @@ erDiagram
 
 ## 11. Deployment architecture
 
+**What it tells you:** how this ships. One build (relative assets) runs at localhost, on Render (API + console same-origin — the full product) and on GitHub Pages (static console pointed at the Render API). Cross-origin access is allow-listed and admin-token-guarded; nothing is open-wide.
+
 ```mermaid
 flowchart LR
   DEV["Local dev<br/>tsx watch :8787 + Vite :5173 (proxy)"] --> BUILD["vite build (base './')<br/>relative assets — one build, any host"]
@@ -351,6 +391,8 @@ Security posture: no open CORS (allow-listed origins only), `MANDATE_ADMIN_TOKEN
 ---
 
 ## 12. Workflow — how a use-case run becomes dashboard evidence
+
+**What it tells you:** why the numbers in RESULTS.md are trustworthy. A use-case run is not a script that prints a verdict — it drives the real pipeline, collects the trace, commits it to the runs table, and the same artifacts land on the Dashboard, in the Usecases UI and in `evidence/` for the repo. One source of truth, three views.
 
 ```mermaid
 flowchart LR

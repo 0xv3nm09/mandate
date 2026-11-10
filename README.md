@@ -18,7 +18,7 @@
 [Results](docs/RESULTS.md) (12/12 expected-vs-got, rendered from evidence) ·
 [Agent](docs/AGENT.md) (modes, tools, verbatim results) ·
 [Evidence map](docs/EVIDENCE.md) (criteria → proof, 60-second tour) ·
-[Technical diagrams](docs/diagrams.md) (12 Mermaid) · [Build feedback](docs/FEEDBACK.md)
+[Architecture & flows](docs/ARCHITECTURE.md) (12 annotated diagrams) · [Build feedback](docs/FEEDBACK.md)
 (every issue faced and its fix) · [System card](SYSTEM_CARD.md) (agent boundaries) ·
 [Evidence bundle](evidence/) (raw live-sandbox artifacts)
 
@@ -59,7 +59,7 @@ flowchart LR
 
 **The trust boundary sits between the control plane and PayPal**: money leaves the account only after a policy pass (plus a human approval when gated). The agent holds no PayPal credentials for money movement. **Code owns the facts; the model only writes language** — no LLM call sits anywhere on the decision path, so a hallucination can't move money.
 
-**Full technical diagram set** — [docs/diagrams.md](docs/diagrams.md): system zones · policy decision flowchart · gated-payout and standing-payout sequences · inbound-verification flow · dispute evidence pack sequence · action lifecycle state machine · invoice lifecycle · audit hash-chain construction · data model (ER) · deployment architecture · evidence workflow.
+**Full architecture set** — [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), each diagram annotated with what it proves: system zones · policy decision flowchart · gated-payout and standing-payout sequences · inbound-verification flow · dispute evidence pack sequence · action lifecycle state machine · invoice lifecycle · audit hash-chain construction · data model (ER) · deployment architecture · evidence workflow.
 
 ## Quick start (zero external keys needed)
 
@@ -213,7 +213,7 @@ the bugs our own audit loop caught. Feedback matters; the failures are documenta
 | [`docs/AGENT.md`](docs/AGENT.md) | **The agent** — both modes, tool contracts (propose-not-execute), parser intents, verbatim results from live runs, and where the model is never allowed. |
 | [`docs/EVIDENCE.md`](docs/EVIDENCE.md) | **Criteria → proof map** — each judging criterion mapped to runnable commands and committed artifacts, trust guarantees → evidence, deliverable status, 60-second tour. |
 | [`docs/FEEDBACK.md`](docs/FEEDBACK.md) | **Build retrospective** — 16 issues faced and fixed (PayPal API behavior, toolkit, frameworks, infra), what worked well, known gaps documented not hidden. |
-| [`docs/diagrams.md`](docs/diagrams.md) | **12 Mermaid diagrams** — zones + trust boundary, policy decision flowchart, gated/standing payout sequences, inbound verification flow, dispute pack, action lifecycle, invoice lifecycle, hash chain, data model, deployment, evidence workflow. |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | **12 annotated Mermaid diagrams** — zones + trust boundary, policy decision flow, gated/standing payout + evidence-pack sequences, inbound verification flow, action & invoice lifecycles, hash chain, data model, deployment, evidence workflow — each with a "what it tells you" note. | |
 | [`SYSTEM_CARD.md`](SYSTEM_CARD.md) | **System card** — agent identity, the five hard boundaries (no execute on money-out tools, model never decides, human gates, hash-chained audit, kill switch), data behavior, limitations. |
 | [`evidence/README.md`](evidence/README.md) | **Evidence bundle guide** — what each JSON artifact proves and how to verify it independently (recompute hashes, check JWS receipts, query PayPal for batch ids). |
 | [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md) | All bundled open-source components and licenses. |

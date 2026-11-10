@@ -34,7 +34,7 @@ rather than patches.
 | 13 | **`ag-grid-react` cell renderers that return DOM nodes crash React** (error #31: "Objects are not valid as a React child") — the AG Grid docs show DOM-based renderers, React wrappers need JSX | Renderers return JSX components ([`AuditGrid.tsx`](../web/src/components/AuditGrid.tsx)) |
 | 14 | **Custom single-value Tailwind colors shadow the default palette** — `teal: '#14b8a6'` silently kills `from-teal-400`-style shade utilities (half our gradients vanished) | Define colors as `{ DEFAULT, 400, 500, 600 }` objects |
 | 15 | **SSE streams die behind proxies** | 15-second keepalive ping on the approval stream (survives Render's proxy) |
-| 16 | **Mermaid on GitHub is picky** — angle-bracket text in sequence messages is swallowed as HTML, pipes in node labels break parsing | Diagram set hardened (docs/diagrams.md renders 12/12) |
+| 16 | **Mermaid on GitHub is picky** — angle-bracket text in sequence messages is swallowed as HTML, pipes in node labels break parsing | Diagram set hardened (docs/ARCHITECTURE.md renders 12/12) |
 
 ## What worked well
 
