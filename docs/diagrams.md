@@ -99,7 +99,7 @@ sequenceDiagram
   PE-->>CP: GATE · R_GATE_THRESHOLD ($500 = 5× $100)
   CP->>AU: append ACTION_DECISION (GATE)
   CP->>Ag: request risk summary (language only)
-  Ag-->>CP: "…5× your per-transaction limit; payee allowlisted; today's spend…"
+  Ag-->>CP: risk summary (5x per-txn limit, payee allowlisted, current spend)
   CP-->>Op: SSE approval card (facts + explanation + TTL 10 min)
   Op->>CP: APPROVE (one tap)
   CP->>AU: append APPROVAL (verdict, by operator)

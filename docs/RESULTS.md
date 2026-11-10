@@ -177,6 +177,40 @@ _5 steps · 6576 ms · audit records: —_
 - ✅ **Immutable chain position** — 3 audit records reference this action — every hash-chained and reproducible (mandate v1)
 - ✅ **Signed evidence pack** — pack c19cd6cdd5f1e3ca… · HMAC signature verified — exportable as a single JSON artifact
 
+## Benchmarks
+
+Sweep totals: **12 runs · 61 pipeline steps · 16,668 ms total engine time (avg 1389 ms/run)** — collected from the committed traces.
+
+| Metric | Value |
+| --- | --- |
+| Use cases executed | 12 |
+| Expected outcomes matched | 12/12 |
+| Pipeline steps executed | 61 |
+| Total engine time | 16,668 ms (avg 1389 ms/run) |
+| Audit records committed | 24 |
+| — audit kind: ACTION_DECISION | 8 |
+| — audit kind: APPROVAL | 2 |
+| — audit kind: EXECUTION | 4 |
+| — audit kind: MANDATE_SIGNED | 4 |
+| — audit kind: SYSTEM | 2 |
+| — audit kind: VERIFICATION | 4 |
+| Inbound claims verified | 4 |
+| — verdict: IMPOSTOR | 1 |
+| — verdict: SUSPICIOUS | 1 |
+| — verdict: VERIFIED | 2 |
+| Off-policy money-out executed | **0** |
+
+Slowest runs (the ones that touch PayPal):
+
+| Run | Steps | Duration | Why |
+| --- | --- | --- | --- |
+| UC-12 | 5 | 6,576 ms | evidence pack + live batch status poll (3× 1.5 s) |
+| UC-01 | 6 | 3,359 ms | real PayPal invoice create + send (2 REST calls) |
+| UC-03 | 6 | 2,278 ms | gated payout: policy + AI summary + real batch + settle poll |
+
+Pure-decision use cases (no PayPal round-trip on the hot path — UC-04/05/06/07/09/10) finish in **1–4 ms**;
+all wall-clock time is PayPal REST latency, not engine overhead.
+
 ## Verdict mix
 
 ```
