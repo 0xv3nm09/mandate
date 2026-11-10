@@ -61,13 +61,15 @@ export function Usecases() {
       }
       setResults((x) => ({ ...seeded, ...x }));
       setRunOrder((o) => [...o, ...order.filter((k) => !o.includes(k))]);
-      // Auto-open the money-shot trace (UC-03) so visitors see traces are expandable.
-      const featured = seeded['UC-03'];
+      // Auto-open the trace of the TOP card (the most recently run use case) so
+      // visitors immediately see that traces expand.
+      const featuredId = order[0];
+      const featured = featuredId ? seeded[featuredId] : undefined;
       if (featured?.runId) {
         api<RunRecord>(`/runs/${featured.runId}`)
           .then((full) => {
-            setResults((x) => (x['UC-03'] ? { ...x, 'UC-03': { ...x['UC-03'], steps: full.steps } } : x));
-            setOpen((o) => (o['UC-03'] ? o : { ...o, 'UC-03': true }));
+            setResults((x) => (x[featuredId] ? { ...x, [featuredId]: { ...x[featuredId], steps: full.steps } } : x));
+            setOpen((o) => (o[featuredId] ? o : { ...o, [featuredId]: true }));
           })
           .catch(() => {});
       }
