@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
-  ArrowRight, BellRing, Bot, CheckCircle2, Database, FileSignature, FileText, Fingerprint, GitBranch, Lock, Scale,
+  ArrowRight, BellRing, CheckCircle2, Database, FileSignature, FileText, GitBranch, Lock, Scale,
   ShieldCheck, Sparkles, TrendingUp, Wallet, Webhook, XCircle, Zap,
 } from 'lucide-react';
 import { api, money, shortTime, type Stats, type RunSummary } from '../lib/api';
@@ -32,7 +32,6 @@ export function Home({ go }: { go: (page: 'dashboard' | 'console' | 'usecases') 
       <Hero go={go} stats={stats} health={health} runs={runs} />
       <LiveProof stats={stats} />
       <ForWhom />
-      <WhatItIs />
       <Worth />
       <Values />
       <HowItWorks />
@@ -203,41 +202,6 @@ function ForWhom() {
             <p className="mt-2 text-sm leading-relaxed text-muted">{p.fix}</p>
           </div>
         ))}
-      </div>
-    </Section>
-  );
-}
-
-function WhatItIs() {
-  return (
-    <Section title="What Mandate is" kicker="About">
-      <div className="grid gap-4 md:grid-cols-3">
-        <div className="card card-gradient p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-edge">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal/15 ring-1 ring-teal/30"><Bot size={20} className="text-teal" /></span>
-          <h3 className="mt-3 font-display text-lg font-semibold">An agent that does real back-office work</h3>
-          <p className="mt-2 text-sm leading-relaxed text-muted">
-            Natural language in, PayPal operations out: it creates and sends invoices, notices overdue payers and chases
-            them with escalating reminders, and executes payouts — including fully unattended, pre-authorized recurring ones.
-          </p>
-        </div>
-        <div className="card card-gradient p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-edge">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/15 ring-1 ring-accent/30"><Scale size={20} className="text-indigo-300" /></span>
-          <h3 className="mt-3 font-display text-lg font-semibold">A trust layer that owns the decisions</h3>
-          <p className="mt-2 text-sm leading-relaxed text-muted">
-            The agent can only <i>propose</i>. A deterministic policy engine checks every action against a signed Intent
-            Mandate — caps, allowlists, thresholds — and returns ALLOW, GATE or BLOCK. No model call sits in that path,
-            so no hallucination can move money.
-          </p>
-        </div>
-        <div className="card card-gradient p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-edge">
-          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-fuchsia-500/15 ring-1 ring-fuchsia-500/30"><Fingerprint size={20} className="text-fuchsia-300" /></span>
-          <h3 className="mt-3 font-display text-lg font-semibold">A trail you can verify and interrogate</h3>
-          <p className="mt-2 text-sm leading-relaxed text-muted">
-            Every decision, approval and settlement is appended to a SHA-256 hash-chained log — tampering is detectable
-            and receipts are cryptographically signed. Ask it in plain English why something was blocked; get the answer
-            and the exact mandate change that would allow it.
-          </p>
-        </div>
       </div>
     </Section>
   );
