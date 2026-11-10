@@ -14,7 +14,10 @@
 
 > Built for the [PayPal AI Hackathon](https://paypalaihackathon.devpost.com/) · aligned with **AP2** (Google's Agent Payments Protocol, backed by PayPal): *"verifiable intent, not inferred action — an agent's reasoning is never the authorization; a signed mandate is."*
 
-**Docs:** [Evidence map](docs/EVIDENCE.md) (criteria → proof, 60-second tour) ·
+**Docs:** [PayPal calls](docs/PAYPAL.md) (every endpoint, payload, real response) ·
+[Results](docs/RESULTS.md) (12/12 expected-vs-got, rendered from evidence) ·
+[Agent](docs/AGENT.md) (modes, tools, verbatim results) ·
+[Evidence map](docs/EVIDENCE.md) (criteria → proof, 60-second tour) ·
 [Technical diagrams](docs/diagrams.md) (12 Mermaid) · [Build feedback](docs/FEEDBACK.md)
 (every issue faced and its fix) · [System card](SYSTEM_CARD.md) (agent boundaries) ·
 [Evidence bundle](evidence/) (raw live-sandbox artifacts)
@@ -205,6 +208,9 @@ the bugs our own audit loop caught. Feedback matters; the failures are documenta
 
 | Document | What it covers |
 | --- | --- |
+| [`docs/PAYPAL.md`](docs/PAYPAL.md) | **Every PayPal call** — auth, Invoicing v2, Payouts v1, webhooks, toolkit: literal payloads, real responses, idempotency namespaces, the full error catalog with handling. |
+| [`docs/RESULTS.md`](docs/RESULTS.md) | **Live results** — expected-vs-got table (12/12), real PayPal objects, condensed per-UC traces, verdict mix; rendered from evidence by `scripts/render_results_md.py`. |
+| [`docs/AGENT.md`](docs/AGENT.md) | **The agent** — both modes, tool contracts (propose-not-execute), parser intents, verbatim results from live runs, and where the model is never allowed. |
 | [`docs/EVIDENCE.md`](docs/EVIDENCE.md) | **Criteria → proof map** — each judging criterion mapped to runnable commands and committed artifacts, trust guarantees → evidence, deliverable status, 60-second tour. |
 | [`docs/FEEDBACK.md`](docs/FEEDBACK.md) | **Build retrospective** — 16 issues faced and fixed (PayPal API behavior, toolkit, frameworks, infra), what worked well, known gaps documented not hidden. |
 | [`docs/diagrams.md`](docs/diagrams.md) | **12 Mermaid diagrams** — zones + trust boundary, policy decision flowchart, gated/standing payout sequences, inbound verification flow, dispute pack, action lifecycle, invoice lifecycle, hash chain, data model, deployment, evidence workflow. |
