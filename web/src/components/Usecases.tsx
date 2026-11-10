@@ -61,6 +61,16 @@ export function Usecases() {
       }
       setResults((x) => ({ ...seeded, ...x }));
       setRunOrder((o) => [...o, ...order.filter((k) => !o.includes(k))]);
+      // Auto-open the money-shot trace (UC-03) so visitors see traces are expandable.
+      const featured = seeded['UC-03'];
+      if (featured?.runId) {
+        api<RunRecord>(`/runs/${featured.runId}`)
+          .then((full) => {
+            setResults((x) => (x['UC-03'] ? { ...x, 'UC-03': { ...x['UC-03'], steps: full.steps } } : x));
+            setOpen((o) => (o['UC-03'] ? o : { ...o, 'UC-03': true }));
+          })
+          .catch(() => {});
+      }
     }).catch(() => {});
   }, []);
 
