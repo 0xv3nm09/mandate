@@ -1,1 +1,1 @@
-{"ok":true,"mode":{"paypal":"SANDBOX","llm":"DEMO"},"halted":false,"mandateVersion":4,"dailySpent":500,"toolkit":{"available":false},"ts":"2026-11-07T21:24:40.461Z"}
+{"ok":true,"mode":{"paypal":"SANDBOX","llm":"DETERMINISTIC"},"halted":false,"mandateVersion":4,"dailySpent":0,"toolkit":{"available":false},"ts":"2026-11-10T10:19:39.423Z"}

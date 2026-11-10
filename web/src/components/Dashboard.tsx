@@ -77,7 +77,7 @@ export function Dashboard({ go }: { go: (page: 'console' | 'usecases') => void }
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <span className="pill bg-raised text-slate-300 border border-edge">PayPal: <b>{health?.mode.paypal ?? '…'}</b></span>
-          <span className="pill bg-raised text-slate-300 border border-edge">agent: <b>{health?.mode.llm === 'LLM' ? 'LLM' : 'DEMO'}</b></span>
+          <span className="pill bg-raised text-slate-300 border border-edge">agent: <b>{health?.mode.llm === 'LLM' ? 'LLM (AI SDK)' : 'deterministic'}</b></span>
           {chain && (
             <span className={`pill ${chain.ok ? 'bg-ok/15 text-ok border border-ok/30' : 'bg-danger/15 text-danger border border-danger/30'}`}>
               <ShieldCheck size={12} /> chain {chain.ok ? 'verified' : 'BROKEN'} · {chain.count}

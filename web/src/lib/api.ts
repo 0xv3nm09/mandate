@@ -53,7 +53,7 @@ export interface ChatReply {
   reply: string;
   actions: { actionId: string; kind: string; status: string; decision: Decision | null; approvalId?: string; explanation?: string; execution?: { paypalRef: string; status: string } | null }[];
   ui: Record<string, any>;
-  mode: 'LLM' | 'DEMO';
+  mode: 'LLM' | 'DETERMINISTIC';
 }
 
 export interface TraceStep {

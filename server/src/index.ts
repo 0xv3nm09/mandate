@@ -38,7 +38,7 @@ const bootstrap = async () => {
   MANDATE — the trust layer for agentic money movement
   ─────────────────────────────────────────────────────
   PayPal gateway : ${paypal.mode}${paypal.mode === 'MOCK' ? '  (set PAYPAL_CLIENT_ID/SECRET for live sandbox)' : ''}
-  Agent mode     : ${env.llm.anthropicKey || env.llm.openaiKey ? 'LLM (AI SDK tool loop)' : 'DEMO (deterministic parser)'}
+  Agent mode     : ${env.llm.anthropicKey || env.llm.openaiKey ? 'LLM (AI SDK tool loop)' : 'DETERMINISTIC (rule-based parser — set an LLM key for the AI SDK tool loop)'}
   Intent Mandate : v${mandate.version} signed — per-txn $${mandate.limits.perTxn}, daily cap $${mandate.limits.dailyTotal}
   → http://localhost:${env.port}
 `);

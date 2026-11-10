@@ -52,7 +52,7 @@ export function Console({ halted, onHaltChange }: { halted: boolean; onHaltChang
           {modes && (
             <>
               <span className="pill bg-raised text-slate-300 border border-edge">PayPal: <b>{modes.paypal}</b></span>
-              <span className="pill bg-raised text-slate-300 border border-edge">agent: <b>{modes.llm}</b></span>
+              <span className="pill bg-raised text-slate-300 border border-edge">agent: <b>{modes.llm === 'LLM' ? 'LLM (AI SDK)' : 'deterministic'}</b></span>
             </>
           )}
           {mandateVersion != null && (

@@ -65,7 +65,7 @@ export default function App() {
             <NavBtn active={page === 'usecases'} onClick={() => setPage('usecases')} icon={<FlaskConical size={14} />} label="Usecases" />
             {modes && (
               <span className="ml-2 hidden rounded-full border border-edge bg-raised px-2.5 py-1 text-[10px] text-muted lg:inline">
-                PayPal: <b className="text-slate-300">{modes.paypal}</b> · agent: <b className="text-slate-300">{modes.llm}</b>
+                PayPal: <b className="text-slate-300">{modes.paypal === 'SANDBOX' ? 'live sandbox' : modes.paypal}</b> · agent: <b className="text-slate-300">{modes.llm === 'LLM' ? 'LLM (AI SDK)' : 'deterministic'}</b>
               </span>
             )}
             {halted && (

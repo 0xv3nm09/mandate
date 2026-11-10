@@ -40,5 +40,5 @@ export const env = {
 export const paypalMode: 'SANDBOX' | 'MOCK' =
   env.paypal.clientId && env.paypal.clientSecret ? 'SANDBOX' : 'MOCK';
 
-export const llmMode: 'LLM' | 'DEMO' =
-  env.llm.anthropicKey || env.llm.openaiKey ? 'LLM' : 'DEMO';
+export const llmMode: 'LLM' | 'DETERMINISTIC' =
+  env.llm.anthropicKey || env.llm.openaiKey ? 'LLM' : 'DETERMINISTIC';

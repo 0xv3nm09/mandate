@@ -16,7 +16,7 @@ export interface AgentReply {
   reply: string;
   actions: (HandleResult & { kind: string })[];
   ui: Record<string, unknown>;
-  mode: 'LLM' | 'DEMO';
+  mode: 'LLM' | 'DETERMINISTIC';
 }
 
 export async function chat(message: string): Promise<AgentReply> {
@@ -182,7 +182,7 @@ export async function parserChat(message: string): Promise<AgentReply> {
     }
   }
 
-  return { reply, actions, ui, mode: 'DEMO' };
+  return { reply, actions, ui, mode: 'DETERMINISTIC' };
 }
 
 // ── LLM path: AI SDK v5 tool loop with governed tools (propose-not-execute) ──
