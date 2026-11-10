@@ -1,5 +1,11 @@
 # Mandate — the trust layer for agentic money movement
 
+[![CI](https://github.com/0xv3nm09/mandate/actions/workflows/ci.yml/badge.svg)](https://github.com/0xv3nm09/mandate/actions/workflows/ci.yml)
+![use-case suite](https://img.shields.io/badge/use%E2%80%91case%20suite-12%2F12-brightgreen)
+![audit chain](https://img.shields.io/badge/audit%20chain-verified%20%C2%B7%2024%20records-success)
+![policy violations executed](https://img.shields.io/badge/off%E2%80%91policy%20money%E2%80%91out%20executed-0-success)
+![license](https://img.shields.io/badge/license-MIT-blue)
+
 <p align="center">
   <img src="docs/screenshots/demo.gif" alt="Mandate walkthrough: live landing page with the policy verdict strip, Dashboard with recorded-run ledger, 12-use-case grid with real outcome pills, and the operator console with the approval inbox" width="800">
 </p>
@@ -17,6 +23,21 @@
 
 > Built for the [PayPal AI Hackathon](https://paypalaihackathon.devpost.com/) · aligned with **AP2** (Google's Agent Payments Protocol, backed by PayPal): *"verifiable intent, not inferred action — an agent's reasoning is never the authorization; a signed mandate is."*
 
+**Docs:** [Evidence map](docs/EVIDENCE.md) (criteria → proof, 60-second tour) ·
+[Technical diagrams](docs/diagrams.md) (12 Mermaid) · [Build feedback](docs/FEEDBACK.md)
+(every issue faced and its fix) · [System card](SYSTEM_CARD.md) (agent boundaries) ·
+[Evidence bundle](evidence/) (raw live-sandbox artifacts)
+
+## PayPal platform surface
+
+| PayPal capability | How Mandate uses it |
+| --- | --- |
+| **Invoicing v2** | Create (with `Prefer: return=representation` + `PayPal-Request-Id` idempotency) → send → AI-drafted escalating reminders, plus PayPal's **native auto-reminders** configured via `setup-reminders` |
+| **Payouts v1** | All money-out executes as idempotent batches (`sender_batch_id` = approval/standing keys); live batch status polled; PayPal-side duplicate detection honored as a no-op |
+| **Webhooks** | `verify-webhook-signature` on every inbound event + dedupe by id; `simulate-event` for deterministic live demos |
+| **Agent Toolkit** | Official `@paypal/agent-toolkit` attached **read-only** (list/get invoices + disputes) — the agent gets eyes, never hands |
+| **AI** | Vercel AI SDK v5 governed tool loop — `propose_payout` ships with **no `execute`**, so the model structurally cannot move money; a deterministic agent is the zero-key fallback |
+
 ## For judges — run it in 60 seconds
 
 Zero keys needed. The bundled mock gateway implements PayPal's exact semantics (stateful invoices, idempotent payouts, webhook events), so the entire trust layer runs offline:
@@ -28,7 +49,7 @@ npm install && npm run dev        # Node ≥ 24 → http://localhost:8787
 
 Then open **Usecases → "Run all 12 sequentially"** — every trace is a real control-plane decision. To exercise the **live PayPal sandbox REST** instead, create free credentials at [developer.paypal.com](https://developer.paypal.com), copy `.env.example` → `.env`, set `PAYPAL_CLIENT_ID` / `PAYPAL_CLIENT_SECRET` (plus `PAYPAL_SANDBOX_RECIPIENT` = your sandbox personal account email so invoices/payouts route to a real test account), restart — the health pill flips to `SANDBOX` and all money movement hits `api-m.sandbox.paypal.com`.
 
-**Built during the Submission Period:** the entire project was created between Oct 28 and Nov 5, 2026 (see commit history) — first commit is the scaffold, latest commits are live-sandbox evidence.
+**Built during the Submission Period:** the entire project was created from Oct 28, 2026 onward (see commit history) — first commit is the scaffold, latest commits are live-sandbox evidence.
 
 ## The 30-second architecture
 
@@ -45,8 +66,6 @@ flowchart LR
 **The trust boundary sits between the control plane and PayPal**: money leaves the account only after a policy pass (plus a human approval when gated). The agent holds no PayPal credentials for money movement. **Code owns the facts; the model only writes language** — no LLM call sits anywhere on the decision path, so a hallucination can't move money.
 
 **Full technical diagram set** — [docs/diagrams.md](docs/diagrams.md): system zones · policy decision flowchart · gated-payout and standing-payout sequences · inbound-verification flow · dispute evidence pack sequence · action lifecycle state machine · invoice lifecycle · audit hash-chain construction · data model (ER) · deployment architecture · evidence workflow.
-
-## The 30-second demo
 
 ## Quick start (zero external keys needed)
 
@@ -65,7 +84,7 @@ npm run dev          # → http://localhost:5173 (proxies /api to :8787)
 That's it — with no env vars the app runs in **full demo mode**: a stateful `MockPayPal` gateway (identical semantics to the real REST client, including webhook events) and a deterministic NL parser drive the exact same control plane as live mode.
 
 Then open **http://localhost:8787** and either:
-- hit **Usecases → “Run all 9 sequentially”** — every scenario executes end-to-end through the real engine and renders the actual trace, or
+- hit **Usecases → “Run all 12 sequentially”** — every scenario executes end-to-end through the real engine and renders the actual trace, or
 - chat with the agent in the **Console** (suggestion chips included).
 
 ### Live PayPal sandbox (optional)
@@ -90,6 +109,42 @@ Set `ANTHROPIC_API_KEY` (or `OPENAI_API_KEY`) to upgrade the agent from the dete
 | “Cap daily at $500” / “Pay Vita $300 weekly” | Agent drafts the mandate diff → **you sign** a new version (UC-07) |
 | “Run standing” | Pre-authorized weekly payout runs with **no human in the loop**; drift → gate (UC-08) |
 | “Why was anything blocked?” | Interrogate the hash-chained trail + counterfactual + signed receipt (UC-09) |
+
+## Results — 12-use-case suite, executed live on the PayPal sandbox (Nov 2026)
+
+**12/12 use cases pass**, machine-collected from the running app (`Usecases → Run all 12`) —
+every trace below is a committed artifact in [`evidence/usecases/`](evidence/usecases/), and
+the same suite runs in CI (mock gateway) on every push.
+
+| outcome | cases | what that means |
+| --- | --- | --- |
+| **autonomous path held** | 8 | money-in, mandate re-signing, standing payouts, impostor/subscription checks, audit interrogation, dispute packs — all with zero or bounded human involvement |
+| **gate engaged** | 1 | the $500 payout stopped for a human tap, AI risk summary attached, then executed on a real batch |
+| **guardrail held** | 3 | off-policy payout blocked with no approval path · kill switch refused a live attempt · "Netflix" impostor stamped IMPOSTOR |
+
+```
+verdict mix (live sweep, 12 use cases)
+
+  Autonomous      ████████████████████████████   8   invoice · chase · standing · verify · dispute
+  Gate engaged    ████   1   $500 payout → human tap → executed
+  Guardrail held  ████████████   3   hard block · kill switch · impostor catch
+```
+
+Real money-movement on the live sandbox is committed: payout batch **`CM9XMWV3ZZYFC` settled
+to `SUCCESS`** and invoice drafts created against `api-m.sandbox.paypal.com`
+([`evidence/paypal-payouts.json`](evidence/paypal-payouts.json)). The one documented gap —
+invoice **send** needs `PAYPAL_SANDBOX_RECIPIENT` configured — is written up, not hidden:
+[known gaps](docs/FEEDBACK.md#known-gaps--documented-not-hidden).
+
+**At a glance**
+
+- ✅ **Deterministic policy engine** — pure function, zero LLM on the decision path; CI asserts the hard block holds
+- ✅ **Signed Intent Mandate** — versioned JWS policy; every decision records the version it used
+- ✅ **Hash-chained audit** — 24 records recomputed clean; receipts exportable and independently verifiable
+- ✅ **Idempotent money-out** — local keys + PayPal `sender_batch_id`; duplicate-after-reset is a no-op, double-pay is structurally impossible
+- ✅ **Official agent-toolkit attached read-only** — the agent can look, never touch
+- ✅ **12/12 live suite** — 0 off-policy executions on any attack-shaped case
+- ⚠️ **1 documented gap** — invoice send + payout settlement need the sandbox recipient env (honest `CREATED` status + one-click resend until set)
 
 ## Trust-layer guarantees (the scored part)
 
@@ -146,5 +201,26 @@ Then publish the repo to GitHub and enable **Pages → Deploy from branch → ro
 - **Functional demo** — hosted URL (Render blueprint included) or copy-paste repo run steps: `cd server && npm i && npm run dev`.
 - **Open source + license** — MIT at repo root; make it visible in the GitHub About/sidebar.
 - **Video (<3 min, YouTube)** — demonstrates the app end-to-end on the sandbox; no third-party trademarks presented as ours (see footer disclaimer).
+
+## Feedback
+
+Build week was not friction-free. Every issue we hit on the PayPal API (HAL-link invoice
+responses, `USER_NOT_FOUND` on send, the `sender_batch_id` duplicate 400, the reminder daily
+cap), the official toolkit, React/AG Grid/Tailwind, and infra — and how each was resolved —
+is written up in [`docs/FEEDBACK.md`](docs/FEEDBACK.md), together with what worked well and
+the bugs our own audit loop caught. Feedback matters; the failures are documentation too.
+
+## Documentation map
+
+| Document | What it covers |
+| --- | --- |
+| [`docs/EVIDENCE.md`](docs/EVIDENCE.md) | **Criteria → proof map** — each judging criterion mapped to runnable commands and committed artifacts, trust guarantees → evidence, deliverable status, 60-second tour. |
+| [`docs/FEEDBACK.md`](docs/FEEDBACK.md) | **Build retrospective** — 16 issues faced and fixed (PayPal API behavior, toolkit, frameworks, infra), what worked well, known gaps documented not hidden. |
+| [`docs/diagrams.md`](docs/diagrams.md) | **12 Mermaid diagrams** — zones + trust boundary, policy decision flowchart, gated/standing payout sequences, inbound verification flow, dispute pack, action lifecycle, invoice lifecycle, hash chain, data model, deployment, evidence workflow. |
+| [`SYSTEM_CARD.md`](SYSTEM_CARD.md) | **System card** — agent identity, the five hard boundaries (no execute on money-out tools, model never decides, human gates, hash-chained audit, kill switch), data behavior, limitations. |
+| [`evidence/README.md`](evidence/README.md) | **Evidence bundle guide** — what each JSON artifact proves and how to verify it independently (recompute hashes, check JWS receipts, query PayPal for batch ids). |
+| [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md) | All bundled open-source components and licenses. |
+| [`render.yaml`](render.yaml) | Render blueprint — one service, API + console same-origin, env slots documented inline. |
+| [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | CI — typechecks both packages, boots the server, asserts the hard block + chain verification, builds the web app. |
 
 MIT licensed.
