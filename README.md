@@ -7,16 +7,7 @@
 ![license](https://img.shields.io/badge/license-MIT-blue)
 
 <p align="center">
-  <img src="docs/screenshots/demo.gif" alt="Mandate walkthrough: live landing page with the policy verdict strip, Dashboard with recorded-run ledger, 12-use-case grid with real outcome pills, and the operator console with the approval inbox" width="800">
-</p>
-
-<p align="center">
-  <a href="docs/screenshots/home.png"><img src="docs/screenshots/home.png" width="32%" alt="Home — live verdict strip"></a>
-  <a href="docs/screenshots/dashboard.png"><img src="docs/screenshots/dashboard.png" width="32%" alt="Dashboard — KPIs, signed mandate, recorded runs"></a>
-  <a href="docs/screenshots/usecases.png"><img src="docs/screenshots/usecases.png" width="32%" alt="Usecases — 12 real run cards"></a>
-</p>
-<p align="center">
-  <i>Home (live policy verdict strip) · Dashboard (KPIs + signed mandate + recorded runs) · Usecases (12 real run cards)</i>
+  <img src="docs/media/main-paypal.png" alt="Mandate poster: a PayPal-native AI agent that earns, verifies and pays under human-signed limits — agent proposals flow through a deterministic policy engine (ALLOW / GATE / BLOCK), human one-tap approval, PayPal sandbox execution, and a hash-chained audit trail" width="620">
 </p>
 
 **Mandate** is a PayPal-native autonomous finance agent that *invoices, collects, and pays out on its own* — wrapped in a deterministic approval gate that makes **every dollar it moves accountable**. Low-risk money-in flows autonomously; risky money-out is checked against a signed policy (an **Intent Mandate**), explained by an AI risk summary, and held for one-tap human approval. Everything lands in a SHA-256 **hash-chained audit log** — and inbound invoices claiming to be from "Netflix" get stamped **VERIFIED** or **IMPOSTOR** by a known-merchant directory check.
@@ -66,6 +57,11 @@ flowchart LR
 **The trust boundary sits between the control plane and PayPal**: money leaves the account only after a policy pass (plus a human approval when gated). The agent holds no PayPal credentials for money movement. **Code owns the facts; the model only writes language** — no LLM call sits anywhere on the decision path, so a hallucination can't move money.
 
 **Full technical diagram set** — [docs/diagrams.md](docs/diagrams.md): system zones · policy decision flowchart · gated-payout and standing-payout sequences · inbound-verification flow · dispute evidence pack sequence · action lifecycle state machine · invoice lifecycle · audit hash-chain construction · data model (ER) · deployment architecture · evidence workflow.
+
+<p align="center">
+  <img src="docs/media/mandate-explainer.gif" alt="Animated: the agent proposes a $500 payout → the policy engine gates it (5× the signed threshold) → the AI risk summary explains why → one human tap approves → PayPal executes the payout → the hash-chained audit ledger records every step" width="480">
+  <br><i>The governed payout, animated — propose → gate → explain → approve → pay → audit.</i>
+</p>
 
 ## Quick start (zero external keys needed)
 
