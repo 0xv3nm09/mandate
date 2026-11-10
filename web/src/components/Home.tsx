@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
-  ArrowRight, Bot, CheckCircle2, FileSignature, Fingerprint, GitBranch, Lock, Scale,
-  ShieldCheck, Sparkles, TrendingUp, Webhook, XCircle, Zap,
+  ArrowRight, BellRing, Bot, CheckCircle2, Database, FileSignature, FileText, Fingerprint, GitBranch, Lock, Scale,
+  ShieldCheck, Sparkles, TrendingUp, Wallet, Webhook, XCircle, Zap,
 } from 'lucide-react';
 import { api, money, shortTime, type Stats, type RunSummary } from '../lib/api';
 
@@ -74,6 +74,26 @@ function Hero({ go, stats, health, runs }: { go: GoTo; stats: Stats | null; heal
         <p className="mx-auto mt-3 max-w-2xl font-display text-sm text-teal">
           “Verifiable intent, not inferred action” — the principle of AP2, the payments standard PayPal backs.
         </p>
+
+        {/* capability tags — what Mandate does, at a glance (persona + verbs) */}
+        <p className="mx-auto mt-8 w-fit font-mono text-[10.5px] uppercase tracking-[0.2em] text-slate-500">
+          What Mandate does for a freelancer’s PayPal
+        </p>
+        <div className="mx-auto mt-3 flex max-w-3xl flex-wrap items-center justify-center gap-2">
+          {[
+            { icon: <FileText size={12} />, label: 'Draft & send invoices' },
+            { icon: <BellRing size={12} />, label: 'Chase late payers' },
+            { icon: <Wallet size={12} />, label: 'Governed payouts' },
+            { icon: <ShieldCheck size={12} />, label: 'Verify inbound — the “Netflix check”' },
+            { icon: <FileSignature size={12} />, label: 'Sign the policy' },
+            { icon: <Database size={12} />, label: 'Hash-chained audit' },
+          ].map((t) => (
+            <span key={t.label} className="inline-flex items-center gap-1.5 rounded-full border border-edge bg-raised/70 px-2.5 py-1 text-[11px] text-muted">
+              <span className="text-teal">{t.icon}</span> {t.label}
+            </span>
+          ))}
+        </div>
+
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <button className="btn-primary px-6 py-3 text-base" onClick={() => go('usecases')}>
             See it run — 12 live use cases <ArrowRight size={16} />
