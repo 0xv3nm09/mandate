@@ -49,18 +49,18 @@ function Hero({ go, stats, health, runs }: { go: GoTo; stats: Stats | null; heal
   return (
     <section className="relative overflow-hidden rounded-2xl border border-edge/60 bg-surface/60 px-6 py-14 text-center shadow-card md:px-12 md:py-20">
       {/* aurora */}
-      <div className="pointer-events-none absolute -top-36 left-1/2 h-80 w-[44rem] -translate-x-1/2 rounded-full bg-accent/25 blur-[110px] animate-drift" />
-      <div className="pointer-events-none absolute -bottom-44 -left-28 h-80 w-[26rem] rounded-full bg-teal/20 blur-[110px] animate-drift-slow" />
-      <div className="pointer-events-none absolute -right-28 top-6 h-72 w-[24rem] rounded-full bg-fuchsia-500/15 blur-[100px] animate-drift" />
+      <div className="pointer-events-none absolute -top-36 left-1/2 h-80 w-[44rem] -translate-x-1/2 rounded-full bg-accent/20 blur-[110px] animate-drift" />
+      <div className="pointer-events-none absolute -bottom-44 -left-28 h-80 w-[26rem] rounded-full bg-teal/15 blur-[110px] animate-drift-slow" />
+      <div className="pointer-events-none absolute -right-28 top-6 h-72 w-[24rem] rounded-full bg-fuchsia-500/12 blur-[100px] animate-drift" />
       <div className="pointer-events-none absolute inset-0 bg-grid-dots bg-[size:26px_26px] [mask-image:radial-gradient(60rem_30rem_at_50%_0%,black_30%,transparent_75%)]" />
-            <div className="relative">
+      <div className="relative">
         <p className="mx-auto flex w-fit items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.18em] text-indigo-200">
           <Sparkles size={12} className="text-teal" />
           Built on PayPal sandbox · aligned with AP2
         </p>
         <h1 className="mx-auto mt-6 max-w-3xl font-display text-4xl font-bold leading-[1.08] tracking-tight md:text-6xl">
           AI agents can move money now.
-          <span className="block text-aurora drop-shadow-[0_0_28px_rgba(139,92,246,0.35)]">
+          <span className="block text-aurora">
             Mandate makes every dollar accountable.
           </span>
         </h1>
@@ -69,77 +69,86 @@ function Hero({ go, stats, health, runs }: { go: GoTo; stats: Stats | null; heal
           and can never move a dollar on its own. Every payment clears a <b className="text-ink/90">signed policy</b>, and
           anything risky waits for <b className="text-ink/90">your one-tap approval</b>.
         </p>
-        <p className="mx-auto mt-3 max-w-2xl font-display text-sm text-teal">
+        <p className="mx-auto mt-4 max-w-2xl font-display text-sm text-teal">
           “Verifiable intent, not inferred action” — the principle of AP2, the payments standard PayPal backs.
         </p>
 
-        {/* capability tags — what Mandate does, at a glance (persona + verbs) */}
-        <p className="mx-auto mt-8 w-fit font-mono text-[10.5px] uppercase tracking-[0.2em] text-slate-500">
-          What Mandate does for a freelancer’s PayPal
-        </p>
-        <div className="mx-auto mt-3 flex max-w-3xl flex-wrap items-center justify-center gap-2">
+        {/* capability grid — equal cells, one line each */}
+        <div className="mx-auto mt-10 grid max-w-2xl grid-cols-2 gap-2 sm:grid-cols-3">
           {[
-            { icon: <FileText size={12} />, label: 'Draft & send invoices' },
-            { icon: <BellRing size={12} />, label: 'Chase late payers' },
-            { icon: <Wallet size={12} />, label: 'Governed payouts' },
-            { icon: <ShieldCheck size={12} />, label: 'Verify inbound — the “Netflix check”' },
-            { icon: <FileSignature size={12} />, label: 'Sign the policy' },
-            { icon: <Database size={12} />, label: 'Hash-chained audit' },
+            { icon: <FileText size={13} />, label: 'Draft & send invoices' },
+            { icon: <BellRing size={13} />, label: 'Chase late payers' },
+            { icon: <Wallet size={13} />, label: 'Governed payouts' },
+            { icon: <ShieldCheck size={13} />, label: 'The “Netflix” check' },
+            { icon: <FileSignature size={13} />, label: 'Sign the policy' },
+            { icon: <Database size={13} />, label: 'Hash-chained audit' },
           ].map((t) => (
-            <span key={t.label} className="inline-flex items-center gap-1.5 rounded-full border border-edge bg-raised/70 px-2.5 py-1 text-[11px] text-muted">
+            <span key={t.label} className="flex h-9 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-edge/70 bg-raised/60 px-3 text-[11.5px] text-muted">
               <span className="text-teal">{t.icon}</span> {t.label}
             </span>
           ))}
         </div>
 
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <button className="btn-primary px-6 py-3 text-base" onClick={() => go('usecases')}>
-            See it run — 12 live use cases <ArrowRight size={16} />
+          <button className="btn-primary h-11 px-6 text-sm" onClick={() => go('usecases')}>
+            See it run — 12 live use cases <ArrowRight size={15} />
           </button>
-          <button className="btn-ghost px-6 py-3 text-base hover:border-teal/50" onClick={() => go('dashboard')}>
+          <button className="btn-ghost h-11 px-6 text-sm hover:border-teal/50" onClick={() => go('dashboard')}>
             Open the live dashboard
           </button>
         </div>
+
         <VerdictStrip />
-        <div className="mt-7 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 font-mono text-[11px] text-slate-500">
-          <span>paypal-gateway: <b className="text-slate-300">{health?.mode.paypal ?? '…'}</b></span>
-          <span>agent: <b className="text-slate-300">{health?.mode.llm === 'LLM' ? 'llm/ai-sdk' : 'deterministic'}</b></span>
-          <span>intent-mandate: <b className="text-slate-300">v{health?.mandateVersion ?? '…'} · JWS</b></span>
-          {stats && <span>audit-chain: <b className="text-slate-300">{stats.auditRecords} records ✓</b></span>}
-          {runs.length > 0 && (
-            <span>
-              live suite: <b className="text-slate-300">{runs.length} recorded runs</b> ·{' '}
-              <b className="text-teal">{runs.filter((r) => r.outcome !== 'error').length} clean</b>
-            </span>
-          )}
+
+        {/* status bar — one deliberate strip, uniform label/value pairs */}
+        <div className="mx-auto mt-8 flex max-w-3xl flex-wrap items-center justify-center gap-x-7 gap-y-2 rounded-xl2 border border-edge/60 bg-bg/40 px-5 py-3 font-mono text-[11px]">
+          {[
+            { k: 'gateway', v: health?.mode.paypal === 'SANDBOX' ? 'live sandbox' : (health?.mode.paypal ?? '…') },
+            { k: 'agent', v: health?.mode.llm === 'LLM' ? 'llm / ai-sdk' : 'deterministic' },
+            { k: 'mandate', v: `v${health?.mandateVersion ?? '…'} · JWS` },
+            stats ? { k: 'audit chain', v: `${stats.auditRecords} records ✓`, accent: true } : null,
+            runs.length > 0 ? { k: 'suite', v: `${runs.length} runs · ${runs.filter((r) => r.outcome !== 'error').length} clean` } : null,
+          ].filter(Boolean).map((item) => {
+            const it = item as { k: string; v: string; accent?: boolean };
+            return (
+              <span key={it.k} className="whitespace-nowrap">
+                <span className="text-slate-500">{it.k}</span>{' '}
+                <b className={it.accent ? 'text-teal' : 'text-slate-200'}>{it.v}</b>
+              </span>
+            );
+          })}
         </div>
       </div>
     </section>
   );
 }
 
-// The money-shot as a static, glanceable diagram: propose → engine → verdict.
+// The money-shot as a static, glanceable diagram — column-aligned: command+note left, verdict right.
 function VerdictStrip() {
   const rows = [
-    { text: '“Invoice Acme $1,200”', verdict: 'ALLOW', note: 'money-in · autonomous', cls: 'text-ok border-ok/30 bg-ok/10', bar: 'from-ok/25', edge: 'border-l-ok' },
-    { text: '“Pay Sam $500”', verdict: 'GATE', note: '5× threshold · human taps once', cls: 'text-amber border-amber/30 bg-amber/10', bar: 'from-amber/25', edge: 'border-l-amber' },
-    { text: '“Pay NewVendor $800”', verdict: 'BLOCK', note: 'not on allowlist · no bypass', cls: 'text-danger border-danger/30 bg-danger/10', bar: 'from-danger/25', edge: 'border-l-danger' },
+    { text: '“Invoice Acme $1,200”', note: 'money-in · runs autonomously', verdict: 'ALLOW', cls: 'text-ok border-ok/40 bg-ok/10', bar: 'from-ok/20', edge: 'border-l-ok' },
+    { text: '“Pay Sam $500”', note: '5× the signed threshold', verdict: 'GATE', cls: 'text-amber border-amber/40 bg-amber/10', bar: 'from-amber/20', edge: 'border-l-amber' },
+    { text: '“Pay NewVendor $800”', note: 'payee not on the allowlist', verdict: 'BLOCK', cls: 'text-danger border-danger/40 bg-danger/10', bar: 'from-danger/20', edge: 'border-l-danger' },
   ];
   return (
-    <div className="mx-auto mt-9 grid max-w-2xl gap-2">
-      {rows.map((r) => (
-        <div
-          key={r.verdict}
-          className={`flex items-center gap-3 rounded-xl2 border border-edge/60 border-l-2 ${r.edge} bg-gradient-to-r ${r.bar} to-transparent px-4 py-2.5 text-left shadow-raised`}
-        >
-          <span className="font-mono text-[11px] text-ink/85 sm:text-[12px]">{r.text}</span>
-          <ArrowRight size={12} className="hidden text-slate-500 sm:inline" />
-          <span className="hidden flex-1 font-mono text-[11px] text-slate-500 md:inline">policy-engine.evaluate()</span>
-          <span className={`pill ml-auto border ${r.cls}`}>
-            {r.verdict} <span className="font-normal opacity-75">· {r.note}</span>
-          </span>
-        </div>
-      ))}
+    <div className="mx-auto mt-10 max-w-2xl">
+      <p className="mb-2 text-center font-mono text-[10.5px] uppercase tracking-[0.18em] text-slate-500">
+        every command → deterministic policy engine → verdict
+      </p>
+      <div className="grid gap-2">
+        {rows.map((r) => (
+          <div
+            key={r.verdict}
+            className={`grid h-12 grid-cols-[1fr_92px] items-center gap-3 rounded-xl2 border border-edge/60 border-l-2 bg-gradient-to-r ${r.bar} to-transparent px-4 text-left shadow-raised ${r.edge}`}
+          >
+            <span className="min-w-0">
+              <span className="block truncate font-mono text-[12px] text-ink/90">{r.text}</span>
+              <span className="block truncate text-[10.5px] text-slate-500">{r.note}</span>
+            </span>
+            <span className={`pill justify-center border font-mono ${r.cls}`}>{r.verdict}</span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -156,13 +165,13 @@ function LiveProof({ stats }: { stats: Stats | null }) {
   return (
     <section className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-5 [&>*:last-child]:col-span-2 md:[&>*:last-child]:col-span-1">
       {cards.map((c) => (
-        <div key={c.label} className="card card-gradient p-4 transition-colors hover:border-edge">
+        <div key={c.label} className="card card-gradient flex min-h-[118px] flex-col p-4 transition-colors hover:border-edge">
           <div className="flex items-center gap-2 text-xs text-muted">
             <span className={`flex h-7 w-7 items-center justify-center rounded-lg ${c.chip}`}>{c.icon}</span>
             {c.label}
           </div>
-          <p className={`mt-2.5 font-display text-2xl font-bold ${c.num}`}>{c.value}</p>
-          <p className="mt-1 text-[11px] leading-snug text-slate-500">{c.note}</p>
+          <p className={`mt-2 font-display text-2xl font-bold tabular-nums ${c.num}`}>{c.value}</p>
+          <p className="mt-auto line-clamp-2 pt-1 text-[11px] leading-snug text-slate-500">{c.note}</p>
         </div>
       ))}
     </section>
