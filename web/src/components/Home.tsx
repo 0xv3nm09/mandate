@@ -31,6 +31,7 @@ export function Home({ go }: { go: (page: 'dashboard' | 'console' | 'usecases') 
     <div className="mx-auto max-w-6xl px-4 pb-16">
       <Hero go={go} stats={stats} health={health} runs={runs} />
       <LiveProof stats={stats} />
+      <ForWhom />
       <WhatItIs />
       <Worth />
       <Values />
@@ -65,11 +66,9 @@ function Hero({ go, stats, health, runs }: { go: GoTo; stats: Stats | null; heal
           </span>
         </h1>
         <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-muted md:text-lg">
-          <b className="text-ink/90">Mandate</b> is a PayPal-native finance agent that invoices, collects and pays out
-          <b className="text-ink/90"> on its own</b> — wrapped in a <b className="text-ink/90">deterministic trust layer</b>.
-          Money-in flows autonomously; risky money-out is checked against a <b className="text-ink/90">signed Intent Mandate</b>,
-          explained by an <b className="text-ink/90">AI risk summary</b>, and held at a <b className="text-ink/90">one-tap human gate</b>.
-          Every decision lands in an <b className="text-ink/90">immutable, hash-chained audit log</b> — tamper-evident, exportable, and yours to interrogate.
+          A PayPal-native finance agent that runs your invoicing and payouts <b className="text-ink/90">on its own</b> —
+          and can never move a dollar on its own. Every payment clears a <b className="text-ink/90">signed policy</b>, and
+          anything risky waits for <b className="text-ink/90">your one-tap approval</b>.
         </p>
         <p className="mx-auto mt-3 max-w-2xl font-display text-sm text-teal">
           “Verifiable intent, not inferred action” — the principle of AP2, the payments standard PayPal backs.
@@ -172,6 +171,43 @@ function LiveProof({ stats }: { stats: Stats | null }) {
 }
 
 // ── About ────────────────────────────────────────────────────────────────────
+function ForWhom() {
+  const pains = [
+    {
+      icon: <FileText size={18} className="text-teal" />, chip: 'bg-teal/15 ring-1 ring-teal/30',
+      pain: 'The work shipped. The invoice didn’t.',
+      fix: 'Say “invoice Acme $1,200 for October design” — Mandate drafts and sends it on PayPal, then tracks it to paid.',
+    },
+    {
+      icon: <BellRing size={18} className="text-indigo-300" />, chip: 'bg-accent/15 ring-1 ring-accent/30',
+      pain: 'Chasing late payers is awkward, so you put it off.',
+      fix: 'It watches due dates and sends the reminders for you — polite first, firmer each retry, in your voice.',
+    },
+    {
+      icon: <Lock size={18} className="text-fuchsia-300" />, chip: 'bg-fuchsia-500/15 ring-1 ring-fuchsia-500/30',
+      pain: 'You’d never hand an AI your real money.',
+      fix: 'So it never holds the keys. It can only propose — your signed policy and one tap decide what actually moves.',
+    },
+  ];
+  return (
+    <Section title="Built for the person who’d rather not do money admin" kicker="Who it’s for" accent="text-teal">
+      <p className="-mt-2 mb-5 max-w-2xl text-sm leading-relaxed text-muted">
+        For freelancers, solo merchants and small teams who live on PayPal — the people who do their own billing and
+        can’t afford a finance hire, or a payment mistake.
+      </p>
+      <div className="grid gap-3 md:grid-cols-3">
+        {pains.map((p) => (
+          <div key={p.pain} className="card card-gradient p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-edge">
+            <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${p.chip}`}>{p.icon}</span>
+            <p className="mt-3 font-display text-[15px] font-semibold leading-snug">{p.pain}</p>
+            <p className="mt-2 text-sm leading-relaxed text-muted">{p.fix}</p>
+          </div>
+        ))}
+      </div>
+    </Section>
+  );
+}
+
 function WhatItIs() {
   return (
     <Section title="What Mandate is" kicker="About">
