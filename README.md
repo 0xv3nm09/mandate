@@ -160,7 +160,7 @@ invoice **send** needs `PAYPAL_SANDBOX_RECIPIENT` configured — is written up, 
 
 React 18 · Vite · TypeScript · Tailwind · AG Grid (community) · Hono · Vercel AI SDK (optional) · `jose` · `node:sqlite` · PayPal REST (Invoicing, Payouts, Webhooks) · SSE.
 
-**AG Grid (sponsor tool) usage:** the hash-chained audit ledger is rendered in AG Grid Community — column sorting/resizing, pagination, pinned receipt-export column, live refresh on SSE events. It is the primary inspection surface for every decision the engine makes (Console → Audit Grid), plus the Invoices table. See `evidence/audit-chain.json` for the data it renders. **Full AG Grid usage + dev guide + showcase notes → [docs/AG-GRID.md](docs/AG-GRID.md).**
+**AG Grid (sponsor tool) usage** — documented in detail in [`docs/AG-GRID.md`](docs/AG-GRID.md): the hash-chained audit ledger and the invoices table are rendered in AG Grid Community with **per-column filtering + floating filter row**, **quick search** across all columns, **CSV export** of the filtered ledger, **decision-tinted rows** (BLOCK red / GATE amber / ALLOW green), custom cell renderers (decision pills + reason codes, receipt export per row), pinned actions, tooltips, and **live SSE refresh** — new decisions stream into the grid as they happen. Two grids across money-in and audit; it is the operator's primary inspection surface. Raw grid data: `evidence/audit-chain.json`. **Full AG Grid usage + dev guide + showcase notes → [docs/AG-GRID.md](docs/AG-GRID.md).**
 
 > **Full component list & licenses:** [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 

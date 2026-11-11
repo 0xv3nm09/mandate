@@ -1,7 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import type { AgGridReact as AgGridReactType } from 'ag-grid-react';
+import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
+import { AgGridReact } from 'ag-grid-react';
+import 'ag-grid-community/styles/ag-grid.css';
+import 'ag-grid-community/styles/ag-theme-quartz.css';
+
+ModuleRegistry.registerModules([AllCommunityModule]);
 import {
-  Database, FileSignature, Gauge, OctagonPause, Play, ReceiptText, RefreshCw, ScrollText, ShieldCheck, Sparkles,
-  FlaskConical,
+  Database, Download, FileSignature, FlaskConical, Gauge, OctagonPause, Play, ReceiptText, RefreshCw, ScrollText, ShieldCheck, Sparkles,
 } from 'lucide-react';
 import { api } from '../lib/api';
 import { AgentConsole } from './AgentConsole';
@@ -110,71 +116,89 @@ export function Console({ halted, onHaltChange }: { halted: boolean; onHaltChang
       <div className="card card-gradient min-h-[560px] p-4">
         {tab === 'audit' && <AuditGrid />}
         {tab === 'mandate' && <MandateEditor />}
-        {tab === 'invoices' && <Invoices />}
+        {tab === 'invoices' && <InvoicesGrid />}
       </div>
     </div>
   );
 }
 
-function Invoices() {
+function InvoicesGrid() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const gridRef = useRef<AgGridReactType>(null);
+  const [quick, setQuick] = useState('');
   const load = () => api<{ invoices: Invoice[] }>('/invoices').then((r) => setInvoices(r.invoices));
   useSSE(() => {});
-  useEffect(() => {
-    load();
-  }, []);
+  useEffect(() => { load(); }, []);
+
+  const columnDefs = useMemo(
+    () => [
+      { headerName: 'Invoice #', field: 'invoiceNumber', width: 150, filter: 'agTextColumnFilter' },
+      { headerName: 'Memo', field: 'memo', flex: 1, filter: 'agTextColumnFilter' },
+      { headerName: 'Payee', width: 170, valueGetter: (p: any) => p.data?.payeeName ?? p.data?.payee, filter: 'agTextColumnFilter' },
+      {
+        headerName: 'Amount', width: 110, type: 'rightAligned', filter: 'agNumberColumnFilter',
+        valueGetter: (p: any) => p.data?.amount ?? null,
+        valueFormatter: (p: any) => (p.value != null ? money(p.value, p.data.currency) : ''),
+      },
+      {
+        headerName: 'Status', field: 'status', width: 120, filter: 'agTextColumnFilter',
+        cellRenderer: (p: any) => <StatusPill status={p.value} />,
+      },
+      { headerName: 'Reminders', field: 'remindersSent', width: 110, filter: 'agNumberColumnFilter' },
+      {
+        headerName: 'PayPal ref', width: 190, filter: false,
+        cellRenderer: (p: any) => <span className="mono-hash">{p.value}</span>,
+      },
+    ],
+    []
+  );
+
+  const defaultColDef = useMemo(
+    () => ({ sortable: true, resizable: true, filter: true, floatingFilter: true }),
+    []
+  );
+
   return (
     <div className="flex h-full flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <h3 className="flex items-center gap-2 font-display text-[13.5px] font-semibold">
-          <ReceiptText size={14} className="text-muted" /> Invoices — agent-created on PayPal
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h3 className="flex items-center gap-2 font-display text-sm font-semibold uppercase tracking-wider text-muted">
+          <ReceiptText size={14} /> Invoices — agent-created on PayPal
         </h3>
-        <button className="btn-ghost px-2.5 py-1 text-xs" onClick={load}><RefreshCw size={12} /> refresh</button>
+        <div className="flex items-center gap-2">
+          <input
+            className="input h-8 w-56 px-2.5 font-mono text-xs"
+            placeholder="quick filter… (payee, SENT, INV2)"
+            value={quick}
+            onChange={(e) => setQuick(e.target.value)}
+          />
+          <button
+            className="btn-ghost h-8 px-2.5 text-xs"
+            onClick={() => gridRef.current?.api.exportDataAsCsv({ fileName: `mandate-invoices-${Date.now()}.csv` })}
+          >
+            <Download size={12} /> Export CSV
+          </button>
+          <button className="btn-ghost h-8 px-2.5 text-xs" onClick={load}><RefreshCw size={12} /> refresh</button>
+        </div>
       </div>
-      <div className="flex-1 overflow-y-auto">
-        {invoices.length === 0 ? (
-          <p className="mt-10 text-center text-sm text-muted">No invoices yet — tell the agent: “Invoice Acme $1,200 for October design”.</p>
-        ) : (
-          <table className="w-full text-left text-[13px]">
-            <thead className="text-[10.5px] uppercase tracking-wider text-slate-500">
-              <tr>
-                <th className="p-2 font-semibold">Invoice</th>
-                <th className="p-2 font-semibold">Payee</th>
-                <th className="p-2 font-semibold">Amount</th>
-                <th className="p-2 font-semibold">Status</th>
-                <th className="p-2 font-semibold">Reminders</th>
-                <th className="p-2 font-semibold">PayPal ref</th>
-              </tr>
-            </thead>
-            <tbody>
-              {invoices.map((i) => (
-                <tr key={i.id} className="border-t border-edge/60 hover:bg-raised/40">
-                  <td className="p-2 font-semibold">{i.invoiceNumber}<span className="ml-2 text-slate-500">{i.memo}</span></td>
-                  <td className="p-2 text-muted">{i.payeeName ?? i.payee}</td>
-                  <td className="p-2 font-mono text-[12px]">{money(i.amount, i.currency)}</td>
-                  <td className="p-2">
-                    <StatusPill status={i.status} />
-                    {i.status === 'CREATED' && (
-                      <button
-                        className="ml-2 text-[11px] text-accent hover:underline"
-                        onClick={async () => {
-                          await api(`/invoices/${i.id}/resend`, { method: 'POST' }).catch(() => {});
-                          load();
-                        }}
-                        title="Attempt send again (needs PAYPAL_SANDBOX_RECIPIENT configured)"
-                      >
-                        resend
-                      </button>
-                    )}
-                  </td>
-                  <td className="p-2 text-muted">{i.remindersSent}</td>
-                  <td className="p-2 mono-hash">{i.paypalId}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+      <div className="ag-theme-quartz min-h-[380px] flex-1 overflow-hidden rounded-xl2 border border-edge">
+        <AgGridReact
+          ref={gridRef}
+          rowData={invoices}
+          columnDefs={columnDefs as any}
+          defaultColDef={defaultColDef}
+          quickFilterText={quick}
+          animateRows
+          tooltipShowDelay={300}
+          rowHeight={34}
+          headerHeight={32}
+          floatingFiltersHeight={30}
+          pagination
+          paginationPageSize={25}
+        />
       </div>
+      {invoices.length === 0 && (
+        <p className="pb-2 text-center text-sm text-muted">No invoices yet — tell the agent: “Invoice Acme $1,200 for October design”.</p>
+      )}
     </div>
   );
 }
