@@ -344,7 +344,7 @@ In the demo video (10–15 s, make it unmistakable):
 - Click **Export CSV** → the filtered audit downloads.
 - Leave it open → a new row streams in via SSE as a use case fires.
 
-In the Devpost "Tools / Built With" section:
+In the project's "Tools / Built With" declaration:
 
 > *Best Use of AG Grid — the hash-chained audit ledger (every governed money decision) is
 > rendered in AG Grid Community: per-column filtering + floating filters, quick search, CSV
