@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
-  Activity, ArrowUpRight, BadgeCheck, ChevronDown, Clock, Database, FileSignature, Gauge, Landmark, Lock,
+  Activity, ArrowUpRight, BadgeCheck, BookOpen, ChevronDown, Clock, Database, Download, FileSignature, Gauge, Landmark, Lock,
   Mail, RefreshCw, ShieldCheck, Wallet, XCircle, Zap,
 } from 'lucide-react';
 import {
@@ -26,6 +26,21 @@ const OUTCOME_PILL: Record<string, string> = {
   error: 'bg-danger/20 text-danger border border-danger/40',
 };
 
+export const r0 = (row: { seq: number }) => row.seq;
+
+const downloadJson = (data: unknown, name: string) => {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
+};
+
+const exportRunJson = async (runId: string) => {
+  const full = await api<Record<string, unknown>>(`/runs/${runId}`);
+  downloadJson(full, `${runId}.json`);
+};
+
 export function Dashboard({ go }: { go: (page: 'console' | 'usecases') => void }) {
   const [stats, setStats] = useState<Stats | null>(null);
   const [health, setHealth] = useState<Health | null>(null);
@@ -35,6 +50,8 @@ export function Dashboard({ go }: { go: (page: 'console' | 'usecases') => void }
   const [chain, setChain] = useState<{ ok: boolean; count: number } | null>(null);
   const [runs, setRuns] = useState<RunSummary[]>([]);
   const [suiteRunning, setSuiteRunning] = useState(false);
+  const [docsOpen, setDocsOpen] = useState(false);
+
   const [verifications, setVerifications] = useState<VerificationRecord[]>([]);
 
   const load = useCallback(() => {
@@ -84,6 +101,38 @@ export function Dashboard({ go }: { go: (page: 'console' | 'usecases') => void }
               <ShieldCheck size={12} /> chain {chain.ok ? 'verified' : 'BROKEN'} · {chain.count}
             </span>
           )}
+          <span className="relative">
+            <button className="btn-ghost" onClick={() => setDocsOpen(!docsOpen)}>
+              <BookOpen size={13} /> UI / docs reference <ChevronDown size={12} className={`transition-transform ${docsOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {docsOpen && (
+              <div className="absolute right-0 z-30 mt-1 w-72 rounded-xl2 border border-edge bg-surface p-2 shadow-card">
+                <p className="px-2 pb-1 pt-0.5 font-mono text-[10px] uppercase tracking-wider text-slate-500">product docs (on GitHub)</p>
+                {[
+                  ['docs/PAYPAL.md', 'Every PayPal call, payload & real response'],
+                  ['docs/RESULTS.md', '12/12 expected-vs-got + benchmarks'],
+                  ['docs/AGENT.md', 'Agent modes, tools, verbatim results'],
+                  ['docs/AI.md', 'AI architecture, module map, benchmarks'],
+                  ['docs/AG-GRID.md', 'AG Grid usage + this UI explained'],
+                  ['docs/ARCHITECTURE.md', '12 annotated system diagrams'],
+                  ['docs/EVIDENCE.md', 'Judging criteria → proof map'],
+                  ['docs/FEEDBACK.md', '16 issues faced and fixed'],
+                ].map(([path, label]) => (
+                  <a
+                    key={path}
+                    href={`https://github.com/0xv3nm09/mandate/blob/main/${path}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center justify-between rounded-lg px-2 py-1.5 text-[12px] text-muted hover:bg-raised hover:text-ink"
+                  >
+                    <span>{label}</span>
+                    <ArrowUpRight size={12} className="text-slate-500" />
+                  </a>
+                ))}
+                <p className="px-2 pb-1 pt-1 font-mono text-[10px] text-slate-500">evidence/README.md — how to verify every artifact</p>
+              </div>
+            )}
+          </span>
           <button className="btn-ghost" onClick={load}><RefreshCw size={13} /> Refresh</button>
         </div>
       </div>
@@ -258,7 +307,20 @@ export function Dashboard({ go }: { go: (page: 'console' | 'usecases') => void }
                         {r.payload.amount != null ? money(Number(r.payload.amount)) : '—'}
                       </td>
                       <td className="px-2 py-2"><DecisionPill decision={r.decision} /></td>
-                      <td className="whitespace-nowrap px-4 py-2 font-mono text-[10.5px] text-teal">{shortHash(r.hash, 6)} ✓</td>
+                      <td className="whitespace-nowrap px-4 py-2 font-mono text-[10.5px] text-teal">
+                        <button
+                          className="hover:underline"
+                          title="Download the signed receipt JSON for this record"
+                          onClick={async () => {
+                            const receipt = await api<Record<string, unknown>>(`/audit/${r.seq}/receipt`);
+                            const blob = new Blob([JSON.stringify(receipt, null, 2)], { type: 'application/json' });
+                            const a = document.createElement('a');
+                            a.href = URL.createObjectURL(blob);
+                            a.download = `mandate-receipt-${r.seq}.json`;
+                            a.click();
+                          }}
+                        >{shortHash(r.hash, 6)} ⤓</button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -403,6 +465,13 @@ function RunRow({ run }: { run: RunSummary }) {  const [open, setOpen] = useStat
         </div>
         <span className="hidden mono-hash sm:inline"><Clock size={10} className="mr-1 inline" />{shortTime(run.ranAt)}</span>
         <span className={`pill shrink-0 ${OUTCOME_PILL[run.outcome]}`}>{run.outcome.toUpperCase()}</span>
+        <button
+          className="flex shrink-0 items-center gap-1 rounded-md border border-edge bg-raised px-1.5 py-0.5 text-[10.5px] text-muted hover:border-accent/50 hover:text-ink"
+          title="Download this run's full JSON trace"
+          onClick={async () => exportRunJson(run.runId)}
+        >
+          <Download size={10} /> JSON
+        </button>
         <button className="flex items-center gap-0.5 text-[11px] text-muted hover:text-ink" onClick={toggle}>
           {run.stepsCount} steps
           <ChevronDown size={12} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
