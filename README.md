@@ -202,7 +202,7 @@ Then publish the repo to GitHub and enable **Pages → Deploy from branch → ro
 - **Meaningful PayPal use** — three layers: (1) the official [`@paypal/agent-toolkit`](https://developer.paypal.com/ai-tools/toolkit) attached read-only (list/get invoices + disputes — `GET /api/paypal/toolkit` shows status); (2) documented PayPal REST used directly for everything money-moving — Invoicing v2 (create/send/remind), Payouts v1 with `sender_batch_id` idempotency, `verify-webhook-signature`, `simulate-event` — all sandbox-first per PayPal's quickstart; (3) PayPal's own best practices implemented: env-var secrets, system-prompt agent control, human oversight where judgment matters, error handling.
 - **Meaningful AI use** — Vercel AI SDK v5 tool loop (a PayPal-supported framework) with governed tools (`propose_payout` has no `execute`, by design), LLM-written risk explanations / reminders / mandate drafts, NL audit interrogation (UC-09), and a deterministic fallback agent so the trust layer never depends on a model.
 - **Functional demo** — hosted URL (Render blueprint included) or copy-paste repo run steps: `cd server && npm i && npm run dev`.
-- **Open source + license** — MIT at repo root; make it visible in the GitHub About/sidebar.
+- **Open source + license** — MIT at repo root, detected by GitHub in the About sidebar.
 - **Video (<3 min, YouTube)** — demonstrates the app end-to-end on the sandbox; no third-party trademarks presented as ours (see footer disclaimer).
 
 ## Feedback
@@ -220,7 +220,7 @@ the bugs our own audit loop caught. Feedback matters; the failures are documenta
 | [`docs/PAYPAL.md`](docs/PAYPAL.md) | **Every PayPal call** — auth, Invoicing v2, Payouts v1, webhooks, toolkit: literal payloads, real responses, idempotency namespaces, the full error catalog with handling. |
 | [`docs/RESULTS.md`](docs/RESULTS.md) | **Live results** — expected-vs-got table (12/12), real PayPal objects, condensed per-UC traces, verdict mix; rendered from evidence by `scripts/render_results_md.py`. |
 | [`docs/AGENT.md`](docs/AGENT.md) | **The agent** — both modes, tool contracts (propose-not-execute), parser intents, verbatim results from live runs, and where the model is never allowed. |
-| [`docs/AG-GRID.md`](docs/AG-GRID.md) | **AG Grid (sponsor tool)** — how the audit ledger uses AG Grid Community (filters, quick search, CSV export, cell renderers, conditional styling, live refresh), a copy-paste dev guide to extend it, and how to showcase it in the video/submission. |
+| [`docs/AG-GRID.md`](docs/AG-GRID.md) | **AG Grid (sponsor tool)** — how the audit ledger uses AG Grid Community (filters, quick search, CSV export, cell renderers, conditional styling, live refresh), a copy-paste dev guide to extend it, and how to showcase it. |
 | [`docs/AI.md`](docs/AI.md) | **The AI, measured** — where AI is used vs forbidden, the full module-connection map (agent → control plane → PayPal), the two AI↔PayPal paths, and benchmarks: safety (0 unauthorized moves), latency (~1–4 ms gate), intent coverage, determinism. |
 | [`docs/EVIDENCE.md`](docs/EVIDENCE.md) | **Criteria → proof map** — each judging criterion mapped to runnable commands and committed artifacts, trust guarantees → evidence, deliverable status, 60-second tour. |
 | [`docs/FEEDBACK.md`](docs/FEEDBACK.md) | **Build retrospective** — 16 issues faced and fixed (PayPal API behavior, toolkit, frameworks, infra), what worked well, known gaps documented not hidden. |

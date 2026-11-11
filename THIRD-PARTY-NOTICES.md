@@ -26,4 +26,4 @@ independent hackathon project, uses the PayPal **sandbox** API, and is not affil
 endorsed by PayPal. No PayPal branding is reproduced as part of Mandate's own brand.
 
 AG Grid Community is used for the hash-chained audit ledger (sorting, filtering, pagination)
-and is a hackathon sponsor tool — this usage is declared on the Devpost submission.
+and is a hackathon sponsor tool — this usage is declared on the project page.

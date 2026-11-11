@@ -27,7 +27,7 @@ services:
       - key: DB_PATH
         value: /tmp/mandate.db
       - key: MANDATE_ADMIN_TOKEN
-        sync: false        # SET THIS: guards every mutating route on the public demo
+        sync: false        # required on public deployments: guards every mutating route
       - key: PAYPAL_SANDBOX_RECIPIENT
         sync: false        # sandbox personal account email (invoice sends + payout settlement)
       - key: PAYPAL_INVOICER_NAME
