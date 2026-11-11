@@ -7,7 +7,7 @@
 ![license](https://img.shields.io/badge/license-MIT-blue)
 
 <p align="center">
-  <img src="docs/media/main-paypal.png" alt="Mandate poster: a PayPal-native AI agent that earns, verifies and pays under human-signed limits — agent proposals flow through a deterministic policy engine (ALLOW / GATE / BLOCK), human one-tap approval, PayPal sandbox execution, and a hash-chained audit trail" width="620">
+  <img src="docs/media/mandate-banner.png" alt="Mandate banner — AI proposes. Code authorizes. A deterministic control plane between an LLM agent and PayPal: $2,050 invoiced, $849.99 refused before it moved, 22 hash-chained audit records, 12 use cases (ALLOW · GATE · BLOCK · HALT · SIGNED · ANSWER), security guarantees, and the market gap: PayPal guardrails $0 funded vs $13.5M raised by rivals" width="100%">
 </p>
 
 **Mandate** is a PayPal-native autonomous finance agent that *invoices, collects, and pays out on its own* — wrapped in a deterministic approval gate that makes **every dollar it moves accountable**. Low-risk money-in flows autonomously; risky money-out is checked against a signed policy (an **Intent Mandate**), explained by an AI risk summary, and held for one-tap human approval. Everything lands in a SHA-256 **hash-chained audit log** — and inbound invoices claiming to be from "Netflix" get stamped **VERIFIED** or **IMPOSTOR** by a known-merchant directory check.
