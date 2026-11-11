@@ -34,6 +34,7 @@ export function Dashboard({ go }: { go: (page: 'console' | 'usecases') => void }
   const [ledger, setLedger] = useState<AuditRecord[]>([]);
   const [chain, setChain] = useState<{ ok: boolean; count: number } | null>(null);
   const [runs, setRuns] = useState<RunSummary[]>([]);
+  const [suiteRunning, setSuiteRunning] = useState(false);
   const [verifications, setVerifications] = useState<VerificationRecord[]>([]);
 
   const load = useCallback(() => {
@@ -154,7 +155,26 @@ export function Dashboard({ go }: { go: (page: 'console' | 'usecases') => void }
           <section className="card card-gradient">
             <CardHead
               icon={<Database size={14} />} title="Recorded runs" tag={`${runs.length} recorded`}
-              right={<button className="text-[11px] text-accent hover:underline" onClick={() => go('usecases')}>run suite →</button>}
+              right={
+                <span className="flex items-center gap-2">
+                  <button
+                    className="text-[11px] text-accent hover:underline disabled:opacity-40"
+                    disabled={suiteRunning}
+                    onClick={async () => {
+                      setSuiteRunning(true);
+                      try {
+                        for (const id of ['UC-01','UC-02','UC-03','UC-04','UC-05','UC-06','UC-07','UC-08','UC-09','UC-10','UC-11','UC-12']) {
+                          await api(`/usecases/${id}/run`, { method: 'POST' });
+                        }
+                        api<RunSummary[]>('/runs').then(setRuns).catch(() => {});
+                      } finally { setSuiteRunning(false); }
+                    }}
+                  >
+                    {suiteRunning ? 'running…' : 'run suite'}
+                  </button>
+                  <button className="text-[11px] text-accent hover:underline" onClick={() => go('usecases')}>open →</button>
+                </span>
+              }
             />
             <div className="divide-y divide-edge/60">
               {runs.length === 0 && (

@@ -160,7 +160,7 @@ invoice **send** needs `PAYPAL_SANDBOX_RECIPIENT` configured — is written up, 
 
 React 18 · Vite · TypeScript · Tailwind · AG Grid (community) · Hono · Vercel AI SDK (optional) · `jose` · `node:sqlite` · PayPal REST (Invoicing, Payouts, Webhooks) · SSE.
 
-**AG Grid (sponsor tool) usage:** the hash-chained audit ledger is rendered in AG Grid Community — column sorting/resizing, pagination, pinned receipt-export column, live refresh on SSE events. It is the primary inspection surface for every decision the engine makes (Console → Audit Grid), plus the Invoices table. See `evidence/audit-chain.json` for the data it renders.
+**AG Grid (sponsor tool) usage:** the hash-chained audit ledger is rendered in AG Grid Community — column sorting/resizing, pagination, pinned receipt-export column, live refresh on SSE events. It is the primary inspection surface for every decision the engine makes (Console → Audit Grid), plus the Invoices table. See `evidence/audit-chain.json` for the data it renders. **Full AG Grid usage + dev guide + showcase notes → [docs/AG-GRID.md](docs/AG-GRID.md).**
 
 > **Full component list & licenses:** [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 
@@ -220,6 +220,7 @@ the bugs our own audit loop caught. Feedback matters; the failures are documenta
 | [`docs/PAYPAL.md`](docs/PAYPAL.md) | **Every PayPal call** — auth, Invoicing v2, Payouts v1, webhooks, toolkit: literal payloads, real responses, idempotency namespaces, the full error catalog with handling. |
 | [`docs/RESULTS.md`](docs/RESULTS.md) | **Live results** — expected-vs-got table (12/12), real PayPal objects, condensed per-UC traces, verdict mix; rendered from evidence by `scripts/render_results_md.py`. |
 | [`docs/AGENT.md`](docs/AGENT.md) | **The agent** — both modes, tool contracts (propose-not-execute), parser intents, verbatim results from live runs, and where the model is never allowed. |
+| [`docs/AG-GRID.md`](docs/AG-GRID.md) | **AG Grid (sponsor tool)** — how the audit ledger uses AG Grid Community (filters, quick search, CSV export, cell renderers, conditional styling, live refresh), a copy-paste dev guide to extend it, and how to showcase it in the video/submission. |
 | [`docs/AI.md`](docs/AI.md) | **The AI, measured** — where AI is used vs forbidden, the full module-connection map (agent → control plane → PayPal), the two AI↔PayPal paths, and benchmarks: safety (0 unauthorized moves), latency (~1–4 ms gate), intent coverage, determinism. |
 | [`docs/EVIDENCE.md`](docs/EVIDENCE.md) | **Criteria → proof map** — each judging criterion mapped to runnable commands and committed artifacts, trust guarantees → evidence, deliverable status, 60-second tour. |
 | [`docs/FEEDBACK.md`](docs/FEEDBACK.md) | **Build retrospective** — 16 issues faced and fixed (PayPal API behavior, toolkit, frameworks, infra), what worked well, known gaps documented not hidden. |
