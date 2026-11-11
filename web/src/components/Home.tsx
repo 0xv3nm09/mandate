@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   ArrowRight, BellRing, CheckCircle2, Database, FileSignature, FileText, GitBranch, Lock, Scale,
-  ShieldCheck, Sparkles, TrendingUp, Wallet, Webhook, XCircle, Zap,
+  ShieldCheck, Sparkles, TrendingUp, Wallet, Webhook, XCircle, Zap, KeyRound, Fingerprint, OctagonPause, Repeat, Link2, Eye, Flame, Rocket, Trophy,
 } from 'lucide-react';
 import { api, money, shortTime, type Stats, type RunSummary } from '../lib/api';
 
@@ -31,11 +31,13 @@ export function Home({ go }: { go: (page: 'dashboard' | 'console' | 'usecases') 
     <div className="mx-auto max-w-6xl px-4 pb-16">
       <Hero go={go} stats={stats} health={health} runs={runs} />
       <LiveProof stats={stats} />
+      <InvestorValue />
       <ForWhom />
+      <HowItWorks />
+      <Security />
+      <UseCaseStrip go={go} runs={runs} />
       <Worth />
       <Values />
-      <HowItWorks />
-      <UseCaseStrip go={go} runs={runs} />
       <Stack />
       <FinalCta go={go} />
     </div>
@@ -54,6 +56,12 @@ function Hero({ go, stats, health, runs }: { go: GoTo; stats: Stats | null; heal
       <div className="pointer-events-none absolute -right-28 top-6 h-72 w-[24rem] rounded-full bg-fuchsia-500/12 blur-[100px] animate-drift" />
       <div className="pointer-events-none absolute inset-0 bg-grid-dots bg-[size:26px_26px] [mask-image:radial-gradient(60rem_30rem_at_50%_0%,black_30%,transparent_75%)]" />
       <div className="relative">
+        <div className="mb-4 flex flex-wrap items-center justify-center gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-accent px-3 py-1 text-[12px] font-bold text-white shadow-glow"><Trophy size={13} /> PayPal AI Hackathon 2026</span>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3 py-1 text-[12px] font-bold text-bg"><KeyRound size={13} /> AI holds 0 PayPal keys</span>
+          <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-ok bg-ok/10 px-3 py-1 text-[12px] font-bold text-ok"><Flame size={13} /> 12 real use cases · live</span>
+          <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-accent bg-raised px-3 py-1 text-[12px] font-bold text-accent-bright"><Rocket size={13} /> $8B → $1.5T market</span>
+        </div>
         <p className="mx-auto flex w-fit items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.18em] text-indigo-200">
           <Sparkles size={12} className="text-teal" />
           Built on PayPal sandbox · aligned with AP2
@@ -83,8 +91,8 @@ function Hero({ go, stats, health, runs }: { go: GoTo; stats: Stats | null; heal
             { icon: <FileSignature size={13} />, label: 'Sign the policy' },
             { icon: <Database size={13} />, label: 'Hash-chained audit' },
           ].map((t) => (
-            <span key={t.label} className="flex h-9 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-edge/70 bg-raised/60 px-3 text-[11.5px] text-muted">
-              <span className="text-teal">{t.icon}</span> {t.label}
+            <span key={t.label} className="flex h-9 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-accent/25 bg-raised px-3 text-[12px] font-semibold text-ink shadow-raised">
+              <span className="text-accent">{t.icon}</span> {t.label}
             </span>
           ))}
         </div>
@@ -264,15 +272,10 @@ function Values() {
 // ── Worth of the idea ────────────────────────────────────────────────────────
 function Worth() {
   return (
-    <Section title="Why this matters now" kicker="The worth of the idea" accent="text-fuchsia-300">
+    <Section title="Why this matters now" kicker="The worth of the idea" accent="text-accent-bright">
       <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
         <div className="card card-gradient p-6">
           <h3 className="font-display text-xl font-semibold">Agentic commerce is exploding — trust is the missing rail</h3>
-          <div className="mt-4 grid grid-cols-3 gap-3 text-center">
-            <Stat big="~$8B" small="agentic commerce value, 2026 (Juniper)" cls="text-indigo-300" />
-            <Stat big="$1.5T" small="projected by 2030 — ~190× growth" cls="text-aurora" />
-            <Stat big="$20M+" small="recent funding into agent-payment guardrails" cls="text-amber" />
-          </div>
           <p className="mt-4 text-sm leading-relaxed text-muted">
             The money is converging on one question: <b className="text-ink/80">who authorizes an agent to spend?</b>
             {' '}Nekuda ($5M, Visa & Amex Ventures), Skyfire ($8.5M) and Ant International ($1.2B) are all building identity
@@ -315,6 +318,104 @@ function Stat({ big, small, cls = 'text-ink' }: { big: string; small: string; cl
   );
 }
 
+// ── Investor value — the numbers ─────────────────────────────────────────────
+function InvestorValue() {
+  const bars = [
+    { y: '2026', v: '$8B', h: 6, solid: true },
+    { y: '2027', v: '', h: 14, solid: false },
+    { y: '2028', v: '', h: 30, solid: false },
+    { y: '2029', v: '', h: 58, solid: false },
+    { y: '2030', v: '$1.5T', h: 100, solid: true },
+  ];
+  return (
+    <section className="mt-14 overflow-hidden rounded-2xl bg-ink p-8 text-bg shadow-card md:p-10">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="kicker !text-accent">The opportunity · for investors &amp; judges</span>
+        <span className="rounded-full bg-accent px-2.5 py-0.5 text-[11px] font-bold text-white">~190× in 4 years</span>
+      </div>
+      <h2 className="mt-3 max-w-3xl font-display text-3xl font-bold leading-tight md:text-4xl">
+        Agents will move <span className="text-accent">$1.5 trillion</span> by 2030. Nobody guards it on PayPal.
+      </h2>
+      <div className="mt-8 grid gap-8 lg:grid-cols-[1.1fr_1fr]">
+        <div>
+          <div className="flex h-48 items-end gap-3">
+            {bars.map((b) => (
+              <div key={b.y} className="flex flex-1 flex-col items-center justify-end gap-2 h-full">
+                {b.v && <span className="font-display text-lg font-bold text-accent">{b.v}</span>}
+                <div className={`w-full rounded-t-md ${b.solid ? 'bg-accent' : 'bg-[repeating-linear-gradient(135deg,rgba(242,238,229,0.25)_0_6px,rgba(242,238,229,0.08)_6px_12px)]'}`} style={{ height: `${b.h}%` }} />
+                <span className="font-mono text-[11px] text-bg/60">{b.y}</span>
+              </div>
+            ))}
+          </div>
+          <p className="mt-3 font-mono text-[11px] text-bg/50">agentic commerce value · 2026 &amp; 2030 (Juniper) · 2027–29 implied constant growth (~3.7×/yr)</p>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { big: '$8.5M', small: 'Skyfire raised — agent payments, crypto rails' },
+            { big: '$5M', small: 'Nekuda raised — Visa & Amex Ventures, card rails' },
+            { big: '$20M+', small: 'raised by agent-payment guardrail startups' },
+            { big: '$0', small: 'spent guarding PayPal — that’s Mandate', hot: true },
+          ].map((c) => (
+            <div key={c.big} className={`rounded-xl2 p-4 ${c.hot ? 'bg-accent text-white' : 'border border-bg/15 bg-bg/5'}`}>
+              <p className="font-display text-3xl font-bold">{c.big}</p>
+              <p className={`mt-1 text-[12px] leading-snug ${c.hot ? 'text-white/90' : 'text-bg/65'}`}>{c.small}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="mt-8 grid gap-3 border-t border-bg/15 pt-6 sm:grid-cols-3">
+        {[
+          { k: 'Business model', v: 'Fee per governed transaction + policy tiers per seat' },
+          { k: 'Who pays', v: 'Freelancers, solo merchants & small teams already on PayPal' },
+          { k: 'Moat', v: 'Closed loop: invoice → collect → pay out → reconcile, signed end to end' },
+        ].map((m) => (
+          <div key={m.k}>
+            <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-accent">{m.k}</p>
+            <p className="mt-1 text-sm text-bg/85">{m.v}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// ── Security ─────────────────────────────────────────────────────────────────
+function Security() {
+  const items = [
+    { icon: <KeyRound size={18} />, t: 'AI holds zero keys', b: 'The model never sees PayPal credentials. It can only propose — it cannot pay.', tag: 'NO KEYS' },
+    { icon: <FileSignature size={18} />, t: 'Signed policy (JWS)', b: 'Your limits live in a signed Intent Mandate. Change one byte and every check fails closed.', tag: 'SIGNED' },
+    { icon: <Link2 size={18} />, t: 'Hash-chained audit', b: 'Every decision is SHA-256 chained to the last. Tampering breaks the chain instantly.', tag: 'TAMPER-PROOF' },
+    { icon: <Repeat size={18} />, t: 'No double pay', b: 'Every payout carries a unique key, so a retry can never send money twice.', tag: 'IDEMPOTENT' },
+    { icon: <Fingerprint size={18} />, t: 'Impostor check', b: 'Fake “Netflix” bills are caught by sender domain, amount envelope and history.', tag: 'VERIFIED' },
+    { icon: <OctagonPause size={18} />, t: 'Global kill switch', b: 'One tap freezes every proposal and payout — and restores exactly where it was.', tag: 'HALT' },
+  ];
+  return (
+    <section className="mt-14 rounded-2xl border-2 border-accent/30 bg-raised p-8 shadow-card md:p-10">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="kicker">Security · the main value</span>
+        <span className="rounded-full bg-ok/15 px-2.5 py-0.5 text-[11px] font-bold text-ok">10 hard rules · R-00…R-09</span>
+        <span className="rounded-full bg-danger/10 px-2.5 py-0.5 text-[11px] font-bold text-danger">0 bypasses</span>
+      </div>
+      <h2 className="mt-3 font-display text-3xl font-bold md:text-4xl">
+        <span className="text-accent">AI proposes.</span> Code authorizes.
+      </h2>
+      <p className="mt-2 max-w-2xl text-muted">A prompt can be ignored. A deterministic gate cannot. Six guarantees stand between the agent and your money.</p>
+      <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {items.map((i) => (
+          <div key={i.t} className="rounded-xl2 border border-edge bg-surface p-5 transition-transform hover:-translate-y-0.5">
+            <div className="flex items-center justify-between">
+              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/12 text-accent">{i.icon}</span>
+              <span className="rounded-full bg-ink px-2 py-0.5 font-mono text-[10px] font-bold tracking-wider text-bg">{i.tag}</span>
+            </div>
+            <p className="mt-4 font-display text-lg font-bold">{i.t}</p>
+            <p className="mt-1 text-sm leading-relaxed text-muted">{i.b}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 // ── How it works (the four zones) ────────────────────────────────────────────
 function HowItWorks() {
   const zones = [
@@ -324,7 +425,7 @@ function HowItWorks() {
     { n: '4', title: 'PayPal', body: 'Invoicing & Payouts REST in the sandbox, webhooks for status. Money only ever leaves after a policy pass (and an approval if gated).', cls: 'border-l-slate-500', badge: 'bg-gradient-to-br from-slate-400 to-slate-600' },
   ];
   return (
-    <Section title="Where authority lives" kicker="How it works" accent="text-violet-300">
+    <Section title="Where authority lives" kicker="How it works" accent="text-accent-bright">
       <div className="grid gap-3 md:grid-cols-4">
         {zones.map((z) => (
           <div key={z.n} className={`card card-gradient border-l-4 p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-edge ${z.cls}`}>
@@ -353,7 +454,7 @@ function UseCaseStrip({ go, runs }: { go: GoTo; runs: RunSummary[] }) {
   ];
   const latestByUc = new Map(runs.map((r) => [r.ucId, r]));
   return (
-    <Section title="Say it, watch it, verify it" kicker="Use cases" accent="text-teal">
+    <Section title="Real use cases. Real engine. Real traces." kicker="Use cases — not mockups" accent="text-teal">
       <div className="card card-gradient divide-y divide-edge/60">
         {cases.map((c) => {
           const live = latestByUc.get(c.uc);

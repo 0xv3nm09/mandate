@@ -121,7 +121,7 @@ export function AuditGrid() {
         </div>
       )}
 
-      <div className="ag-theme-quartz h-full min-h-[420px] flex-1 overflow-hidden rounded-xl2 border border-edge">
+      <div className="ag-theme-quartz h-[520px] shrink-0 overflow-hidden rounded-xl2 border border-edge">
         <AgGridReact
           rowData={records}
           columnDefs={columnDefs as any}

@@ -49,7 +49,7 @@ export default function App() {
       <header className="sticky top-0 z-40 border-b border-edge bg-bg/85 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-2.5">
           <button className="flex items-center gap-2" onClick={() => setPage('home')}>
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 via-purple-500 to-fuchsia-500 text-white shadow-glow">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-600 text-white shadow-glow">
               <ShieldCheck size={17} />
             </span>
             <span className="font-display text-lg font-bold tracking-tight">

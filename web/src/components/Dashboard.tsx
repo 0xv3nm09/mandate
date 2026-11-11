@@ -331,7 +331,7 @@ function ClaimCard({ v }: { v: VerificationRecord }) {
   return (
     <div className="relative overflow-hidden rounded-xl2 border border-edge bg-gradient-to-b from-raised/70 to-surface p-3.5 shadow-raised">
       {/* perforated receipt edge */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-[repeating-linear-gradient(90deg,transparent,transparent_5px,rgba(255,255,255,0.08)_5px,rgba(255,255,255,0.08)_10px)]" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-[repeating-linear-gradient(90deg,transparent,transparent_5px,rgba(20,20,20,0.08)_5px,rgba(20,20,20,0.08)_10px)]" />
       <div className="flex items-start gap-3">
         <span
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl font-display text-sm font-bold text-white"
