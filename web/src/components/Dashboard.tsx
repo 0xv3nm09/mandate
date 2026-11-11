@@ -143,6 +143,13 @@ export function Dashboard({ go }: { go: (page: 'console' | 'usecases') => void }
           icon={<Wallet size={15} />} chip="bg-accent/15 text-indigo-300 ring-1 ring-accent/30"
           label="Spent today" value={money(spent)} sub={cap ? `of ${money(cap)} daily cap` : '—'}
           meter={{ pct: spentPct, cls: spentPct >= 90 ? 'bg-danger' : spentPct >= 60 ? 'bg-amber' : 'bg-gradient-to-r from-teal to-accent' }}
+          action={{
+            label: 'reset cap',
+            onClick: async () => {
+              await api('/system/reset-cap', { method: 'POST' }).catch(() => {});
+              const h = await api<Health>('/health'); setHealth(h);
+            },
+          }}
         />
         <KpiTile
           icon={<Lock size={15} />} chip="bg-amber/15 text-amber ring-1 ring-amber/30"
@@ -335,10 +342,11 @@ export function Dashboard({ go }: { go: (page: 'console' | 'usecases') => void }
 
 // ── pieces ───────────────────────────────────────────────────────────────────
 function KpiTile({
-  icon, chip, label, value, sub, meter, onClick,
+  icon, chip, label, value, sub, meter, onClick, action,
 }: {
   icon: React.ReactNode; chip: string; label: string; value: string; sub?: string;
   meter?: { pct: number; cls: string }; onClick?: () => void;
+  action?: { label: string; onClick: () => void };
 }) {
   return (
     <div className={`card card-gradient p-4 ${onClick ? 'cursor-pointer transition-colors hover:border-edge' : ''}`} onClick={onClick}>
@@ -352,7 +360,17 @@ function KpiTile({
           <div className={`h-full rounded-full ${meter.cls}`} style={{ width: `${meter.pct}%` }} />
         </div>
       )}
-      {sub && <p className="mt-1.5 text-[11px] text-slate-500">{sub}</p>}
+      <div className="mt-1.5 flex items-center justify-between">
+        {sub ? <p className="text-[11px] text-slate-500">{sub}</p> : <span />}
+        {action && (
+          <button
+            className="text-[10px] uppercase tracking-wider text-slate-500 hover:text-accent"
+            onClick={(e) => { e.stopPropagation(); action.onClick(); }}
+          >
+            {action.label}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   CheckCircle2, AlertTriangle, ChevronDown, CircleDashed, FlaskConical, Play, RefreshCw, ShieldX, Timer,
+  RotateCcw,
 } from 'lucide-react';
 import { api, isSnapshotMode, onSnapshotMode, shortTime, type CatalogEntry, type RunRecord, type RunSummary, type TraceStep, type UsecaseResult } from '../lib/api';
 import { StepDot } from './StatusPill';
@@ -39,6 +40,7 @@ export function Usecases() {
   const [open, setOpen] = useState<Record<string, boolean>>({});
   const [ro, setRo] = useState(isSnapshotMode());
   useEffect(() => onSnapshotMode(() => setRo(true)), []);
+  const [progress, setProgress] = useState<{ done: number; total: number; current: string } | null>(null);
 
   const loadCatalog = useCallback(() => {
     api<{ catalog: CatalogEntry[] }>('/usecases').then((r) => setCatalog(r.catalog));
@@ -94,6 +96,7 @@ export function Usecases() {
   const run = async (id: string) => {
     setRunning(id);
     setOpen((o) => ({ ...o, [id]: true }));
+    requestAnimationFrame(() => document.getElementById(`uc-${id}`)?.scrollIntoView({ block: 'center', behavior: 'smooth' }));
     const t0 = Date.now();
     try {
       const r = await api<UsecaseResult>(`/usecases/${id}/run`, { method: 'POST' });
@@ -111,7 +114,13 @@ export function Usecases() {
   };
 
   const runAll = async () => {
-    for (const c of catalog) await run(c.id); // sequential: each UC builds on real state
+    const total = catalog.length;
+    for (let i = 0; i < catalog.length; i++) {
+      setProgress({ done: i, total, current: catalog[i].id });
+      await run(catalog[i].id);
+      setProgress({ done: i + 1, total, current: catalog[i].id });
+    }
+    setTimeout(() => setProgress(null), 1500);
   };
 
   const ranCount = Object.keys(results).length;
@@ -142,6 +151,13 @@ export function Usecases() {
               </button>
             <button
               className="btn-ghost"
+              title="Zero the daily-cap counter (money-out today) — audited"
+              onClick={async () => { await api('/system/reset-cap', { method: 'POST' }); }}
+            >
+              <RotateCcw size={14} /> Reset cap
+            </button>
+            <button
+              className="btn-ghost"
               onClick={async () => {
                 await api('/system/reset', { method: 'POST' });
                 setResults({});
@@ -161,6 +177,26 @@ export function Usecases() {
           </div>
         </div>
       </header>
+
+      {/* live progress while the suite runs */}
+      {progress && (
+        <div className="card card-gradient px-4 py-3 sticky top-[52px] z-30">
+          <div className="flex items-center justify-between text-xs">
+            <span className="flex items-center gap-2 text-muted">
+              <RefreshCw size={12} className="animate-spin text-accent" />
+              executing <b className="font-mono text-ink">{progress.current}</b>
+              <span className="text-slate-500">— agent parse → policy → approval → PayPal → audit</span>
+            </span>
+            <span className="font-mono text-muted">{progress.done}/{progress.total} done</span>
+          </div>
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-edge">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-accent to-teal transition-all duration-500"
+              style={{ width: `${Math.round((progress.done / progress.total) * 100)}%` }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* cards — Vultr-style dense resources */}
       <div className="grid gap-2.5">
@@ -210,7 +246,7 @@ function UsecaseCard({
     result?.outcome === 'error' ? 'border-danger/60' : 'border-edge';
 
   return (
-    <div className={`card card-gradient ${border} overflow-hidden transition-all duration-200`}>
+    <div id={`uc-${entry.id}`} className={`card card-gradient ${border} overflow-hidden transition-all duration-200`}>
       {/* header row */}
       <div className="flex flex-wrap items-center gap-3 px-4 py-3">
         <span className="mono-hash shrink-0 rounded-md border border-edge bg-raised px-2 py-1 font-semibold">{entry.id}</span>

@@ -48,6 +48,14 @@ Then open **Usecases → "Run all 12 sequentially"** — every trace is a real c
 
 **Built during the Submission Period:** the entire project was created from Oct 28, 2026 onward (see commit history) — first commit is the scaffold, latest commits are live-sandbox evidence.
 
+## Live on Vultr — full stack on one VM
+
+The entire product (API + console + HTTPS) runs on a single Vultr VM from your credits —
+**one command**: `bash scripts/vultr_deploy.sh root@<VM-IP>` → auto-installs Node 24 + Caddy
+**auto-HTTPS via sslip.io** (`https://<ip-dashed>.sslip.io`), systemd service, firewall —
+and PayPal sandbox invoices/payouts execute from that stack. Runbook:
+[docs/DEPLOY-VULTR.md](docs/DEPLOY-VULTR.md) (cloud-init first-boot option included).
+
 ## The 30-second architecture
 
 ```mermaid
@@ -177,6 +185,10 @@ web/src/components/  Home · Dashboard · Console · AgentConsole · ApprovalInb
 ```
 
 ## Deploy
+
+### Vultr (recommended — see the full runbook: [docs/DEPLOY-VULTR.md](docs/DEPLOY-VULTR.md))
+
+One VM, one command, HTTPS included. Details below.
 
 ### Render (full app: API + console, recommended for judges)
 

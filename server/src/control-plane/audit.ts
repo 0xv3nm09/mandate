@@ -2,7 +2,7 @@
 // and carries its own JWS — tampering anywhere is detectable (FR-12). Receipts are exportable (FR-19).
 
 import { createHash, createHmac } from 'node:crypto';
-import { db, now } from '../db.js';
+import { db, now, getMeta, setMeta } from '../db.js';
 import { canonicalJson } from './mandate.js';
 import type { AuditRecord, DecisionKind } from '../types.js';
 
@@ -121,13 +121,32 @@ export function verifyReceipt(receipt: { record: AuditRecord; receiptSignature: 
 /** Money-out dollars moved today — owned by the engine, NEVER by the LLM. */
 export function dailySpent(): number {
   const day = now().slice(0, 10);
+  const clauses = ["kind = 'EXECUTION'", "json_extract(payload, '$.moneyOut') = 1", "ts LIKE ?"];
+  const params: string[] = [`${day}%`];
+  // operator reset (demo): only count executions since the reset marker when it is from today
+  const resetAt = getMeta('cap_reset_at');
+  if (resetAt && resetAt.slice(0, 10) === day) {
+    clauses.push('ts >= ?');
+    params.push(resetAt);
+  }
   const row = db
     .prepare(
       `SELECT COALESCE(SUM(CAST(json_extract(payload, '$.amount') AS REAL)), 0) AS total
-       FROM audit WHERE kind = 'EXECUTION' AND ts LIKE ? AND json_extract(payload, '$.moneyOut') = 1`
+       FROM audit WHERE ${clauses.join(' AND ')}`
     )
-    .get(`${day}%`) as { total: number };
+    .get(...params) as { total: number };
   return Math.round(row.total * 100) / 100;
+}
+
+/** Demo utility: zero the daily-cap counter (audited, does not touch history). */
+export function resetDailyCap(): string {
+  const ts = now();
+  setMeta('cap_reset_at', ts);
+  appendAudit({
+    kind: 'SYSTEM',
+    payload: { event: 'Daily-cap counter reset by operator (demo) — money-out counter back to $0 for today', resetAt: ts },
+  });
+  return ts;
 }
 
 export function recentPayouts10m(): number {

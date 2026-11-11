@@ -17,6 +17,7 @@ import { usecaseCatalog, runUsecase } from '../usecases/runner.js';
 import { paypalMode, llmMode, env } from '../env.js';
 import { paypal } from '../paypal/gateway.js';
 import * as verifyModule from '../control-plane/verify.js';
+import * as auditModule from '../control-plane/audit.js';
 import * as toolkitModule from '../paypal/toolkit.js';
 import type { IntentMandate } from '../types.js';
 
@@ -342,6 +343,12 @@ api.get('/runs/:runId', (c) => {
 });
 
 // ── Demo hygiene ─────────────────────────────────────────────────────────────
+/** Demo utility: zero the daily-cap counter (audited). */
+api.post('/system/reset-cap', (c) => {
+  const resetDailyCap = auditModule.resetDailyCap;
+  return c.json({ ok: true, resetAt: resetDailyCap(), note: 'money-out counter back to $0 for today' });
+});
+
 api.post('/system/reset', (c) => {
   for (const t of ['actions', 'audit', 'approvals', 'invoices', 'payouts', 'events', 'mandates', 'runs', 'verifications', 'meta']) {
     db.exec(`DELETE FROM ${t}`);
