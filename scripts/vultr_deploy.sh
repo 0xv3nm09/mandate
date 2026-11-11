@@ -60,7 +60,10 @@ $HN.sslip.io {
     reverse_proxy localhost:8787
 }
 CADDY
-systemctl enable --now caddy && systemctl reload caddy || systemctl restart caddy
+# hard restart: apt auto-starts caddy with the default Caddyfile during install —
+# a reload can race it; a restart guarantees the site block above is what's loaded
+systemctl enable --now caddy || true
+systemctl restart caddy
 
 echo "LIVE → https://$HN.sslip.io"
 REMOTE

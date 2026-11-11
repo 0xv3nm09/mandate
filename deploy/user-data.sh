@@ -51,6 +51,7 @@ $HN.sslip.io {
     reverse_proxy localhost:8787
 }
 CADDY
-systemctl enable --now caddy && systemctl reload caddy || systemctl restart caddy
+systemctl enable --now caddy || true
+systemctl restart caddy
 
 echo "LIVE → https://$HN.sslip.io  ·  fill /opt/mandate/server/.env with PayPal sandbox keys, then: systemctl restart mandate"

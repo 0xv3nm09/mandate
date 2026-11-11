@@ -50,10 +50,14 @@ Then open **Usecases → "Run all 12 sequentially"** — every trace is a real c
 
 ## Live on Vultr — full stack on one VM
 
-The entire product (API + console + HTTPS) runs on a single Vultr VM from your credits —
-**one command**: `bash scripts/vultr_deploy.sh root@<VM-IP>` → auto-installs Node 24 + Caddy
-**auto-HTTPS via sslip.io** (`https://<ip-dashed>.sslip.io`), systemd service, firewall —
-and PayPal sandbox invoices/payouts execute from that stack. Runbook:
+**This repo is deployed live right now:** <https://139-84-172-28.sslip.io> — the entire product
+(API + console + auto-HTTPS) on a single Vultr VM, health: `{"ok":true,"mode":{"paypal":"SANDBOX"}}`,
+audit chain verified, all 12 use cases executed from that stack against the real PayPal sandbox
+(payout batch `BVBZA9QYYXHUY` settled SUCCESS, invoices `INV2-HVJL-97RZ-…` created via Invoicing v2).
+
+It's reproducible with **one command**: `bash scripts/vultr_deploy.sh root@<VM-IP>` → auto-installs
+Node 24 + Caddy auto-HTTPS via sslip.io (`https://<ip-dashed>.sslip.io` — free hostname from your
+IP, Let's Encrypt cert auto-provisioned), systemd service, firewall. Runbook:
 [docs/DEPLOY-VULTR.md](docs/DEPLOY-VULTR.md) (cloud-init first-boot option included).
 
 ## The 30-second architecture
