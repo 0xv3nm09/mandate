@@ -1,132 +1,131 @@
-# AG Grid in Mandate — usage, dev guide, and how to showcase it
+# AG Grid in Mandate — the audit surface, in full
 
-*Two things in one doc: (1) **how Mandate uses AG Grid** — the case for "Best Use of AG Grid"; (2) a **developer guide** to level it up, with copy-paste code. All AG Grid **Community** (free) — no Enterprise features, no licence question.*
+*How Mandate uses **AG Grid Community v34**: what the grids render, the operator workflows they
+enable, the exact APIs used, and real screenshots from the running app. No Enterprise features —
+everything here is Community (MIT).*
 
-Primary grid: [`web/src/components/AuditGrid.tsx`](../web/src/components/AuditGrid.tsx) · version: `ag-grid-community` / `ag-grid-react` **v34** · theme: Quartz (themed to the app via CSS variables in [`web/src/index.css`](../web/src/index.css)).
+Primary grids: [`web/src/components/AuditGrid.tsx`](../web/src/components/AuditGrid.tsx) (audit
+ledger) · [`web/src/components/Console.tsx`](../web/src/components/Console.tsx) → `InvoicesGrid`
+(invoices) · theme: Quartz themed to the app via CSS variables in
+[`web/src/index.css`](../web/src/index.css).
 
----
-
-## 1. Why AG Grid here (the meaningful, central use)
-
-Mandate's whole product is **accountability for money an AI agent moves**. The artifact that delivers that is a **hash-chained audit ledger** — every proposal, decision, approval, settlement and webhook, immutable and verifiable. That ledger is **rendered in AG Grid**, and it is the operator's primary inspection surface (Console → Audit Grid). So the grid isn't decoration or a demo table — it *is* the trust product's window into itself. Meaningful + central, which is what a sponsor judge rewards.
-
-## 2. What Mandate uses today
-
-| AG Grid feature | Where | What it does |
-|---|---|---|
-| `AgGridReact` + `AllCommunityModule` | `AuditGrid.tsx` | The ledger grid |
-| Custom **cell renderers** (JSX) | Decision, Hash, Receipt columns | Decision pill + reason code, shortened hash, per-row signed-receipt export button |
-| **valueGetter** over nested data | Event / Amount / Payee | Pulls fields out of each record's `payload` object |
-| **valueFormatter** | Time column | Formats the ISO timestamp |
-| **Pinned column** | Receipt (`pinned: 'right'`) | Keeps the export action visible while scrolling |
-| **Sorting** (default desc on `#`) + resizable | all columns | Sort/resize |
-| **Pagination** | grid | 50 rows/page |
-| **Live refresh** | SSE hook | New decisions stream into the grid in real time |
-
-That's a genuine, non-trivial use. The guide below turns it from "a good table" into "a data grid," which is the bar for the prize.
+![Audit ledger in AG Grid — floating filter row, decision pills, receipt export column](screenshots/ag-audit-grid.png)
 
 ---
 
-## 3. Developer guide — level it up (AG Grid Community only)
+## 1. Why AG Grid is central here (not decoration)
 
-> Edit one file, `web/src/components/AuditGrid.tsx`. Each block is additive. After editing, `cd web && npm run build` (or `npm run dev`).
+Mandate's whole product is **accountability for money an AI agent moves**. The artifact that
+delivers that is a **hash-chained audit ledger** — every proposal, decision, approval,
+settlement, webhook and inbound-verification verdict, immutable and verifiable. That ledger is
+**rendered in AG Grid**, and it is the operator's primary inspection surface (Console → Audit
+Grid). When the agent is gated, blocked or questioned, the answer lives in the grid. So the grid
+is not a demo table — it *is* the trust product's window into itself. That is the case for
+"Best Use of AG Grid": meaningful, central, and non-trivial.
 
-### 3.0 Add a grid ref (needed for export/quick-filter)
-```tsx
-import { useMemo, useRef, useState } from 'react';
-import type { AgGridReact as AgGridReactType } from 'ag-grid-react';
-// ...
-const gridRef = useRef<AgGridReactType>(null);
-const [quick, setQuick] = useState('');
-```
-…and on the grid element: `<AgGridReact ref={gridRef} quickFilterText={quick} … />`
+A second grid covers money-in: the **Invoices view** is also AG Grid (same filtering, quick
+search, CSV export) — "built on AG Grid," not "dropped in."
 
-### 3.1 Column filtering + floating filters  *(the #1 data-grid feature — you have none today)*
-```tsx
-const defaultColDef = useMemo(() => ({
-  sortable: true,
-  resizable: true,
-  filter: true,            // text filter on every column
-  floatingFilter: true,    // inline filter row under the headers
-}), []);
-```
-Then on specific columns, the right filter type:
-```tsx
-{ headerName: 'Amount', filter: 'agNumberColumnFilter', /* …valueGetter… */ },
-{ headerName: 'Decision', field: 'decision', filter: 'agTextColumnFilter', /* …renderer… */ },
-```
-Now a judge can filter to `Decision = BLOCK` or `Amount > 100` from the UI.
+## 2. The two grids
 
-### 3.2 Quick search across all columns
-```tsx
-<input
-  className="input flex-1"
-  placeholder="Quick filter the ledger… (payee, decision, hash, event)"
-  value={quick}
-  onChange={(e) => setQuick(e.target.value)}
-/>
-```
-`quickFilterText={quick}` on the grid (from 3.0) does the rest — AG Grid filters every row live. (Keep your existing NL "interrogate" box; they're different — this filters, that reasons.)
+| Grid | Rows | Where | Purpose |
+| --- | --- | --- | --- |
+| **Audit ledger** | every audit record (decisions, executions, approvals, webhooks, verifications, mandate signatures) | Console → Audit Grid | Inspect and filter everything the agent did; export receipts |
+| **Invoices** | agent-created PayPal invoices | Console → Invoices | Track money-in: status, reminders, PayPal refs |
 
-### 3.3 Built-in CSV export  *(uses AG Grid's own export API — on-brand "export your audit")*
-```tsx
-const exportLedgerCsv = () =>
-  gridRef.current?.api.exportDataAsCsv({ fileName: `mandate-audit-${Date.now()}.csv` });
-// button:
-<button className="btn-ghost" onClick={exportLedgerCsv}><Download size={14}/> Export CSV</button>
-```
-This is distinct from your per-row JSON receipt export — it shows the grid's own data-export feature over the whole, filtered ledger.
+![Invoices grid — same AG Grid treatment for money-in](screenshots/ag-invoices-grid.png)
 
-### 3.4 Conditional row styling by decision  *(visual + meaningful — see the guardrail at a glance)*
-```tsx
-const getRowStyle = (p: any) => {
-  const d = p.data?.decision;
-  if (d === 'BLOCK') return { background: 'rgba(239,68,68,0.06)' };
-  if (d === 'GATE')  return { background: 'rgba(245,158,11,0.06)' };
-  if (d === 'ALLOW') return { background: 'rgba(34,197,94,0.05)' };
-  return undefined;
-};
-// grid prop: getRowStyle={getRowStyle}
-```
-Or per-cell via `cellClassRules` on the Decision column. Either way, BLOCK rows jump out — which is the whole point of an audit view.
+## 3. What each feature is used for (operator workflows)
 
-### 3.5 Polish (cheap, high-perceived-quality)
-```tsx
-// on <AgGridReact …>:
-animateRows
-tooltipShowDelay={300}
-// Hash column: full hash on hover
-{ headerName: 'Hash ✓', field: 'hash', tooltipField: 'hash', /* …renderer… */ },
-// Amount: right-aligned currency
-{ headerName: 'Amount', type: 'rightAligned',
-  valueGetter: (p:any)=>p.data?.payload?.amount ?? null,
-  valueFormatter: (p:any)=> p.value!=null ? `$${Number(p.value).toFixed(2)}` : '' },
-```
+### Quick filter — "show me everything about this payee"
 
-### 3.6 Tier 2 — a second grid (the differentiator)
-The Console **Invoices** view (`web/src/components/Console.tsx → Invoices()`) is a plain HTML `<table>`. Convert it to an `AgGridReact` (columns: invoice #, payee, amount, status pill, reminders, PayPal ref) with the same filtering/export. Two grids across money-in **and** the audit reads as "built on AG Grid," not "dropped one in" — a real edge for "Best Use."
+Type in the quick filter and every column narrows live:
 
----
+![Quick filter BLOCK — only red-tinted block records remain](screenshots/ag-quick-filter-block.png)
 
-## 4. How to showcase it (half the prize is presentation)
+**Operator workflow:** *"Show me only what was blocked."* One word — `BLOCK` — and the ledger
+reduces to the guardrail's refusals, each row tinted red. Same trick answers *"everything for
+sam@contractor.test"* or *"which records are VERIFICATION kind?"*
 
-**In the video (10–15s is enough, but make it unmistakable):**
+### Column filters + floating filter row
+
+Every column carries its own filter with a **floating filter row** under the headers — filter
+without opening a menu:
+
+- `#` / `Amount` → **number filter** (e.g. `amount > 100`)
+- `Decision` / `Kind` / `Payee` / `Event` → **text filter** (`contains BLOCK`, `starts WITH
+  INV2`)
+- `Time` → filter disabled (it duplicates `#` ordering)
+
+### CSV export — take the audit with you
+
+One button (`Export CSV`) calls AG Grid's `exportDataAsCsv` over the **currently filtered
+ledger** — what you filtered is exactly what you export. Distinct from the per-row
+**signed-JSON receipts** (those are cryptographic artifacts; the CSV is the analyst view).
+
+### Decision-tinted rows
+
+`getRowStyle` tints rows by decision: BLOCK red, GATE amber, ALLOW green — the guardrail's
+shape is visible without reading a cell.
+
+### Live SSE refresh
+
+The grid subscribes to the approval/event stream: when a new decision lands (e.g. a use-case
+run just blocked a payout), the row appears without a refresh. New decisions stream in while
+you watch.
+
+### Pinned receipt column + per-row export
+
+The Receipt column stays pinned right while scrolling; each row exports its own **signed
+mandate receipt** (JWS + chain context) — the per-record cryptographic counterpart to the CSV.
+
+## 4. Reference — AG Grid APIs used (all Community)
+
+| API / prop | Where | Notes |
+| --- | --- | --- |
+| `AgGridReact` + `AllCommunityModule` + `ModuleRegistry.registerModules` | both grids | v34 module registration |
+| `ref` → `gridRef.current.api` | both grids | programmatic access for CSV export |
+| `quickFilterText` | both grids | cross-column live search |
+| `defaultColDef { sortable, resizable, filter: true, floatingFilter: true }` | both grids | filtering everywhere |
+| `filter: 'agNumberColumnFilter'` / `'agTextColumnFilter'` / `false` | per column | right filter type per data shape |
+| `getRowStyle` | audit grid | decision tinting |
+| `cellRenderer` (React JSX) | Decision pills + reason codes, hash, receipt buttons, status pills | note: must return JSX, not DOM nodes |
+| `valueGetter` / `valueFormatter` | Event, Amount, Payee, Time | pulls fields out of nested `payload`, formats currency/time |
+| `pinned: 'right'` | Receipt column | export action always visible |
+| `pagination` + `paginationPageSize` | both grids | 50 / 25 rows per page |
+| `animateRows`, `tooltipShowDelay: 300`, `tooltipField` | both grids | polish; full hash on hover |
+| `floatingFiltersHeight: 30`, `headerHeight: 32`, `rowHeight: 34` | both grids | compact ledger layout |
+| Quartz theme via CSS variables | `web/src/index.css` | themed to the app (works in cream/orange light theme) |
+
+## 5. How it was built (gotchas, from docs/FEEDBACK.md)
+
+- **React cell renderers must return JSX** — returning DOM nodes crashes React (error #31,
+  "Objects are not valid as a React child"). The AG Grid vanilla docs show DOM renderers; the
+  React wrapper needs components.
+- **Grid height**: AG Grid inside a `flex-1` container can compute a zero-height body viewport
+  when the flex column also holds a floating-filter row — fixed heights (`h-[540px]` /
+  `h-[460px]`) keep rows visible.
+- **Theming**: Quartz CSS variables (`--ag-background-color`, `--ag-header-background-color`, …)
+  match the app's surface/edge palette.
+
+## 6. Showcase (half the prize is presentation)
+
+In the demo video (10–15 s is enough, make it unmistakable):
+
 - Type in the quick filter → rows narrow live.
-- Open a column filter → pick `Decision = BLOCK` → only blocks remain, tinted red.
-- Click **Export CSV** → a file downloads.
+- Open a column filter → `Decision = BLOCK` → only red-tinted blocks remain.
+- Click **Export CSV** → the filtered audit downloads.
 - Leave it running → a new row streams in via SSE as a use case fires.
 
-**In the Devpost "Tools" / "Built With" section, say it plainly:**
-> *Best Use of AG Grid — the hash-chained audit ledger (every governed money decision) is rendered in AG Grid Community: per-column filtering + floating filters, quick search, CSV export, decision-tinted rows, custom cell renderers (decision pills, signed-receipt export), pinned actions, and live SSE refresh. It's the operator's primary inspection surface, plus the invoices grid. AG Grid is how a user audits what the agent did.*
+In the Devpost "Tools / Built With" section, say it plainly:
 
-Sponsor judges skim for their tool — make it central, make it move, name it.
+> *Best Use of AG Grid — the hash-chained audit ledger (every governed money decision) is
+> rendered in AG Grid Community: per-column filtering + floating filters, quick search, CSV
+> export, decision-tinted rows, custom cell renderers (decision pills, signed-receipt export),
+> pinned actions, and live SSE refresh. It's the operator's primary inspection surface, plus the
+> invoices grid. AG Grid is how a user audits what the agent did.*
 
----
-
-## 5. Where to link / share this
-
-- **README** — the "Stack → AG Grid (sponsor tool) usage" section links here (added). That's the canonical in-repo pointer.
-- **Devpost submission** — in the "Tools" field, link this doc on the public repo: `https://github.com/0xv3nm09/mandate/blob/main/docs/AG-GRID.md`.
-- **Video description** — drop the same link so the AG Grid judge can jump straight to it.
-
-> Reminder: everything here is **AG Grid Community** (MIT). Do **not** add or claim Enterprise-only features (master/detail, row grouping, status-bar aggregation, set filter, Excel export) — Community filtering + quick filter + CSV export + cell renderers + conditional styling is already a strong, clean "Best Use."
+> Reminder: everything is **AG Grid Community** (MIT). No Enterprise-only features
+> (master/detail, row grouping, status-bar aggregation, set filter, Excel export) — Community
+> filtering + quick filter + CSV export + cell renderers + conditional styling is already a
+> strong, clean "Best Use."

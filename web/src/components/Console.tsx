@@ -180,7 +180,7 @@ function InvoicesGrid() {
           <button className="btn-ghost h-8 px-2.5 text-xs" onClick={load}><RefreshCw size={12} /> refresh</button>
         </div>
       </div>
-      <div className="ag-theme-quartz min-h-[380px] flex-1 overflow-hidden rounded-xl2 border border-edge">
+      <div className="ag-theme-quartz h-[460px] overflow-hidden rounded-xl2 border border-edge">
         <AgGridReact
           ref={gridRef}
           rowData={invoices}
