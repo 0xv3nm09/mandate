@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import {
   ArrowRight, BellRing, CheckCircle2, Database, FileSignature, FileText, GitBranch, Lock, Scale,
   ShieldCheck, Sparkles, TrendingUp, Wallet, Webhook, XCircle, Zap, KeyRound, Fingerprint, OctagonPause, Repeat, Link2, Eye, Flame, Rocket, Trophy,
+  CircleDollarSign, Gauge, MessageSquareText,
 } from 'lucide-react';
 import { api, money, shortTime, type Stats, type RunSummary } from '../lib/api';
 
@@ -111,19 +112,33 @@ function Hero({ go, stats, health, runs }: { go: GoTo; stats: Stats | null; heal
         </div>
       </div>
 
-      {/* capability row */}
-      <div className="grid grid-cols-2 border-t border-edge sm:grid-cols-3 lg:grid-cols-6">
+      {/* capability row — 12 things it actually does, every one backed by a rule or a live use case */}
+      <div className="border-t border-edge">
         {[
-          { icon: <FileText size={15} />, label: 'Draft & send invoices' },
-          { icon: <BellRing size={15} />, label: 'Chase late payers' },
-          { icon: <Wallet size={15} />, label: 'Governed payouts' },
-          { icon: <ShieldCheck size={15} />, label: 'The “Netflix” check' },
-          { icon: <FileSignature size={15} />, label: 'Signed policy' },
-          { icon: <Database size={15} />, label: 'Hash-chained audit' },
-        ].map((t) => (
-          <span key={t.label} className="flex items-center justify-center gap-2 border-edge px-3 py-4 text-[13px] font-semibold text-ink [&:not(:last-child)]:border-r">
-            <span className="text-accent">{t.icon}</span> {t.label}
-          </span>
+          [
+            { icon: <FileText size={15} />, label: 'Draft & send invoices' },
+            { icon: <BellRing size={15} />, label: 'Chase late payers' },
+            { icon: <Wallet size={15} />, label: 'Governed payouts' },
+            { icon: <ShieldCheck size={15} />, label: 'The “Netflix” check' },
+            { icon: <FileSignature size={15} />, label: 'Signed policy' },
+            { icon: <Database size={15} />, label: 'Hash-chained audit' },
+          ],
+          [
+            { icon: <Repeat size={15} />, label: 'Standing mandates' },
+            { icon: <TrendingUp size={15} />, label: 'Drift detection' },
+            { icon: <CircleDollarSign size={15} />, label: 'Daily spend cap' },
+            { icon: <Gauge size={15} />, label: 'Velocity breaker' },
+            { icon: <OctagonPause size={15} />, label: 'Kill switch' },
+            { icon: <MessageSquareText size={15} />, label: 'Plain-English policy edits' },
+          ],
+        ].map((row, i) => (
+          <div key={i} className={`grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 ${i ? 'border-t border-edge' : ''}`}>
+            {row.map((t) => (
+              <span key={t.label} className="flex items-center justify-center gap-2 border-edge px-3 py-3.5 text-[13px] font-semibold text-ink [&:not(:last-child)]:border-r">
+                <span className="text-accent">{t.icon}</span> {t.label}
+              </span>
+            ))}
+          </div>
         ))}
       </div>
     </section>
