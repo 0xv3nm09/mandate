@@ -48,90 +48,88 @@ export function Home({ go }: { go: (page: 'dashboard' | 'console' | 'usecases') 
 type GoTo = (p: 'dashboard' | 'console' | 'usecases') => void;
 
 function Hero({ go, stats, health, runs }: { go: GoTo; stats: Stats | null; health: Health | null; runs: RunSummary[] }) {
+  const clean = runs.filter((r) => r.outcome !== 'error').length;
   return (
-    <section className="relative overflow-hidden rounded-2xl border border-edge/60 bg-surface/60 px-6 py-14 text-center shadow-card md:px-12 md:py-20">
-      {/* aurora */}
-      <div className="pointer-events-none absolute -top-36 left-1/2 h-80 w-[44rem] -translate-x-1/2 rounded-full bg-accent/20 blur-[110px] animate-drift" />
-      <div className="pointer-events-none absolute -bottom-44 -left-28 h-80 w-[26rem] rounded-full bg-teal/15 blur-[110px] animate-drift-slow" />
-      <div className="pointer-events-none absolute -right-28 top-6 h-72 w-[24rem] rounded-full bg-fuchsia-500/12 blur-[100px] animate-drift" />
-      <div className="pointer-events-none absolute inset-0 bg-grid-dots bg-[size:26px_26px] [mask-image:radial-gradient(60rem_30rem_at_50%_0%,black_30%,transparent_75%)]" />
-      <div className="relative">
-        <div className="mb-4 flex flex-wrap items-center justify-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-accent px-3 py-1 text-[12px] font-bold text-white shadow-glow"><Trophy size={13} /> PayPal AI Hackathon 2026</span>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3 py-1 text-[12px] font-bold text-bg"><KeyRound size={13} /> AI holds 0 PayPal keys</span>
-          <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-ok bg-ok/10 px-3 py-1 text-[12px] font-bold text-ok"><Flame size={13} /> 12 real use cases · live</span>
-          <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-accent bg-raised px-3 py-1 text-[12px] font-bold text-accent-bright"><Rocket size={13} /> $8B → $1.5T market</span>
+    <section className="relative mt-6 overflow-hidden rounded-2xl border border-edge bg-raised shadow-card">
+      {/* top ribbon */}
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-edge bg-ink px-6 py-2.5 text-bg">
+        <span className="inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em]">
+          <span className="h-2 w-2 animate-pulseSoft rounded-full bg-accent" /> Live demo · PayPal sandbox · aligned with AP2
+        </span>
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-accent px-3 py-0.5 text-[11px] font-bold text-white"><Trophy size={12} /> PayPal AI Hackathon 2026</span>
+      </div>
+
+      <div className="grid gap-10 p-6 md:p-10 lg:grid-cols-[1.15fr_1fr]">
+        {/* left: the pitch */}
+        <div>
+          <p className="kicker">The trust layer for agentic money</p>
+          <h1 className="mt-4 font-display text-4xl font-extrabold leading-[1.02] tracking-tight md:text-[3.6rem]">
+            <span className="text-accent">AI proposes.</span><br />Code authorizes.
+          </h1>
+          <p className="mt-5 max-w-xl text-base leading-relaxed text-muted md:text-lg">
+            A PayPal-native finance agent that invoices, chases and pays out <b className="text-ink">on its own</b> — yet can never
+            move a dollar on its own. Every payment clears a <b className="text-ink">signed policy</b>; anything risky waits for
+            <b className="text-ink"> your one tap</b>.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3 py-1 text-[12px] font-bold text-bg"><KeyRound size={13} /> AI holds 0 PayPal keys</span>
+            <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-ok bg-ok/10 px-3 py-1 text-[12px] font-bold text-ok"><Flame size={13} /> 12 real use cases</span>
+            <span className="inline-flex items-center gap-1.5 rounded-full border-2 border-accent px-3 py-1 text-[12px] font-bold text-accent-bright"><Rocket size={13} /> $8B → $1.5T market</span>
+          </div>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <button className="btn-primary h-12 px-6 text-[15px]" onClick={() => go('usecases')}>
+              See it run live <ArrowRight size={16} />
+            </button>
+            <button className="btn-ghost h-12 px-6 text-[15px]" onClick={() => go('dashboard')}>
+              Open the dashboard
+            </button>
+          </div>
         </div>
-        <p className="mx-auto flex w-fit items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.18em] text-indigo-200">
-          <Sparkles size={12} className="text-teal" />
-          Built on PayPal sandbox · aligned with AP2
-        </p>
-        <h1 className="mx-auto mt-6 max-w-3xl font-display text-4xl font-bold leading-[1.08] tracking-tight md:text-6xl">
-          AI agents can move money now.
-          <span className="block text-aurora">
-            Mandate makes every dollar accountable.
+
+        {/* right: live decision panel */}
+        <div className="rounded-xl2 border border-edge bg-surface p-5">
+          <div className="flex items-center justify-between">
+            <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted">Every command → policy engine → verdict</p>
+            <span className="rounded-full bg-ok/15 px-2 py-0.5 font-mono text-[10px] font-bold text-ok">LIVE</span>
+          </div>
+          <VerdictStrip />
+          <div className="mt-5 grid grid-cols-3 gap-2 border-t border-edge pt-4 text-center">
+            {[
+              { v: stats ? money(stats.moneyIn) : '…', k: 'money in' },
+              { v: stats ? money(stats.moneyOut) : '…', k: 'paid out · $1,000 cap' },
+              { v: stats ? `${stats.blocked}` : '…', k: 'blocked outright', hot: true },
+            ].map((x) => (
+              <div key={x.k}>
+                <p className={`font-display text-2xl font-bold ${x.hot ? 'text-danger' : 'text-ink'}`}>{x.v}</p>
+                <p className="text-[11px] leading-tight text-muted">{x.k}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-4 text-center font-mono text-[10.5px] text-muted">
+            mandate v{health?.mandateVersion ?? '…'} · JWS · audit {stats?.auditRecords ?? '…'} records ✓{runs.length ? ` · ${clean}/${runs.length} runs clean` : ''}
+          </p>
+        </div>
+      </div>
+
+      {/* capability row */}
+      <div className="grid grid-cols-2 border-t border-edge sm:grid-cols-3 lg:grid-cols-6">
+        {[
+          { icon: <FileText size={15} />, label: 'Draft & send invoices' },
+          { icon: <BellRing size={15} />, label: 'Chase late payers' },
+          { icon: <Wallet size={15} />, label: 'Governed payouts' },
+          { icon: <ShieldCheck size={15} />, label: 'The “Netflix” check' },
+          { icon: <FileSignature size={15} />, label: 'Signed policy' },
+          { icon: <Database size={15} />, label: 'Hash-chained audit' },
+        ].map((t) => (
+          <span key={t.label} className="flex items-center justify-center gap-2 border-edge px-3 py-4 text-[13px] font-semibold text-ink [&:not(:last-child)]:border-r">
+            <span className="text-accent">{t.icon}</span> {t.label}
           </span>
-        </h1>
-        <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-muted md:text-lg">
-          A PayPal-native finance agent that runs your invoicing and payouts <b className="text-ink/90">on its own</b> —
-          and can never move a dollar on its own. Every payment clears a <b className="text-ink/90">signed policy</b>, and
-          anything risky waits for <b className="text-ink/90">your one-tap approval</b>.
-        </p>
-        <p className="mx-auto mt-4 max-w-2xl font-display text-sm text-teal">
-          “Verifiable intent, not inferred action” — the principle of AP2, the payments standard PayPal backs.
-        </p>
-
-        {/* capability grid — equal cells, one line each */}
-        <div className="mx-auto mt-10 grid max-w-2xl grid-cols-2 gap-2 sm:grid-cols-3">
-          {[
-            { icon: <FileText size={13} />, label: 'Draft & send invoices' },
-            { icon: <BellRing size={13} />, label: 'Chase late payers' },
-            { icon: <Wallet size={13} />, label: 'Governed payouts' },
-            { icon: <ShieldCheck size={13} />, label: 'The “Netflix” check' },
-            { icon: <FileSignature size={13} />, label: 'Sign the policy' },
-            { icon: <Database size={13} />, label: 'Hash-chained audit' },
-          ].map((t) => (
-            <span key={t.label} className="flex h-9 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-accent/25 bg-raised px-3 text-[12px] font-semibold text-ink shadow-raised">
-              <span className="text-accent">{t.icon}</span> {t.label}
-            </span>
-          ))}
-        </div>
-
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <button className="btn-primary h-11 px-6 text-sm" onClick={() => go('usecases')}>
-            See it run — 12 live use cases <ArrowRight size={15} />
-          </button>
-          <button className="btn-ghost h-11 px-6 text-sm hover:border-teal/50" onClick={() => go('dashboard')}>
-            Open the live dashboard
-          </button>
-        </div>
-
-        <VerdictStrip />
-
-        {/* status bar — one deliberate strip, uniform label/value pairs */}
-        <div className="mx-auto mt-8 flex max-w-3xl flex-wrap items-center justify-center gap-x-7 gap-y-2 rounded-xl2 border border-edge/60 bg-bg/40 px-5 py-3 font-mono text-[11px]">
-          {[
-            { k: 'gateway', v: health?.mode.paypal === 'SANDBOX' ? 'live sandbox' : (health?.mode.paypal ?? '…') },
-            { k: 'agent', v: health?.mode.llm === 'LLM' ? 'llm / ai-sdk' : 'deterministic' },
-            { k: 'mandate', v: `v${health?.mandateVersion ?? '…'} · JWS` },
-            stats ? { k: 'audit chain', v: `${stats.auditRecords} records ✓`, accent: true } : null,
-            runs.length > 0 ? { k: 'suite', v: `${runs.length} runs · ${runs.filter((r) => r.outcome !== 'error').length} clean` } : null,
-          ].filter(Boolean).map((item) => {
-            const it = item as { k: string; v: string; accent?: boolean };
-            return (
-              <span key={it.k} className="whitespace-nowrap">
-                <span className="text-slate-500">{it.k}</span>{' '}
-                <b className={it.accent ? 'text-teal' : 'text-slate-200'}>{it.v}</b>
-              </span>
-            );
-          })}
-        </div>
+        ))}
       </div>
     </section>
   );
 }
 
-// The money-shot as a static, glanceable diagram — column-aligned: command+note left, verdict right.
 function VerdictStrip() {
   const rows = [
     { text: '“Invoice Acme $1,200”', note: 'money-in · runs autonomously', verdict: 'ALLOW', cls: 'text-ok border-ok/40 bg-ok/10', bar: 'from-ok/20', edge: 'border-l-ok' },
@@ -139,15 +137,12 @@ function VerdictStrip() {
     { text: '“Pay NewVendor $800”', note: 'payee not on the allowlist', verdict: 'BLOCK', cls: 'text-danger border-danger/40 bg-danger/10', bar: 'from-danger/20', edge: 'border-l-danger' },
   ];
   return (
-    <div className="mx-auto mt-10 max-w-2xl">
-      <p className="mb-2 text-center font-mono text-[10.5px] uppercase tracking-[0.18em] text-slate-500">
-        every command → deterministic policy engine → verdict
-      </p>
-      <div className="grid gap-2">
+    <div className="mt-4">
+      <div className="grid gap-2.5">
         {rows.map((r) => (
           <div
             key={r.verdict}
-            className={`grid h-12 grid-cols-[1fr_92px] items-center gap-3 rounded-xl2 border border-edge/60 border-l-2 bg-gradient-to-r ${r.bar} to-transparent px-4 text-left shadow-raised ${r.edge}`}
+            className={`grid h-14 grid-cols-[1fr_92px] items-center gap-3 rounded-xl2 border border-edge/60 border-l-2 bg-gradient-to-r ${r.bar} to-transparent px-4 text-left shadow-raised ${r.edge}`}
           >
             <span className="min-w-0">
               <span className="block truncate font-mono text-[12px] text-ink/90">{r.text}</span>
@@ -397,9 +392,9 @@ function Security() {
         <span className="rounded-full bg-danger/10 px-2.5 py-0.5 text-[11px] font-bold text-danger">0 bypasses</span>
       </div>
       <h2 className="mt-3 font-display text-3xl font-bold md:text-4xl">
-        <span className="text-accent">AI proposes.</span> Code authorizes.
+        A prompt can be ignored. <span className="text-accent">A gate cannot.</span>
       </h2>
-      <p className="mt-2 max-w-2xl text-muted">A prompt can be ignored. A deterministic gate cannot. Six guarantees stand between the agent and your money.</p>
+      <p className="mt-2 max-w-2xl text-muted">Six guarantees stand between the agent and your money.</p>
       <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((i) => (
           <div key={i.t} className="rounded-xl2 border border-edge bg-surface p-5 transition-transform hover:-translate-y-0.5">
