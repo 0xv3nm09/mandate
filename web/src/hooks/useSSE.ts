@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { API_BASE } from '../lib/api';
+import { API_BASE, isSnapshotMode } from '../lib/api';
 
 /** Subscribe to the approval/event SSE stream with graceful polling fallback. */
 export function useSSE(onEvent: (type: string, data: any) => void): { connected: boolean } {
@@ -8,6 +8,7 @@ export function useSSE(onEvent: (type: string, data: any) => void): { connected:
   handler.current = onEvent;
 
   useEffect(() => {
+    if (isSnapshotMode()) return; // no backend on the static snapshot site
     const es = new EventSource(`${API_BASE}/api/approvals/stream`);
     es.onopen = () => setConnected(true);
     es.onerror = () => setConnected(false);

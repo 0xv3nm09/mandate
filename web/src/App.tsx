@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ShieldCheck, Home as HomeIcon, LayoutDashboard, TerminalSquare, FlaskConical, Github, OctagonPause } from 'lucide-react';
-import { api } from './lib/api';
+import { api, isSnapshotMode, onSnapshotMode } from './lib/api';
 import { Home } from './components/Home';
 import { Dashboard } from './components/Dashboard';
 import { Console } from './components/Console';
@@ -16,6 +16,8 @@ export default function App() {
   const [page, setPage] = useState<Page>(() => (location.hash.replace('#', '') as Page) || 'home');
   const [halted, setHalted] = useState(false);
   const [modes, setModes] = useState<{ paypal: string; llm: string } | null>(null);
+  const [snapMode, setSnapMode] = useState(isSnapshotMode());
+  useEffect(() => onSnapshotMode(() => setSnapMode(true)), []);
 
   useEffect(() => {
     location.hash = page;
@@ -92,6 +94,11 @@ export default function App() {
         </div>
       </header>
 
+      {snapMode && (
+        <div className="border-b border-teal/30 bg-teal/10 px-4 py-1.5 text-center text-xs text-teal">
+          Read-only snapshot (GitHub Pages) — you're browsing recorded runs. The live agent runs on the hosted backend.
+        </div>
+      )}
       {halted && (
         <div className="border-b border-danger/30 bg-danger/10 px-4 py-1.5 text-center text-xs text-danger">
           Global stop engaged — the agent is halted and every queued approval is frozen. Resume from the Console.

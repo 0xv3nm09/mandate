@@ -271,6 +271,41 @@ api.post('/paypal/simulate-event', async (c) => {
   return c.json({ ok: true, res });
 });
 
+// ── Static snapshot export (GitHub Pages read-only site) ─────────────────────
+api.get('/snapshot', async (c) => {
+  const runsRows = db.prepare('SELECT * FROM runs ORDER BY ranAt DESC LIMIT 40').all() as Record<string, unknown>[];
+  const runsFull: Record<string, unknown> = {};
+  const runs = runsRows.map((r) => {
+    const steps = JSON.parse(String(r.trace));
+    const item = {
+      runId: r.runId, ucId: r.ucId, ucTitle: r.ucTitle, outcome: r.outcome, headline: r.headline,
+      steps, auditSeqs: JSON.parse(String(r.auditSeqs)), ranAt: r.ranAt, durationMs: r.durationMs,
+    };
+    runsFull[String(r.runId)] = item;
+    return { ...item, steps: undefined, stepsCount: Number(r.stepsCount) };
+  });
+  const receipts: Record<string, unknown> = {};
+  for (const rec of listAudit(100)) {
+    const rc = exportReceipt(rec.seq);
+    if (rc) receipts[String(rec.seq)] = rc;
+  }
+  const mandate_ = currentMandate();
+  return c.json({
+    generatedAt: now(),
+    readonly: true,
+    health: { ok: true, mode: { paypal: 'SNAPSHOT', llm: llmMode }, mandateVersion: mandate_?.version ?? null, halted: isHalted() },
+    stats: stats(),
+    mandate: mandate_,
+    catalog: usecaseCatalog(),
+    runs, runsFull,
+    verifications: verifyModule.listVerifications(10),
+    receipts,
+    audit: { records: listAudit(100), verify: verifyChain() },
+    approvals: listApprovals(),
+    invoices: listInvoices(),
+  });
+});
+
 // ── Usecases (FR-20) ─────────────────────────────────────────────────────────
 api.get('/usecases', (c) => c.json({ catalog: usecaseCatalog() }));
 api.post('/usecases/:id/run', async (c) => {

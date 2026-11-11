@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   CheckCircle2, AlertTriangle, ChevronDown, CircleDashed, FlaskConical, Play, RefreshCw, ShieldX, Timer,
 } from 'lucide-react';
-import { api, shortTime, type CatalogEntry, type RunRecord, type RunSummary, type TraceStep, type UsecaseResult } from '../lib/api';
+import { api, isSnapshotMode, onSnapshotMode, shortTime, type CatalogEntry, type RunRecord, type RunSummary, type TraceStep, type UsecaseResult } from '../lib/api';
 import { StepDot } from './StatusPill';
 import { useSSE } from '../hooks/useSSE';
 
@@ -37,6 +37,8 @@ export function Usecases() {
   const [running, setRunning] = useState<string | null>(null);
   const [runOrder, setRunOrder] = useState<string[]>([]);
   const [open, setOpen] = useState<Record<string, boolean>>({});
+  const [ro, setRo] = useState(isSnapshotMode());
+  useEffect(() => onSnapshotMode(() => setRo(true)), []);
 
   const loadCatalog = useCallback(() => {
     api<{ catalog: CatalogEntry[] }>('/usecases').then((r) => setCatalog(r.catalog));
@@ -135,7 +137,7 @@ export function Usecases() {
         </div>
           <div className="flex flex-col items-end gap-2">
             <div className="flex gap-2">
-              <button className="btn-primary" onClick={runAll} disabled={!!running}>
+              <button className="btn-primary" onClick={runAll} disabled={!!running || ro} title={ro ? 'Read-only snapshot — runs execute on the live deployment' : undefined}>
                 <Play size={14} /> Run all {catalog.length || 12} sequentially
               </button>
             <button
@@ -176,6 +178,7 @@ export function Usecases() {
               entry={c}
               result={r}
               running={running === c.id}
+              ro={ro}
               open={!!open[c.id]}
               onToggle={() => toggle(c.id)}
               onRun={() => run(c.id)}
@@ -188,11 +191,12 @@ export function Usecases() {
 }
 
 function UsecaseCard({
-  entry, result, running, open, onToggle, onRun,
+  entry, result, running, ro, open, onToggle, onRun,
 }: {
   entry: CatalogEntry;
   result?: UsecaseResult;
   running: boolean;
+  ro: boolean;
   open: boolean;
   onToggle: () => void;
   onRun: () => void;
@@ -216,7 +220,7 @@ function UsecaseCard({
           <p className="truncate text-xs text-muted">{entry.detail}</p>
         </div>
         <StatusBadge status={status} result={result} />
-        <button className="btn-primary shrink-0 px-3.5 py-1.5 text-[13px]" onClick={onRun} disabled={running}>
+        <button className="btn-primary shrink-0 px-3.5 py-1.5 text-[13px]" onClick={onRun} disabled={running || ro} title={ro ? 'Read-only snapshot — runs execute on the live deployment' : undefined}>
           {running ? <RefreshCw size={13} className="animate-spin" /> : <Play size={13} />}
           {running ? 'Running…' : result ? 'Re-run' : 'Run'}
         </button>

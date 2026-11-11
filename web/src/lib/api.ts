@@ -149,17 +149,77 @@ export interface Stats {
 
 // API base: same-origin by default; when the web build is hosted statically
 // (e.g. GitHub Pages), set VITE_API_BASE to the backend URL at build time.
+// With no backend reachable, GETs fall back to the committed read-only snapshot
+// (web/public/demo/mandate-snapshot.json) — the airlock-style Pages site.
 export const API_BASE = (import.meta as any).env?.VITE_API_BASE ?? '';
 
+let snapshotData: any = null;
+let snapshotReady = false;
+export let snapshotMode = false;
+const snapshotListeners: (() => void)[] = [];
+export function isSnapshotMode() {
+  return snapshotMode;
+}
+export function onSnapshotMode(cb: () => void) {
+  snapshotListeners.push(cb);
+  if (snapshotMode) cb();
+}
+const forceSnapshot = new URLSearchParams(location.search).has('snapshot') || location.hostname.endsWith('github.io');
+if (forceSnapshot) { loadSnapshot(); }
+
+async function loadSnapshot(): Promise<any> {
+  if (snapshotReady) return snapshotData;
+  const res = await fetch(`${import.meta.env.BASE_URL}demo/mandate-snapshot.json`);
+  snapshotData = await res.json();
+  snapshotReady = true;
+  snapshotMode = true;
+  snapshotListeners.forEach((cb) => cb());
+  return snapshotData;
+}
+
+function fromSnapshot(path: string, snap: any): unknown | undefined {
+  const p = path.split('?')[0];
+  const exact: Record<string, string> = {
+    '/runs': 'runs', '/stats': 'stats', '/mandate': 'mandate', '/verifications': 'verifications',
+    '/audit': 'audit', '/approvals': 'approvals', '/invoices': 'invoices', '/health': 'health',
+    '/usecases': 'catalog',
+  };
+  if (exact[p]) return snap[exact[p]];
+  if (p.startsWith('/runs/')) return snap.runsFull?.[p.slice('/runs/'.length)];
+  const receipt = p.match(/^\/audit\/(\d+)\/receipt$/);
+  if (receipt) return snap.receipts?.[receipt[1]];
+  if (p === '/paypal/toolkit') return { available: false, reason: 'read-only snapshot' };
+  return undefined;
+}
+
 export async function api<T>(path: string, init?: RequestInit, retried = false): Promise<T> {
+  const isGet = !init?.method || init.method === 'GET';
   const token = localStorage.getItem('mandate_token') ?? '';
-  const res = await fetch(`${API_BASE}/api${path}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token ? { 'x-mandate-token': token } : {}),
-    },
-    ...init,
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}/api${path}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'x-mandate-token': token } : {}),
+      },
+      ...init,
+    });
+  } catch (netErr) {
+    // Static host with no backend: serve reads from the committed snapshot.
+    if (isGet) {
+      const snap = await loadSnapshot();
+      const v = fromSnapshot(path, snap);
+      if (v !== undefined) return v as T;
+    }
+    throw netErr instanceof Error ? netErr : new Error('network error');
+  }
+  // Static host 404 (GitHub Pages serves an HTML 404 page for /api/*): same fallback.
+  const ct = res.headers.get('content-type') ?? '';
+  if (isGet && (res.status === 404 || ct.includes('text/html'))) {
+    const snap = await loadSnapshot();
+    const v = fromSnapshot(path, snap);
+    if (v !== undefined) return v as T;
+  }
   // Locked deployments (MANDATE_ADMIN_TOKEN set): prompt once, remember, retry.
   if (res.status === 401 && res.headers.get('X-Mandate-Token-Required') && !retried) {
     const t = window.prompt('This Mandate deployment requires the admin token:');
@@ -170,6 +230,11 @@ export async function api<T>(path: string, init?: RequestInit, retried = false):
   }
   if (!res.ok) throw new Error(`${res.status} ${await res.text()}`);
   return res.json() as Promise<T>;
+}
+
+// Mutating calls are impossible on the read-only snapshot — surfaces a clear message.
+export function assertNotSnapshot(): void {
+  if (snapshotMode) throw new Error('read-only snapshot (GitHub Pages) — run the app locally or on the hosted backend to execute use cases');
 }
 
 export const money = (n: number, currency = 'USD') =>

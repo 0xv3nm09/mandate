@@ -182,16 +182,28 @@ web/src/components/  Home · Dashboard · Console · AgentConsole · ApprovalInb
 
 `render.yaml` is included — push the repo → Render → New → Blueprint. The web service builds the console, serves it and the API from one origin.
 
-### GitHub Pages (static console, like a demo site)
+### GitHub Pages (read-only snapshot site — zero backend needed)
 
-The build is portable (`base: './'`, hash routing — no server rewrites needed):
+The build is portable (`base: './'`, hash routing — no server rewrites needed), and the repo
+ships a **read-only snapshot** (`web/public/demo/mandate-snapshot.json`) of the recorded runs:
+with no backend reachable, every GET falls back to the snapshot and a banner explains it.
+Visitors browse real recorded runs — Dashboard, Usecases traces, audit ledger — while mutating
+actions are disabled.
 
 ```bash
-cd web
-VITE_API_BASE=https://your-mandate.onrender.com npm run build   # point the static site at the backend
+cd server && npm run dev &        # backend running
+bash scripts/export_snapshot.sh   # regenerate web/public/demo/mandate-snapshot.json
+cd ../web && npm run build && git add -A && git commit -m "snapshot refresh" && git push
 ```
 
-Then publish the repo to GitHub and enable **Pages → Deploy from branch → root**. The root `index.html` stub redirects visitors into `web/dist/index.html` carrying the hash (e.g. `…/mandate/#usecases`). On the backend, set `ALLOWED_ORIGINS=https://<user>.github.io` so the Pages origin may call the API (admin token still guards mutations).
+Then: repo **Settings → Pages → Deploy from a branch → main / (root)**. The root `index.html`
+stub redirects visitors into `web/dist/index.html` carrying the hash (e.g.
+`…/mandate/#usecases`). For a **live** Pages site instead, rebuild with
+`VITE_API_BASE=https://your-mandate.onrender.com` and set the backend's
+`ALLOWED_ORIGINS=https://<user>.github.io` (admin token still guards mutations).
+
+> Note: GitHub Pages for **private** repos requires a paid plan — it goes live when the repo
+> goes public (or with Pro).
 
 ## Notes
 
