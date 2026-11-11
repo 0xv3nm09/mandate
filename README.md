@@ -17,6 +17,7 @@
 **Docs:** [PayPal calls](docs/PAYPAL.md) (every endpoint, payload, real response) ·
 [Results](docs/RESULTS.md) (12/12 expected-vs-got, rendered from evidence) ·
 [Agent](docs/AGENT.md) (modes, tools, verbatim results) ·
+[AI](docs/AI.md) (architecture · module map · benchmarks) ·
 [Evidence map](docs/EVIDENCE.md) (criteria → proof, 60-second tour) ·
 [Architecture & flows](docs/ARCHITECTURE.md) (12 annotated diagrams) · [Build feedback](docs/FEEDBACK.md)
 (every issue faced and its fix) · [System card](SYSTEM_CARD.md) (agent boundaries) ·
@@ -30,7 +31,9 @@
 | **Payouts v1** | All money-out executes as idempotent batches (`sender_batch_id` = approval/standing keys); live batch status polled; PayPal-side duplicate detection honored as a no-op |
 | **Webhooks** | `verify-webhook-signature` on every inbound event + dedupe by id; `simulate-event` for deterministic live demos |
 | **Agent Toolkit** | Official `@paypal/agent-toolkit` attached **read-only** (list/get invoices + disputes) — the agent gets eyes, never hands |
-| **AI** | Vercel AI SDK v5 governed tool loop — `propose_payout` ships with **no `execute`**, so the model structurally cannot move money; a deterministic agent is the zero-key fallback |
+| **[AI](docs/AI.md)** | Vercel AI SDK v5 governed tool loop — `propose_payout` ships with **no `execute`**, so the model structurally cannot move money; a deterministic agent is the zero-key fallback |
+
+> **Full detail:** [docs/PAYPAL.md](docs/PAYPAL.md) — every endpoint, payload & real response · [docs/AI.md](docs/AI.md) — the AI wired to PayPal module-by-module, with safety/latency benchmarks.
 
 ## For judges — run it in 60 seconds
 
@@ -57,7 +60,7 @@ flowchart LR
   INBOX -- "approve" --> CP
 ```
 
-**The trust boundary sits between the control plane and PayPal**: money leaves the account only after a policy pass (plus a human approval when gated). The agent holds no PayPal credentials for money movement. **Code owns the facts; the model only writes language** — no LLM call sits anywhere on the decision path, so a hallucination can't move money.
+**The trust boundary sits between the control plane and PayPal**: money leaves the account only after a policy pass (plus a human approval when gated). The agent holds no PayPal credentials for money movement. **Code owns the facts; the model only writes language** — no LLM call sits anywhere on the decision path, so a hallucination can't move money. **How the AI connects module-by-module, and what it benchmarks to → [docs/AI.md](docs/AI.md).**
 
 **Full architecture set** — [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), each diagram annotated with what it proves: system zones · policy decision flowchart · gated-payout and standing-payout sequences · inbound-verification flow · dispute evidence pack sequence · action lifecycle state machine · invoice lifecycle · audit hash-chain construction · data model (ER) · deployment architecture · evidence workflow.
 
@@ -140,6 +143,8 @@ invoice **send** needs `PAYPAL_SANDBOX_RECIPIENT` configured — is written up, 
 - ✅ **12/12 live suite** — 0 off-policy executions on any attack-shaped case
 - ⚠️ **1 documented gap** — invoice send + payout settlement need the sandbox recipient env (honest `CREATED` status + one-click resend until set)
 
+> **Full results & proof:** [docs/RESULTS.md](docs/RESULTS.md) (expected-vs-got, every trace) · [docs/EVIDENCE.md](docs/EVIDENCE.md) (criteria → proof) · [evidence/](evidence/) (raw artifacts).
+
 ## Trust-layer guarantees (the scored part)
 
 - **Deterministic policy engine** (`server/src/control-plane/policy.ts`) — pure function; ALLOW / GATE / BLOCK with reason codes; hard blocks (unknown payee, currency, daily cap) are un-bypassable by approval.
@@ -149,11 +154,15 @@ invoice **send** needs `PAYPAL_SANDBOX_RECIPIENT` configured — is written up, 
 - **Failure-safe** — PayPal 5xx/timeouts retry with backoff then queue; actions stay PENDING, never silently execute; webhook events are deduped.
 - **Kill switch** — global stop halts proposals, freezes approvals, refuses execution (FR-15).
 
+> **Diagrams & detail:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) (12 annotated flows) · [docs/AGENT.md](docs/AGENT.md) (agent modes & boundaries) · [docs/AI.md](docs/AI.md) (AI module map + benchmarks) · [SYSTEM_CARD.md](SYSTEM_CARD.md) (the five hard rules).
+
 ## Stack
 
 React 18 · Vite · TypeScript · Tailwind · AG Grid (community) · Hono · Vercel AI SDK (optional) · `jose` · `node:sqlite` · PayPal REST (Invoicing, Payouts, Webhooks) · SSE.
 
 **AG Grid (sponsor tool) usage:** the hash-chained audit ledger is rendered in AG Grid Community — column sorting/resizing, pagination, pinned receipt-export column, live refresh on SSE events. It is the primary inspection surface for every decision the engine makes (Console → Audit Grid), plus the Invoices table. See `evidence/audit-chain.json` for the data it renders.
+
+> **Full component list & licenses:** [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 
 ## Repo layout
 
@@ -162,9 +171,9 @@ server/src/
   control-plane/   policy.ts (pure engine) · mandate.ts (JWS) · audit.ts (hash chain) · approvals.ts (queue+SSE)
   paypal/          gateway.ts (SANDBOX + MOCK behind one interface)
   agent/           parser.ts (deterministic NL) · textgen.ts (language-only LLM) · agent.ts (facade)
-  usecases/        runner.ts (UC-01…UC-09 end-to-end with traces)
+  usecases/        runner.ts (UC-01…UC-12 end-to-end with traces)
   routes/api.ts    all HTTP routes
-web/src/components/  Home · Console · AgentConsole · ApprovalInbox · AuditGrid · MandateEditor · Usecases
+web/src/components/  Home · Dashboard · Console · AgentConsole · ApprovalInbox · AuditGrid · MandateEditor · Usecases
 ```
 
 ## Deploy
@@ -211,6 +220,7 @@ the bugs our own audit loop caught. Feedback matters; the failures are documenta
 | [`docs/PAYPAL.md`](docs/PAYPAL.md) | **Every PayPal call** — auth, Invoicing v2, Payouts v1, webhooks, toolkit: literal payloads, real responses, idempotency namespaces, the full error catalog with handling. |
 | [`docs/RESULTS.md`](docs/RESULTS.md) | **Live results** — expected-vs-got table (12/12), real PayPal objects, condensed per-UC traces, verdict mix; rendered from evidence by `scripts/render_results_md.py`. |
 | [`docs/AGENT.md`](docs/AGENT.md) | **The agent** — both modes, tool contracts (propose-not-execute), parser intents, verbatim results from live runs, and where the model is never allowed. |
+| [`docs/AI.md`](docs/AI.md) | **The AI, measured** — where AI is used vs forbidden, the full module-connection map (agent → control plane → PayPal), the two AI↔PayPal paths, and benchmarks: safety (0 unauthorized moves), latency (~1–4 ms gate), intent coverage, determinism. |
 | [`docs/EVIDENCE.md`](docs/EVIDENCE.md) | **Criteria → proof map** — each judging criterion mapped to runnable commands and committed artifacts, trust guarantees → evidence, deliverable status, 60-second tour. |
 | [`docs/FEEDBACK.md`](docs/FEEDBACK.md) | **Build retrospective** — 16 issues faced and fixed (PayPal API behavior, toolkit, frameworks, infra), what worked well, known gaps documented not hidden. |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | **12 annotated Mermaid diagrams** — zones + trust boundary, policy decision flow, gated/standing payout + evidence-pack sequences, inbound verification flow, action & invoice lifecycles, hash chain, data model, deployment, evidence workflow — each with a "what it tells you" note. | |
