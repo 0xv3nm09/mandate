@@ -2,15 +2,15 @@
 
 _Rendered from the committed evidence bundle by `scripts/render_results_md.py` — **12/12 expected outcomes matched**, every number below is machine-collected._
 
-Run date: `2026-11-07T21:13:43.318Z` · audit chain: **24 records, verify=ok** · governed actions: **8** · money moved: **$2,050 in / $500 out**
+Run date: `2026-11-11T18:37:33.909Z` · audit chain: **23 records, verify=ok** · governed actions: **7** · money moved: **$2,050 in / $800 out**
 
 ## Expected vs got
 
 | UC | Use case | Expected | Got | Headline (verbatim from the run) |
 | --- | --- | --- | --- | --- |
-| UC-01 | Autonomous invoicing | ok | ✅ ok | Real PayPal invoice INV2-A8XV-ZMVP-3TV8-R95A created — send pending sandbox recipient |
+| UC-01 | Autonomous invoicing | ok | ✅ ok | Real PayPal invoice INV2-DNSH-FXK2-XLJ5-UQY3 created — send pending sandbox recipient |
 | UC-02 | Autonomous chase | ok | ✅ ok | Reminder sent: "Friendly reminder: invoice for September retainer" (friendly nudge (rejected — PayPal daily reminder cap; try again tomorrow)) |
-| UC-03 | Gated payout (the money shot) | gate | ✅ gate | GATED → approved → executed (batch ZCWVF6MKS57FG) |
+| UC-03 | Gated payout (the money shot) | gate | ✅ gate | GATED → approved → executed (batch W7VFB6YGBZPMJ) |
 | UC-04 | The guardrail | block | ✅ block | BLOCKED by R_BLOCK_PAYEE: payee not on allowlist — deterministic, un-bypassable |
 | UC-05 | Audit everything | ok | ✅ ok | Chain verified: 11 records, zero tampering |
 | UC-06 | Global stop | block | ✅ block | Halting worked: a live money-out was refused while the switch was on |
@@ -19,29 +19,29 @@ Run date: `2026-11-07T21:13:43.318Z` · audit chain: **24 records, verify=ok** �
 | UC-09 | Interrogate the trail | ok | ✅ ok | The audit log answered, and the receipt verified cryptographically |
 | UC-10 | Impostor detection (Netflix check) | block | ✅ block | Lookalike domain + outlier amount caught: IMPOSTOR (R_IMPOSTOR_LOOKALIKE) |
 | UC-11 | Subscription guard | ok | ✅ ok | Real bill auto-verified; price hike flagged SUSPICIOUS |
-| UC-12 | Dispute evidence pack | ok | ✅ ok | Dispute answered with a signed evidence pack (batch ZCWVF6MKS57FG, PROCESSING) |
+| UC-12 | Dispute evidence pack | ok | ✅ ok | Dispute answered with a signed evidence pack (batch BVBZA9QYYXHUY, PENDING) |
 
 ## Real PayPal objects created by this sweep
 
 | Payout batch | Status | Amount | Payee (logical) | Idempotency key |
 | --- | --- | --- | --- | --- |
-| `CM9XMWV3ZZYFC` | **SUCCESS** | $300 | vita@va.test | `standing:vita@va.test:2026-W45` |
-| `ZCWVF6MKS57FG` | **PROCESSING** | $500 | sam@contractor.test | `approval:mw6whx2612fa58` |
+| `BVBZA9QYYXHUY` | **PENDING** | $300 | vita@va.test | `standing:vita@va.test:2026-W46` |
+| `W7VFB6YGBZPMJ` | **PENDING** | $500 | sam@contractor.test | `approval:mwcgoindzuicdn` |
 
-**Impostor caught:** claim “Netflix $49.99” from `billing@netflix-payments.com` → **IMPOSTOR** (R_IMPOSTOR_LOOKALIKE) — signed receipt `mw6whzgr67a1wx`.
+**Impostor caught:** claim “Netflix $49.99” from `billing@netflix-payments.com` → **IMPOSTOR** (R_IMPOSTOR_LOOKALIKE) — signed receipt `mwcgoln57smj9t`.
 
 ## Per-use-case traces (condensed)
 
 ### UC-01 · Autonomous invoicing  ✅
 
-**Real PayPal invoice INV2-A8XV-ZMVP-3TV8-R95A created — send pending sandbox recipient**
+**Real PayPal invoice INV2-DNSH-FXK2-XLJ5-UQY3 created — send pending sandbox recipient**
 
-_6 steps · 3359 ms · audit records: #3_
+_6 steps · 1948 ms · audit records: #3_
 
 - · **Signed mandate loaded** — Intent Mandate v1 (JWS) — per-txn $100, daily $1000
 - · **Agent parsed instruction** — 「Invoice Acme $1,200 for October design」 → {invoice, $1,200, acme@client.test, "October design"}
 - ✅ **Policy engine evaluated** — ALLOW · R_ALLOW_INVOICE — Allowed: invoicing is money-in — no spending authority consumed.
-- ✅ **PayPal invoice created as DRAFT — send pending sandbox recipient** — invoice INV2-A8XV-ZMVP-3TV8-R95A → status CREATED
+- ✅ **PayPal invoice created as DRAFT — send pending sandbox recipient** — invoice INV2-DNSH-FXK2-XLJ5-UQY3 → status CREATED
 - · **Send pending** — Set PAYPAL_SANDBOX_RECIPIENT to your sandbox personal account, then hit “resend” in Console → Invoices.
 - · **Audit record appended** — seq #3 committed to hash chain
 
@@ -49,7 +49,7 @@ _6 steps · 3359 ms · audit records: #3_
 
 **Reminder sent: "Friendly reminder: invoice for September retainer" (friendly nudge (rejected — PayPal daily reminder cap; try again tomorrow))**
 
-_4 steps · 2176 ms · audit records: #7_
+_4 steps · 2703 ms · audit records: #7_
 
 - · **Setup: invoice aged past due** — Invoice to Globex ($850) marked past-due to trigger the chase
 - · **Agent detected overdue + drafted reminder** — Chased Globex: "Friendly reminder: invoice for September retainer" — reminder #0, tone: friendly nudge (rejected — PayPal daily reminder cap
@@ -58,16 +58,16 @@ _4 steps · 2176 ms · audit records: #7_
 
 ### UC-03 · Gated payout (the money shot)  🟡
 
-**GATED → approved → executed (batch ZCWVF6MKS57FG)**
+**GATED → approved → executed (batch W7VFB6YGBZPMJ)**
 
-_6 steps · 2278 ms · audit records: #10, #9_
+_6 steps · 2502 ms · audit records: #10, #9_
 
 - · **Agent proposed money-out** — {payout, $500, sam@contractor.test} — proposal only, never execution
 - 🟡 **Policy engine: GATE** — R_GATE_THRESHOLD — Gated: $500 is 5.0× your per-transaction threshold of $100. Human approval required.
 - · **AI risk explainer wrote the summary** — The agent proposes a $500 payout to sam@contractor.test — 5.0× your $100 per-transaction threshold. This payee is on your allowlist. Policy verdict: GATE (R_GATE_THRESHOLD). $500 > per-transaction threshold $100 (5.0×). Approving executes the payout immediately; denying aborts it permanently. Both outcomes are written to the hash-chained audit log.
-- 🟡 **Approval card queued (SSE)** — approval mw6whx2612fa58 — status AWAIT_APPROVAL, TTL 10 min
-- ✅ **One-tap APPROVE → payout executed** — payout batch ZCWVF6MKS57FG (PENDING) — idempotency key approval:mw6whx2612fa58
-- · **PayPal status: batch accepted, settling asynchronously** — PAYMENT.PAYOUTS.EVENT: batch ZCWVF6MKS57FG → PENDING (sandbox batches settle in minutes)
+- 🟡 **Approval card queued (SSE)** — approval mwcgoindzuicdn — status AWAIT_APPROVAL, TTL 10 min
+- ✅ **One-tap APPROVE → payout executed** — payout batch W7VFB6YGBZPMJ (PENDING) — idempotency key approval:mwcgoindzuicdn
+- · **PayPal status: batch accepted, settling asynchronously** — PAYMENT.PAYOUTS.EVENT: batch W7VFB6YGBZPMJ → PENDING (sandbox batches settle in minutes)
 
 ### UC-04 · The guardrail  ⛔
 
@@ -88,7 +88,7 @@ _5 steps · 1 ms · audit records: —_
 
 - ✅ **Recomputed entire hash chain** — 11 records — prevHash→hash links re-hashed with SHA-256
 - · **Record #9 · APPROVAL** — Human approved gated action
-- · **Record #10 · EXECUTION** — Payout executed: $500 → sam@contractor.test (batch ZCWVF6MKS57FG, PENDING)
+- · **Record #10 · EXECUTION** — Payout executed: $500 → sam@contractor.test (batch W7VFB6YGBZPMJ, PENDING)
 - · **Record #11 · ACTION_DECISION** — Policy BLOCK: payout $800 → newvendor@unverified.test refused
 - ✅ **Ledger summary** — 4 actions governed · $500 money-out · $2050 money-in · 1 blocked
 
@@ -96,7 +96,7 @@ _5 steps · 1 ms · audit records: —_
 
 **Halting worked: a live money-out was refused while the switch was on**
 
-_4 steps · 1 ms · audit records: #12_
+_4 steps · 2 ms · audit records: #12_
 
 - ⛔ **Operator engaged GLOBAL STOP** — Kill switch ON — agent halted (FR-15)
 - ⛔ **Agent attempt while halted** — HALTED · R_BLOCK_HALT — Global stop is engaged — all agent action is frozen. Resume the agent to proceed.
@@ -107,7 +107,7 @@ _4 steps · 1 ms · audit records: #12_
 
 **Mandate re-signed: v2 with daily cap $600, per-txn $75**
 
-_5 steps · 4 ms · audit records: #13_
+_5 steps · 3 ms · audit records: #13_
 
 - · **Current signed mandate** — v1 — per-txn $100, daily $1000
 - · **Agent drafted the diff (proposal only)** — I drafted the mandate diff: daily cap → $600 · per-transaction threshold → $75
@@ -119,11 +119,11 @@ _5 steps · 4 ms · audit records: #13_
 
 **In-bounds ran autonomously; the $150 drift fell back to GATE**
 
-_5 steps · 2263 ms · audit records: —_
+_5 steps · 983 ms · audit records: —_
 
-- · **Standing mandate already signed** — $300/week → vita@va.test
+- ✅ **Signed standing mandate** — 「pay Vita $300 weekly」 → envelope $300/week → vita@va.test (v4)
 - ✅ **Run 1: in-bounds → executed with NO human prompt** — R_STANDING_ALLOW — Allowed autonomously under standing mandate v4: payee and amount match the signed envelope, daily cap respected.
-- · **Idempotency: one execution per ISO week** — key standing:vita@va.test:2026-W45
+- · **Idempotency: one execution per ISO week** — key standing:vita@va.test:2026-W46
 - 🟡 **Run 2: DRIFT ($150 ≠ $300 envelope)** — R_GATE_THRESHOLD — Gated: $150 is 1.5× your per-transaction threshold of $100. Human approval required.
 - ✅ **Drift denied by human** — GATE held the drifted amount — autonomy was withdrawn instantly
 
@@ -143,7 +143,7 @@ _5 steps · 1 ms · audit records: —_
 
 **Lookalike domain + outlier amount caught: IMPOSTOR (R_IMPOSTOR_LOOKALIKE)**
 
-_8 steps · 4 ms · audit records: #17, #18_
+_8 steps · 4 ms · audit records: #20, #21_
 
 - · **Scenario setup** — An email arrives: “URGENT — your Netflix account will be suspended, settle $49.99 now” from billing@netflix-payments.com
 - ✅ **Baseline: the genuine bill** — billing@netflix.com · $15.49 → VERIFIED (R_VERIFIED_OFFICIAL) — official domain, amount in envelope
@@ -152,43 +152,43 @@ _8 steps · 4 ms · audit records: #17, #18_
 - ⛔ **check · Sender identity** — netflix-payments.com IMITATES Netflix (lookalike of netflix.com/mail.netflix.com) — classic impostor pattern
 - ⛔ **check · Amount vs envelope** — $49.99 is OUTSIDE Netflix's known range ($7.99–$24.99) — price change or inflated bill
 - · **check · Payment history** — First time seeing billing@netflix-payments.com — no history to confirm against
-- · **Signed verification artifact** — receipt mw6whzgr67a1wx — JWS-signed, downloadable, hash-committed to the audit chain (seq #18)
+- · **Signed verification artifact** — receipt mwcgoln57smj9t — JWS-signed, downloadable, hash-committed to the audit chain (seq #21)
 
 ### UC-11 · Subscription guard  ✅
 
 **Real bill auto-verified; price hike flagged SUSPICIOUS**
 
-_4 steps · 2 ms · audit records: #19, #20_
+_4 steps · 1 ms · audit records: #22, #23_
 
 - ✅ **Genuine subscription bill** — billing@netflix.com · $15.49 → VERIFIED — matches the signed envelope, nothing for a human to do
 - 🟡 **Official sender raises the price** — billing@netflix.com · $27.49 → SUSPICIOUS (R_SUSPICIOUS_AMOUNT)
 - 🟡 **Envelope catches silent price changes** — Sender is genuinely Netflix — but $27.49 is outside the $7.99–$24.99 envelope. Flagged for a human look instead of silently paid.
-- · **Signed verification artifact** — receipt mw6whzie9qr23z committed to the chain (seq #20)
+- · **Signed verification artifact** — receipt mwcgolohs2oaoo committed to the chain (seq #23)
 
 ### UC-12 · Dispute evidence pack  ✅
 
-**Dispute answered with a signed evidence pack (batch ZCWVF6MKS57FG, PROCESSING)**
+**Dispute answered with a signed evidence pack (batch BVBZA9QYYXHUY, PENDING)**
 
-_5 steps · 6576 ms · audit records: —_
+_5 steps · 8080 ms · audit records: —_
 
-- · **Scenario** — The payee disputes: “I never received the $500 payment.” Mandate compiles the proof.
-- ✅ **Human approval record** — approval mw6whx2612 — verdict APPROVED by usecase-runner (simulated human) at 2026-11-07T21:13:45.630Z
-- · **PayPal settlement proof** — batch ZCWVF6MKS57FG · live status PROCESSING — PayPal's own ledger confirms the batch exists (settlement in progress; batch id is the immutable reference)
-- ✅ **Immutable chain position** — 3 audit records reference this action — every hash-chained and reproducible (mandate v1)
-- ✅ **Signed evidence pack** — pack c19cd6cdd5f1e3ca… · HMAC signature verified — exportable as a single JSON artifact
+- · **Scenario** — The payee disputes: “I never received the $300 payment.” Mandate compiles the proof.
+- ✅ **Human approval record** — approval — — verdict  by  at 
+- · **PayPal settlement proof** — batch BVBZA9QYYXHUY · live status PENDING — PayPal's own ledger confirms the batch exists (settlement in progress; batch id is the immutable reference)
+- ✅ **Immutable chain position** — 2 audit records reference this action — every hash-chained and reproducible (mandate v4)
+- ✅ **Signed evidence pack** — pack 1952e798204e79c2… · HMAC signature verified — exportable as a single JSON artifact
 
 ## Benchmarks
 
-Sweep totals: **12 runs · 61 pipeline steps · 16,668 ms total engine time (avg 1389 ms/run)** — collected from the committed traces.
+Sweep totals: **12 runs · 61 pipeline steps · 16,231 ms total engine time (avg 1352 ms/run)** — collected from the committed traces.
 
 | Metric | Value |
 | --- | --- |
 | Use cases executed | 12 |
 | Expected outcomes matched | 12/12 |
 | Pipeline steps executed | 61 |
-| Total engine time | 16,668 ms (avg 1389 ms/run) |
-| Audit records committed | 24 |
-| — audit kind: ACTION_DECISION | 8 |
+| Total engine time | 16,231 ms (avg 1352 ms/run) |
+| Audit records committed | 23 |
+| — audit kind: ACTION_DECISION | 7 |
 | — audit kind: APPROVAL | 2 |
 | — audit kind: EXECUTION | 4 |
 | — audit kind: MANDATE_SIGNED | 4 |
@@ -204,9 +204,9 @@ Slowest runs (the ones that touch PayPal):
 
 | Run | Steps | Duration | Why |
 | --- | --- | --- | --- |
-| UC-12 | 5 | 6,576 ms | evidence pack + live batch status poll (3× 1.5 s) |
-| UC-01 | 6 | 3,359 ms | real PayPal invoice create + send (2 REST calls) |
-| UC-03 | 6 | 2,278 ms | gated payout: policy + AI summary + real batch + settle poll |
+| UC-12 | 5 | 8,080 ms | evidence pack + live batch status poll (3× 1.5 s) |
+| UC-02 | 4 | 2,703 ms | PayPal REST round-trips |
+| UC-03 | 6 | 2,502 ms | gated payout: policy + AI summary + real batch + settle poll |
 
 Pure-decision use cases (no PayPal round-trip on the hot path — UC-04/05/06/07/09/10) finish in **1–4 ms**;
 all wall-clock time is PayPal REST latency, not engine overhead.

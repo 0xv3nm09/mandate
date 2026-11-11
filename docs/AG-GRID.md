@@ -13,7 +13,6 @@ diagrams) · [evidence/](../evidence/) (raw artifacts).
 
 ## Contents
 
-- [0. TL;DR + screenshots](#0-tldr--screenshots)
 - [1. Theory — how AG Grid works internally](#1-theory--how-ag-grid-works-internally)
 - [2. How filtering composes](#2-how-filtering-composes)
 - [3. Data flow — SSE to pixels](#3-data-flow--sse-to-pixels)
@@ -28,23 +27,6 @@ diagrams) · [evidence/](../evidence/) (raw artifacts).
 
 ---
 
-## 0. TL;DR + screenshots
-
-Mandate's whole product is **accountability for money an AI agent moves**. The artifact that
-delivers that is a **hash-chained audit ledger** — every proposal, decision, approval,
-settlement, webhook and inbound-verification verdict. That ledger is rendered in **AG Grid
-Community**, and it is the operator's primary inspection surface. A second grid covers
-money-in (invoices). Two grids, same treatment: filtering everywhere, floating filter row,
-quick search, CSV export, decision-tinted rows, custom JSX cell renderers, pinned actions,
-live SSE refresh.
-
-![Audit ledger at rest — floating filter row, decision pills, pinned receipt export](screenshots/ag-audit-grid.png)
-
-![Quick filter BLOCK — only red-tinted refusals remain](screenshots/ag-quick-filter-block.png)
-
-![Column filter on Decision = GATE](screenshots/ag-column-filter-gate.png)
-
-![Invoices grid — money-in on AG Grid too](screenshots/ag-invoices-grid.png)
 
 ---
 
@@ -374,3 +356,23 @@ In the Devpost "Tools / Built With" section:
 > (master/detail, row grouping, status-bar aggregation, set filter, Excel export) — Community
 > filtering + quick filter + CSV export + cell renderers + conditional styling is already a
 > strong, clean "Best Use."
+
+---
+
+## 12. Screenshots — the grids, live (Nov 2026)
+
+Mandate's whole product is **accountability for money an AI agent moves**. The artifact that
+delivers that is a **hash-chained audit ledger** — every proposal, decision, approval,
+settlement, webhook and inbound-verification verdict. That ledger is rendered in **AG Grid
+Community**, and it is the operator's primary inspection surface. A second grid covers
+money-in (invoices). Two grids, same treatment: filtering everywhere, floating filter row,
+quick search, CSV export, decision-tinted rows, custom JSX cell renderers, pinned actions,
+live SSE refresh.
+
+![Audit ledger at rest — floating filter row, decision pills, pinned receipt export](screenshots/ag-audit-grid.png)
+
+![Quick filter BLOCK — only red-tinted refusals remain](screenshots/ag-quick-filter-block.png)
+
+![Column filter on Decision = GATE](screenshots/ag-column-filter-gate.png)
+
+![Invoices grid — money-in on AG Grid too](screenshots/ag-invoices-grid.png)
