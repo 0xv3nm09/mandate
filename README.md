@@ -31,7 +31,7 @@
 | **Payouts v1** | All money-out executes as idempotent batches (`sender_batch_id` = approval/standing keys); live batch status polled; PayPal-side duplicate detection honored as a no-op |
 | **Webhooks** | **self-registered at boot** (`POST /v1/notifications/webhooks`, six payout/invoice event types read from PayPal's live catalog) · `verify-webhook-signature` on every inbound event · dedupe by event id · boot-time reconciliation from live batch status · real settlements land in the hash-chained ledger in ~40 s — proof: [`evidence/webhooks.json`](evidence/webhooks.json) ([docs/PAYPAL.md §4](docs/PAYPAL.md#4-webhooks--self-registered-signature-verified-reconciled)) |
 | **Agent Toolkit** | Official `@paypal/agent-toolkit` attached **read-only** (list/get invoices + disputes) — the agent gets eyes, never hands |
-| **[AI](docs/AI.md)** | Vercel AI SDK v5 governed tool loop — `propose_payout` ships with **no `execute`**, so the model structurally cannot move money; a deterministic agent is the zero-key fallback |
+| **[AI](docs/AI.md)** | Vercel AI SDK v5 governed tool loop — `propose_payout` ships with **no `execute`**, so the model structurally cannot move money; a deterministic agent is the zero-key fallback. **Live-tested on Vultr Serverless Inference** (`kimi-k2-instruct`): tool-calling → gate → approval verified, 2.3–4.2 s measured, and the deterministic takeover proven by a real provider rejection ([docs/AI.md §7](docs/AI.md)) |
 
 > **Full detail:** [docs/PAYPAL.md](docs/PAYPAL.md) — every endpoint, payload & real response · [docs/AI.md](docs/AI.md) — the AI wired to PayPal module-by-module, with safety/latency benchmarks.
 
@@ -119,7 +119,7 @@ Then open **http://localhost:8787** and either:
 
 ### LLM mode (optional)
 
-Set `ANTHROPIC_API_KEY` (or `OPENAI_API_KEY`) to upgrade the agent from the deterministic parser to a Vercel AI SDK tool loop. Either way the agent can only **propose** — the control plane decides.
+Set `ANTHROPIC_API_KEY` (or `OPENAI_API_KEY`) to upgrade the agent from the deterministic parser to a Vercel AI SDK tool loop — and `OPENAI_BASE_URL` points it at any OpenAI-compatible provider (the live deployment runs on **Vultr Serverless Inference**, `kimi-k2-instruct`, on the same credits as the VM). Either way the agent can only **propose** — the control plane decides.
 
 ## Try these in the Console
 
@@ -165,9 +165,10 @@ invoice **send** needs `PAYPAL_SANDBOX_RECIPIENT` configured — is written up, 
 - ✅ **Deterministic policy engine** — pure function, zero LLM on the decision path; CI asserts the hard block holds
 - ✅ **Webhooks, for real** — self-registered at boot, signature-verified per event, reconciled from live batch status at boot; the exact PayPal envelope shapes are regression-tested in CI
 - ✅ **Signed Intent Mandate** — versioned JWS policy; every decision records the version it used
-- ✅ **Hash-chained audit** — 24 records recomputed clean; receipts exportable and independently verifiable
+- ✅ **Hash-chained audit** — recomputed clean on every request; receipts exportable and independently verifiable
 - ✅ **Idempotent money-out** — local keys + PayPal `sender_batch_id`; duplicate-after-reset is a no-op, double-pay is structurally impossible
 - ✅ **Official agent-toolkit attached read-only** — the agent can look, never touch
+- ✅ **Live LLM mode on Vultr** — `kimi-k2-instruct` via Serverless Inference: tool-calling → gate → approval verified (2.3–4.2 s), and the deterministic takeover proven by a real provider rejection ([docs/AI.md §7](docs/AI.md))
 - ✅ **12/12 live suite** — 0 off-policy executions on any attack-shaped case
 - ⚠️ **1 documented gap** — invoice send + payout settlement need the sandbox recipient env (honest `CREATED` status + one-click resend until set)
 
@@ -245,7 +246,7 @@ stub redirects visitors into `web/dist/index.html` carrying the hash (e.g.
 ## Hackathon rules compliance (judge checklist)
 
 - **Meaningful PayPal use** — three layers: (1) the official [`@paypal/agent-toolkit`](https://developer.paypal.com/ai-tools/toolkit) attached read-only (list/get invoices + disputes — `GET /api/paypal/toolkit` shows status); (2) documented PayPal REST used directly for everything money-moving — Invoicing v2 (create/send/remind), Payouts v1 with `sender_batch_id` idempotency, `verify-webhook-signature`, `simulate-event` — all sandbox-first per PayPal's quickstart; (3) PayPal's own best practices implemented: env-var secrets, system-prompt agent control, human oversight where judgment matters, error handling.
-- **Meaningful AI use** — Vercel AI SDK v5 tool loop (a PayPal-supported framework) with governed tools (`propose_payout` has no `execute`, by design), LLM-written risk explanations / reminders / mandate drafts, NL audit interrogation (UC-09), and a deterministic fallback agent so the trust layer never depends on a model.
+- **Meaningful AI use** — Vercel AI SDK v5 tool loop (a PayPal-supported framework) with governed tools (`propose_payout` has no `execute`, by design), LLM-written risk explanations / reminders / mandate drafts, NL audit interrogation (UC-09), and a deterministic fallback agent so the trust layer never depends on a model. **The LLM is live and measured**: `kimi-k2-instruct` on Vultr Serverless Inference — gated payout 4.2 s, policy interrogation 2.3 s, verbatim captures in [docs/AI.md §7](docs/AI.md) — and a real provider rejection demonstrated the deterministic takeover mid-command.
 - **Functional demo** — hosted URL: the live Vultr deployment (full product) and the GitHub Pages recorded-run site; or copy-paste repo run steps: `cd server && npm i && npm run dev`.
 - **Open source + license** — MIT at repo root, detected by GitHub in the About sidebar.
 - **Video (<3 min, YouTube)** — demonstrates the app end-to-end on the sandbox; no third-party trademarks presented as ours (see footer disclaimer).
@@ -268,7 +269,7 @@ the bugs our own audit loop caught. Feedback matters; the failures are documenta
 | [`docs/AG-GRID.md`](docs/AG-GRID.md) | **AG Grid (sponsor tool)** — how the audit ledger uses AG Grid Community (filters, quick search, CSV export, cell renderers, conditional styling, live refresh), a copy-paste dev guide to extend it, and how to showcase it. |
 | [`docs/AI.md`](docs/AI.md) | **The AI, measured** — where AI is used vs forbidden, the full module-connection map (agent → control plane → PayPal), the two AI↔PayPal paths, and benchmarks: safety (0 unauthorized moves), latency (~1–4 ms gate), intent coverage, determinism. |
 | [`docs/EVIDENCE.md`](docs/EVIDENCE.md) | **Criteria → proof map** — each judging criterion mapped to runnable commands and committed artifacts, trust guarantees → evidence, deliverable status, 60-second tour. |
-| [`docs/FEEDBACK.md`](docs/FEEDBACK.md) | **Build retrospective** — 22 issues faced and fixed (PayPal API behavior, toolkit, frameworks, infra, live-deployment), what worked well, known gaps documented not hidden. |
+| [`docs/FEEDBACK.md`](docs/FEEDBACK.md) | **Build retrospective** — 23 issues faced and fixed (PayPal API behavior, toolkit, frameworks, infra, live-deployment), what worked well, known gaps documented not hidden. |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | **12 annotated Mermaid diagrams** — zones + trust boundary, policy decision flow, gated/standing payout + evidence-pack sequences, inbound verification flow, action & invoice lifecycles, hash chain, data model, deployment, evidence workflow — each with a "what it tells you" note. | |
 | [`SYSTEM_CARD.md`](SYSTEM_CARD.md) | **System card** — agent identity, the five hard boundaries (no execute on money-out tools, model never decides, human gates, hash-chained audit, kill switch), data behavior, limitations. |
 | [`evidence/README.md`](evidence/README.md) | **Evidence bundle guide** — what each JSON artifact proves and how to verify it independently (recompute hashes, check JWS receipts, query PayPal for batch ids). |
