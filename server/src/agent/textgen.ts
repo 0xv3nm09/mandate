@@ -26,9 +26,11 @@ async function loadLlm(): Promise<typeof generate> {
     } else if (env.llm.openaiKey) {
       const [{ createOpenAI }, ai] = await Promise.all([import('@ai-sdk/openai'), import('ai')]);
       const openai = createOpenAI({ apiKey: env.llm.openaiKey, ...(env.llm.baseUrl ? { baseURL: env.llm.baseUrl } : {}) });
+      // .chat() = /chat/completions — the API OpenAI-compatible providers actually serve
+      const model = openai.chat(env.llm.model ?? 'gpt-4o');
       generate = async (system, prompt) => {
         const { text } = await ai.generateText({
-          model: openai(env.llm.model ?? 'gpt-4o'),
+          model,
           system,
           prompt,
           maxOutputTokens: 500,

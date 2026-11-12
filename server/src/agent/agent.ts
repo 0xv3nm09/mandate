@@ -201,7 +201,11 @@ async function llmChat(message: string): Promise<AgentReply> {
     model = createAnthropic({ apiKey: env.llm.anthropicKey })(env.llm.model ?? 'claude-sonnet-4-5');
   } else {
     const { createOpenAI } = await import('@ai-sdk/openai');
-    model = createOpenAI({ apiKey: env.llm.openaiKey!, ...(env.llm.baseUrl ? { baseURL: env.llm.baseUrl } : {}) })(env.llm.model ?? 'gpt-4o');
+    const openai = createOpenAI({ apiKey: env.llm.openaiKey!, ...(env.llm.baseUrl ? { baseURL: env.llm.baseUrl } : {}) });
+    // .chat() = classic /chat/completions with tools — what OpenAI-compatible providers
+    // (Vultr Serverless Inference, Groq, Together, …) implement; the SDK default (...)
+    // would call OpenAI's newer /responses endpoint, which third parties don't serve.
+    model = openai.chat(env.llm.model ?? 'gpt-4o');
   }
 
   const mandate = await ensureMandate();
