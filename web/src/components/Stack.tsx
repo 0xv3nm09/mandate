@@ -65,7 +65,7 @@ const LAYERS: { icon: React.ReactNode; name: string; stack: string; role: string
   {
     icon: <Layers size={13} />, name: 'Console (UI)', stack: 'React 18 · Vite · TypeScript · Tailwind · AG Grid Community · SSE',
     role: 'operator surface — approve, inspect, export',
-    detail: '5 pages: Home · Dashboard · Usecases · Console · Stack. Two AG Grids over live ledger data; token-guarded mutations; snapshot fallback for GitHub Pages.',
+    detail: '5 pages: Home · Dashboard · Usecases · Console · Live Stack. Two AG Grids over live ledger data; token-guarded mutations; snapshot fallback for GitHub Pages.',
   },
   {
     icon: <Server size={13} />, name: 'API', stack: 'Hono · node:sqlite (WAL) · SSE bus',

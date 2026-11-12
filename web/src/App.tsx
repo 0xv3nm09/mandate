@@ -66,7 +66,7 @@ export default function App() {
             <NavBtn active={page === 'dashboard'} onClick={() => setPage('dashboard')} icon={<LayoutDashboard size={14} />} label="Dashboard" />
             <NavBtn active={page === 'console'} onClick={() => setPage('console')} icon={<TerminalSquare size={14} />} label="Console" />
             <NavBtn active={page === 'usecases'} onClick={() => setPage('usecases')} icon={<FlaskConical size={14} />} label="Usecases" />
-            <NavBtn active={page === 'stack'} onClick={() => setPage('stack')} icon={<Layers size={14} />} label="Stack" />
+            <NavBtn active={page === 'stack'} onClick={() => setPage('stack')} icon={<Layers size={14} />} label="Live Stack" />
             {modes && (
               <span className="ml-2 hidden rounded-full border border-edge bg-raised px-2.5 py-1 text-[10px] text-muted lg:inline">
                 PayPal: <b className="text-slate-300">{modes.paypal === 'SANDBOX' ? 'live sandbox' : modes.paypal}</b> · agent: <b className="text-slate-300">{modes.llm === 'LLM' ? 'LLM (AI SDK)' : 'deterministic'}</b>
