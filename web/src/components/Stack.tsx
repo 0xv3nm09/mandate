@@ -124,13 +124,13 @@ function Panel({ icon, chip, title, sub, children }: {
   icon: React.ReactNode; chip: string; title: string; sub: string; children: React.ReactNode;
 }) {
   return (
-    <section className="card card-gradient p-4">
+    <section className="card card-gradient flex flex-col p-4">
       <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-muted">
         <span className={`flex h-7 w-7 items-center justify-center rounded-lg ${chip}`}>{icon}</span>
         {title}
         <span className="ml-auto font-normal normal-case tracking-normal text-muted/60">{sub}</span>
       </div>
-      <div className="mt-3">{children}</div>
+      <div className="mt-3 flex flex-1 flex-col">{children}</div>
     </section>
   );
 }
@@ -139,12 +139,26 @@ const Chip = ({ children }: { children: React.ReactNode }) => (
   <span className="rounded-full border border-edge bg-raised px-2 py-0.5 text-[10px] font-medium text-muted">{children}</span>
 );
 
+const Code = ({ children }: { children: React.ReactNode }) => (
+  <code className="rounded border border-edge bg-raised px-1 py-[1px] font-mono text-[11px] text-ink/80">{children}</code>
+);
+
 const Stat = ({ label, value, tone = 'text-ink' }: { label: string; value: string | number; tone?: string }) => (
-  <div className="rounded-lg border border-edge/60 bg-raised/60 px-2.5 py-1.5">
-    <p className="text-[10px] uppercase tracking-wide text-muted/70">{label}</p>
+  <div className="min-h-[54px] rounded-lg border border-edge/60 bg-raised/60 px-2.5 py-1.5">
+    <p className="truncate text-[10px] uppercase tracking-wide text-muted/70">{label}</p>
     <p className={`font-display text-lg font-bold tabular-nums ${tone}`}>{value}</p>
   </div>
 );
+
+const Caption = ({ children }: { children: React.ReactNode }) => (
+  <p className="text-[10px] font-semibold uppercase tracking-wide text-muted/70">{children}</p>
+);
+
+const Foot = ({ children }: { children: React.ReactNode }) => (
+  <div className="mt-auto flex flex-wrap items-center gap-2 border-t border-edge/40 pt-2.5 text-[11px] text-muted">{children}</div>
+);
+
+const Dot = () => <span className="text-muted/50">·</span>;
 
 export function Stack() {
   const [data, setData] = useState<StackData | null>(null);
@@ -170,7 +184,7 @@ export function Stack() {
         <div className="card card-gradient p-6">
           <h1 className="font-display text-xl font-bold">Stack — live technical architecture</h1>
           <p className="mt-2 text-sm text-muted">
-            This view needs the live backend (<code className="mono-hash">GET /api/stack</code>). On the
+            This view needs the live backend (<Code>GET /api/stack</Code>). On the
             read-only GitHub Pages snapshot it stays empty — run the stack locally or open the live
             deployment to see it{error ? ` (${error.slice(0, 140)})` : ''}.
           </p>
@@ -239,10 +253,10 @@ export function Stack() {
               <Stat label="daily cap" value={`$${m.limits.dailyTotal}`} />
               <Stat label="currency" value={m.limits.currency} />
             </div>
-            <p className="mt-2 text-[10px] font-semibold uppercase tracking-wide text-muted/70">payee allowlist — money-out to anyone else is impossible</p>
+            <div className="mt-2"><Caption>payee allowlist — money-out to anyone else is impossible</Caption></div>
             <div className="mt-1 flex flex-wrap gap-1">{(m.payeeAllowlist ?? []).map((p) => <Chip key={p}>{p}</Chip>)}</div>
             {m.standing && (
-              <p className="mt-2 text-[11px] text-muted">standing envelope: <b className="text-ink">${m.standing.amount} {m.standing.cadence} → {m.standing.payee}</b> — in-bounds runs with no human; any drift gates instantly</p>
+              <p className="mt-2 text-[11px] leading-relaxed text-muted">standing envelope: <b className="text-ink">${m.standing.amount} {m.standing.cadence} → {m.standing.payee}</b> — in-bounds runs with no human; any drift gates instantly</p>
             )}
           </div>
           ) : (
@@ -354,19 +368,19 @@ export function Stack() {
                   </div>
                 </>
               ) : (
-                <p className="text-muted">not registered (set <code className="mono-hash">PUBLIC_BASE_URL</code> + sandbox keys; mock mode simulates events internally)</p>
+                <p className="text-muted">not registered (set <Code>PUBLIC_BASE_URL</Code> + sandbox keys; mock mode simulates events internally)</p>
               )}
             </div>
           </div>
-          <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-muted">
-            <span>verifications:</span>
+          <Foot>
+            <span className="font-semibold uppercase tracking-wide text-muted/70">verifications:</span>
             <Chip>VERIFIED {verifications.VERIFIED ?? 0}</Chip>
             <Chip>SUSPICIOUS {verifications.SUSPICIOUS ?? 0}</Chip>
             <Chip>IMPOSTOR {verifications.IMPOSTOR ?? 0}</Chip>
             <a className="ml-auto flex items-center gap-1 text-accent hover:underline" href="https://github.com/0xv3nm09/mandate/blob/main/docs/PAYPAL.md" target="_blank" rel="noreferrer">
               <FileText size={11} /> every call, payload & real response
             </a>
-          </div>
+          </Foot>
         </Panel>
 
         {/* AI core */}
@@ -377,12 +391,25 @@ export function Stack() {
             <Stat label="denied" value={approvals.DENIED ?? 0} tone="text-danger" />
             <Stat label="pending" value={approvals.PENDING ?? 0} tone="text-amber-600" />
           </div>
-          <ul className="mt-3 space-y-1.5 text-[12px] leading-relaxed text-ink/85">
-            <li className="flex gap-2"><CheckCircle2 size={13} className="mt-0.5 shrink-0 text-ok" /> tools are <b>propose-only</b> — <code className="mono-hash">propose_payout</code> ships with no <code className="mono-hash">execute</code>, so the model structurally cannot move money</li>
-            <li className="flex gap-2"><CheckCircle2 size={13} className="mt-0.5 shrink-0 text-ok" /> <b>0</b> money moved without first passing <code className="mono-hash">policy.evaluate()</code> — enforced by construction, asserted in CI</li>
-            <li className="flex gap-2"><CheckCircle2 size={13} className="mt-0.5 shrink-0 text-ok" /> the deterministic agent is the zero-key fallback: the trust layer never depends on a model</li>
-            <li className="flex gap-2"><CheckCircle2 size={13} className="mt-0.5 shrink-0 text-ok" /> official <code className="mono-hash">@paypal/agent-toolkit</code> attached read-only — {data.toolkit.available ? `attached (${data.toolkit.toolNames?.length} tools: eyes, never hands)` : 'activates on first agent call (eyes, never hands)'}</li>
+          <ul className="mt-3 space-y-2 text-[12px] leading-relaxed text-ink/85">
+            <li className="flex gap-2"><CheckCircle2 size={13} className="mt-[3px] shrink-0 text-ok" />
+              <span><b>Propose-only tools.</b> <Code>propose_payout</Code> ships with no <Code>execute</Code> — the model structurally cannot move money.</span></li>
+            <li className="flex gap-2"><CheckCircle2 size={13} className="mt-[3px] shrink-0 text-ok" />
+              <span><b>Zero unguarded money.</b> nothing moves without first passing <Code>policy.evaluate()</Code> — enforced by construction, asserted in CI.</span></li>
+            <li className="flex gap-2"><CheckCircle2 size={13} className="mt-[3px] shrink-0 text-ok" />
+              <span><b>Model-independent trust.</b> the deterministic agent is the zero-key fallback — no decision ever waits on a model.</span></li>
+            <li className="flex gap-2"><CheckCircle2 size={13} className="mt-[3px] shrink-0 text-ok" />
+              <span><b>Read-only eyes.</b> official <Code>@paypal/agent-toolkit</Code> — {data.toolkit.available ? `attached (${data.toolkit.toolNames?.length} list/get tools)` : 'activates on first agent call'}; it can look, never touch.</span></li>
           </ul>
+          <Foot>
+            <a className="flex items-center gap-1 text-accent hover:underline" href="https://github.com/0xv3nm09/mandate/blob/main/docs/AI.md" target="_blank" rel="noreferrer">
+              <FileText size={11} /> AI architecture & benchmarks
+            </a>
+            <Dot />
+            <a className="flex items-center gap-1 text-accent hover:underline" href="https://github.com/0xv3nm09/mandate/blob/main/docs/AGENT.md" target="_blank" rel="noreferrer">
+              <FileText size={11} /> agent modes & verbatim results
+            </a>
+          </Foot>
         </Panel>
 
         {/* Trust layer */}
@@ -392,7 +419,7 @@ export function Stack() {
             <Stat label="webhook events ingested" value={c.eventsIngested} />
             <Stat label="chain" value={data.chain.ok ? 'verified' : 'BROKEN'} tone={data.chain.ok ? 'text-ok' : 'text-danger'} />
           </div>
-          <p className="mt-3 text-[11px] font-semibold uppercase tracking-wide text-muted">engine decisions by reason code — {totalRules} total</p>
+          <div className="mt-3"><Caption>engine decisions by reason code — {totalRules} total</Caption></div>
           <div className="mt-1.5 space-y-1">
             {data.ruleHits.slice(0, 7).map((r) => (
               <div key={r.k} className="flex items-center gap-2 text-[11px]">
@@ -405,15 +432,23 @@ export function Stack() {
             ))}
             {data.ruleHits.length === 0 && <p className="text-[11px] text-muted/60">no decisions yet — run a use case</p>}
           </div>
+          <Foot>
+            <a className="flex items-center gap-1 text-accent hover:underline" href="https://github.com/0xv3nm09/mandate/blob/main/docs/ARCHITECTURE.md" target="_blank" rel="noreferrer">
+              <FileText size={11} /> 12 annotated diagrams + data model
+            </a>
+            <Dot />
+            <span>receipts exportable per audit row</span>
+          </Foot>
         </Panel>
 
         {/* AG Grid */}
         <Panel icon={<Grid3x3 size={14} />} chip="bg-violet-500/10 text-accent" title="AG Grid — the inspection surface" sub="docs/AG-GRID.md">
           <p className="text-[12px] leading-relaxed text-ink/85">
-            The audit ledger you see in the <b>Console</b> is AG Grid Community over this exact
-            hash-chained data — <b>{c.auditRecords} rows</b> right now, fed by SSE:
+            The audit ledger in the <b>Console</b> is AG Grid Community over this exact
+            hash-chained data — <b>{c.auditRecords} rows</b> right now, fed by SSE.
           </p>
-          <div className="mt-2 flex flex-wrap gap-1.5">
+          <div className="mt-3"><Caption>grid features in this build</Caption></div>
+          <div className="mt-1.5 flex flex-wrap gap-1.5">
             <Chip>floating filter row · 9 columns</Chip>
             <Chip>quick search</Chip>
             <Chip>CSV export of the filtered ledger</Chip>
@@ -422,18 +457,18 @@ export function Stack() {
             <Chip>live SSE refresh</Chip>
             <Chip>DOM-virtualised ({c.auditRecords} rows, ~15 alive)</Chip>
           </div>
-          <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-muted">
+          <Foot>
             <a className="flex items-center gap-1 text-accent hover:underline" href="https://github.com/0xv3nm09/mandate/blob/main/docs/AG-GRID.md" target="_blank" rel="noreferrer">
               <FileText size={11} /> full guide + screenshots
             </a>
-            <span className="text-muted/50">·</span>
+            <Dot />
             <span>see it live: Console → Audit Log</span>
-          </div>
+          </Foot>
         </Panel>
       </div>
 
       <p className="mt-4 flex items-center gap-2 text-[11px] text-muted/70">
-        <Layers size={11} /> one endpoint powers this page: <code className="mono-hash">GET /api/stack</code> — mandate terms, counts, rule hits, chain status, webhook registration and the call journal from the running process.
+        <Layers size={11} /> one endpoint powers this page: <Code>GET /api/stack</Code> — mandate terms, counts, rule hits, chain status, webhook registration and the call journal from the running process.
       </p>
     </div>
   );
