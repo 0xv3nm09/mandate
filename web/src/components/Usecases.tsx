@@ -103,9 +103,13 @@ export function Usecases() {
       setResults((x) => ({ ...x, [id]: r }));
       setRunOrder((o) => [id, ...o.filter((k) => k !== id)]);
     } catch (e: any) {
+      const msg = String(e?.message ?? e);
+      const friendly = msg.startsWith('401')
+        ? 'admin token required — accept the token prompt (demo token is pre-filled) and run again'
+        : msg;
       setResults((x) => ({
         ...x,
-        [id]: { id, outcome: 'error', title: id, headline: e.message, steps: [], auditSeqs: [], ranAt: new Date().toISOString(), durationMs: Date.now() - t0 },
+        [id]: { id, outcome: 'error', title: id, headline: friendly, steps: [], auditSeqs: [], ranAt: new Date().toISOString(), durationMs: Date.now() - t0 },
       }));
       setRunOrder((o) => [id, ...o.filter((k) => k !== id)]);
     } finally {
