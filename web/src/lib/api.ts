@@ -222,7 +222,7 @@ export async function api<T>(path: string, init?: RequestInit, retried = false):
   }
   // Locked deployments (MANDATE_ADMIN_TOKEN set): prompt once, remember, retry.
   if (res.status === 401 && res.headers.get('X-Mandate-Token-Required') && !retried) {
-    const t = window.prompt('This Mandate deployment requires the admin token:');
+    const t = window.prompt('This Mandate deployment requires the admin token — the public demo instance publishes its demo token in the repo README ("Live on Vultr"):');
     if (t != null && t.trim()) {
       localStorage.setItem('mandate_token', t.trim());
       return api<T>(path, init, true);

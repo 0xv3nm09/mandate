@@ -55,6 +55,13 @@ Then open **Usecases → "Run all 12 sequentially"** — every trace is a real c
 audit chain verified, all 12 use cases executed from that stack against the real PayPal sandbox
 (payout batch `BVBZA9QYYXHUY` settled SUCCESS, invoices `INV2-HVJL-97RZ-…` created via Invoicing v2).
 
+The live instance is **mutation-guarded**: running use cases / approving payouts prompts for the
+admin token — this public demo's token is **`mandate-live-29f107bffa6e`** (sandbox money; the guard
+demonstrates the pattern, see `MANDATE_ADMIN_TOKEN` in `.env.example`). The server also
+**self-registers its PayPal webhook on boot** (`/v1/notifications/webhooks`, six payout/invoice
+event types) and verifies every inbound event with `verify-webhook-signature` — settlements reach
+the hash-chained ledger with no dashboard copy-paste and no `PAYPAL_WEBHOOK_ID` manual step.
+
 It's reproducible with **one command**: `bash scripts/vultr_deploy.sh root@<VM-IP>` → auto-installs
 Node 24 + Caddy auto-HTTPS via sslip.io (`https://<ip-dashed>.sslip.io` — free hostname from your
 IP, Let's Encrypt cert auto-provisioned), systemd service, firewall. Runbook:

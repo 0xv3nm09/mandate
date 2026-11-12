@@ -5,6 +5,7 @@ import { logger } from 'hono/logger';
 import { api } from './routes/api.js';
 import { env } from './env.js';
 import { ensureMandate } from './control-plane/mandate.js';
+import { appendAudit } from './control-plane/audit.js';
 import { paypal } from './paypal/gateway.js';
 
 const app = new Hono();
@@ -42,7 +43,40 @@ const bootstrap = async () => {
   Intent Mandate : v${mandate.version} signed — per-txn $${mandate.limits.perTxn}, daily cap $${mandate.limits.dailyTotal}
   → http://localhost:${env.port}
 `);
+  await ensurePaypalWebhook();
 };
+
+// Events the ledger acts on: invoice payments (money-in) and payout settlements (money-out).
+const WEBHOOK_EVENT_TYPES = [
+  'INVOICING.INVOICE.PAID',
+  'PAYMENT.PAYOUTSBATCH.SUCCESS',
+  'PAYMENT.PAYOUTSBATCH.DENIED',
+  'PAYMENT.PAYOUTS-ITEM.SUCCEEDED',
+  'PAYMENT.PAYOUTS-ITEM.UNCLAIMED',
+  'PAYMENT.PAYOUTS-ITEM.FAILED',
+];
+
+/** Self-register the PayPal webhook when SANDBOX credentials and PUBLIC_BASE_URL are both set:
+ *  real events then reach /api/paypal/webhook and pass verify-webhook-signature without any
+ *  dashboard copy-paste. Best-effort — a failure never blocks boot. */
+async function ensurePaypalWebhook(): Promise<void> {
+  if (paypal.mode !== 'SANDBOX' || !env.publicBaseUrl || !paypal.ensureWebhook) return;
+  const url = `${env.publicBaseUrl}/api/paypal/webhook`;
+  try {
+    const hook = await paypal.ensureWebhook(url, WEBHOOK_EVENT_TYPES);
+    if (!hook) return;
+    env.paypal.webhookId = hook.id;
+    console.log(`  PayPal webhook : ${hook.created ? 'registered' : 'adopted'} ${hook.id} → ${url}`);
+    if (hook.created) {
+      appendAudit({
+        kind: 'SYSTEM',
+        payload: { event: `PayPal webhook self-registered (${hook.id}) → ${url} — ${WEBHOOK_EVENT_TYPES.length} event types` },
+      });
+    }
+  } catch (e: unknown) {
+    console.log(`  PayPal webhook : registration skipped — ${String(e).slice(0, 200)}`);
+  }
+}
 
 serve({ fetch: app.fetch, port: env.port }, async () => {
   await bootstrap();

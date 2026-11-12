@@ -35,6 +35,10 @@ export const env = {
 
   /** When set, all state-changing /api routes require the `x-mandate-token` header (public deploys). */
   adminToken: required('MANDATE_ADMIN_TOKEN'),
+
+  /** This deployment's public origin (e.g. https://139-84-172-28.sslip.io). When set in SANDBOX
+   *  mode, the server self-registers its PayPal webhook on boot — no dashboard copy-paste. */
+  publicBaseUrl: process.env.PUBLIC_BASE_URL?.trim().replace(/\/$/, '') || undefined,
 };
 
 export const paypalMode: 'SANDBOX' | 'MOCK' =

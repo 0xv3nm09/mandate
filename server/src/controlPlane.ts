@@ -297,26 +297,45 @@ export function denyApproval(approvalId: string, by: string): HandleResult {
 }
 
 // ── Webhook ingestion (FR-03): verified in sandbox; deduped by event id ──────
+// Event names verified against GET /v1/notifications/webhooks-event-types (sandbox, Nov 12 2026):
+// batch-level PAYMENT.PAYOUTSBATCH.{PROCESSING,SUCCESS,DENIED}, item-level PAYMENT.PAYOUTS-ITEM.*,
+// and INVOICING.INVOICE.PAID. PAYMENT.PAYOUTS.EVENT is the internal synthetic name (settle paths).
 export function handlePaypalEvent(e: { id: string; eventType: string; resourceId?: string; summary?: string; payload?: Record<string, unknown> }): void {
   const dup = db.prepare('SELECT id FROM events WHERE id = ?').get(e.id);
   if (dup) return; // replay/dedupe by event id
+  db.prepare('INSERT INTO events (id, type, payload, ts) VALUES (?, ?, ?, ?)').run(e.id, e.eventType, JSON.stringify(e), now());
+  // Normalize payout events: batch id and status live in different places per event family.
+  let payoutBatchId: string | undefined = e.resourceId;
+  let payoutStatus: string | undefined;
+  let payoutNote = '';
+  if (e.eventType === 'PAYMENT.PAYOUTS.EVENT') {
+    payoutStatus = (e.payload?.batch_status as string) ?? 'SUCCESS';
+  } else if (e.eventType.startsWith('PAYMENT.PAYOUTSBATCH.')) {
+    const header = e.payload?.batch_header as { payout_batch_id?: string; batch_status?: string } | undefined;
+    payoutBatchId = header?.payout_batch_id;
+    payoutStatus = header?.batch_status;
+  } else if (e.eventType.startsWith('PAYMENT.PAYOUTS-ITEM.')) {
+    payoutBatchId = e.payload?.payout_batch_id as string | undefined;
+    payoutStatus = e.payload?.tx_status as string | undefined;
+    payoutNote = ` — item ${e.eventType.replace('PAYMENT.PAYOUTS-ITEM.', '')}${e.payload?.payout_item_id ? ` (${String(e.payload.payout_item_id)})` : ''}`;
+  }
 
-  if (e.eventType === 'PAYMENT.PAYOUTS.EVENT' && e.resourceId) {
-    const payout = db.prepare('SELECT actionId, status FROM payouts WHERE batchId = ?').get(e.resourceId) as
+  if (payoutBatchId) {
+    const payout = db.prepare('SELECT actionId, status FROM payouts WHERE batchId = ?').get(payoutBatchId) as
       | { actionId: string; status: string }
       | undefined;
-    const status = (e.payload?.batch_status as string) ?? 'SUCCESS';
+    const status = payoutStatus ?? 'SUCCESS';
     if (payout) {
-      db.prepare('UPDATE payouts SET status = ?, updatedAt = ? WHERE batchId = ?').run(status, now(), e.resourceId);
+      db.prepare('UPDATE payouts SET status = ?, updatedAt = ? WHERE batchId = ?').run(status, now(), payoutBatchId);
       appendAudit({
         kind: 'WEBHOOK',
         actionId: payout.actionId,
         payload: {
-          event: `PayPal webhook: payout batch ${e.resourceId} → ${status}`,
-          eventType: e.eventType, resourceId: e.resourceId, status,
+          event: `PayPal webhook: payout batch ${payoutBatchId} → ${status}${payoutNote}`,
+          eventType: e.eventType, resourceId: payoutBatchId, status,
         },
       });
-      publish('payout.updated', { actionId: payout.actionId, batchId: e.resourceId, status });
+      publish('payout.updated', { actionId: payout.actionId, batchId: payoutBatchId, status });
     }
   }
 

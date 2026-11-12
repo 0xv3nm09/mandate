@@ -52,6 +52,8 @@ export interface PaypalGateway {
   simulateEvent?(webhookId: string, eventType: string): Promise<unknown>;
   /** Configure PayPal's native BEFORE_DUE/AFTER_DUE auto reminders (best-effort, sandbox). */
   setupAutoReminders?(): Promise<unknown>;
+  /** Adopt or create the app's webhook for `url` (sandbox gateway only) — boot-time self-registration. */
+  ensureWebhook?(url: string, eventTypes: string[]): Promise<{ id: string; created: boolean } | null>;
 }
 
 export type PaypalEvent = {
@@ -67,14 +69,9 @@ export function onPaypalEvent(h: (e: PaypalEvent) => void): void {
   eventHandler = h;
 }
 export function emitEvent(e: Omit<PaypalEvent, 'id'>): void {
-  const full: PaypalEvent = { ...e, id: uid() };
-  db.prepare('INSERT INTO events (id, type, payload, ts) VALUES (?, ?, ?, ?)').run(
-    full.id,
-    full.eventType,
-    JSON.stringify(full),
-    now()
-  );
-  eventHandler?.(full);
+  // Recording happens in the handler (handlePaypalEvent) so BOTH internal events and
+  // real webhook deliveries land in `events` — dedupe works for every path.
+  eventHandler?.({ ...e, id: uid() });
 }
 
 // ── SANDBOX (real REST) ──────────────────────────────────────────────────────
@@ -226,11 +223,10 @@ class SandboxGateway implements PaypalGateway {
   }): Promise<boolean> {
     if (!env.paypal.webhookId) return false;
     try {
-      const res = await this.call<{ verification_status: string }>(
+      const res = await this.call<{ verification_status: string; debug_id?: string }>(
         'POST',
         '/v1/notifications/verify-webhook-signature',
         {
-          transfer_type: 'WEBHOOK',
           webhook_id: env.paypal.webhookId,
           transmission_id: input.transmissionId,
           transmission_time: input.transmissionTime,
@@ -240,8 +236,14 @@ class SandboxGateway implements PaypalGateway {
           webhook_event: input.webhookEvent,
         }
       );
-      return res.verification_status === 'SUCCESS';
-    } catch {
+      const status = res.verification_status;
+      if (status !== 'SUCCESS') {
+        // Never swallow why: a trust product must show its verification decisions.
+        console.log(`  PayPal webhook : signature verification ${status} (debug ${res.debug_id ?? '—'})`);
+      }
+      return status === 'SUCCESS';
+    } catch (err: unknown) {
+      console.log(`  PayPal webhook : signature verification error — ${String(err).slice(0, 200)}`);
       return false;
     }
   }
@@ -249,6 +251,20 @@ class SandboxGateway implements PaypalGateway {
   /** Deterministic demo in LIVE sandbox mode: docs endpoint POST /v1/notifications/simulate-event. */
   async simulateEvent(webhookId: string, eventType: string): Promise<unknown> {
     return this.call('POST', '/v1/notifications/simulate-event', { webhook_id: webhookId, event_type: eventType });
+  }
+
+  async ensureWebhook(url: string, eventTypes: string[]): Promise<{ id: string; created: boolean } | null> {
+    // Notifications v1: adopt a webhook already registered for this URL, else create one.
+    // Runs at boot so real PayPal events (payout settlements, invoice payments) reach the
+    // ledger with signature verification — PAYPAL_WEBHOOK_ID stops being a manual step.
+    const list = await this.call<{ webhooks?: { id: string; url: string }[] }>('GET', '/v1/notifications/webhooks');
+    const existing = (list.webhooks ?? []).find((h) => h.url === url);
+    if (existing) return { id: existing.id, created: false };
+    const created = await this.call<{ id: string }>('POST', '/v1/notifications/webhooks', {
+      url,
+      event_types: eventTypes.map((name) => ({ name })),
+    });
+    return { id: created.id, created: true };
   }
 
   /** Docs: POST /v2/invoicing/setup-reminders — configure PayPal's native BEFORE_DUE/AFTER_DUE reminders.
