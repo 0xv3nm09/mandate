@@ -226,7 +226,7 @@ export async function api<T>(path: string, init?: RequestInit, retried = false):
   if (res.status === 401 && res.headers.get('X-Mandate-Token-Required') && !retried) {
     const demoToken = (import.meta.env.VITE_DEMO_TOKEN as string | undefined) ?? '';
     const t = window.prompt(
-      `This Mandate deployment requires the admin token${demoToken ? ' — public demo instance, token pre-filled:' : ' — the public demo instance publishes its token in the repo README ("See it two ways"):'}`,
+      `This Mandate deployment requires the admin token${demoToken ? ' — public demo instance, token pre-filled:' : ' — the public demo instance publishes its token in the repo README ("See it four ways"):'}`,
       demoToken,
     );
     if (t != null && t.trim()) {

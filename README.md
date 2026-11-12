@@ -60,12 +60,12 @@ Then open **Usecases → "Run all 12 sequentially"** — every trace is a real c
 
 **Built during the Submission Period:** the entire project was created from Oct 28, 2026 onward (see commit history) — first commit is the scaffold, latest commits are live-sandbox evidence.
 
-## See it two ways
+## See it four ways
 
 **1 · Live deployment — the full product:** <https://139-84-172-28.sslip.io> — API + console +
 auto-HTTPS on a single Vultr VM, talking to the real PayPal sandbox right now
-(`{"ok":true,"mode":{"paypal":"SANDBOX"}}`, audit chain verified). Run all 12 use cases, approve
-a payout, watch real API calls stream on the **Stack** tab. Mutations prompt once for the admin
+(`{"ok":true,"mode":{"paypal":"SANDBOX","llm":"LLM"}}`, audit chain verified). Run all 12 use cases, approve
+a payout, watch real API calls stream on the **Live Stack** tab. Mutations prompt once for the admin
 token — this public demo's token is **`mandate-live-29f107bffa6e`** (sandbox money; the guard
 demonstrates the pattern, see `MANDATE_ADMIN_TOKEN` in `.env.example`). The server
 **self-registers its PayPal webhook on boot** (`/v1/notifications/webhooks`, six payout/invoice
@@ -82,10 +82,15 @@ Dashboard KPIs, full Usecases traces, the audit ledger — with a banner explain
 are disabled. Same experience, no server required; the snapshot is committed at
 [`web/public/demo/mandate-snapshot.json`](web/public/demo/mandate-snapshot.json).
 
-It's reproducible with **one command**: `bash scripts/vultr_deploy.sh root@<VM-IP>` → auto-installs
+**3 · Re-deploy anywhere — one command:** `bash scripts/vultr_deploy.sh root@<VM-IP>` → auto-installs
 Node 24 + Caddy auto-HTTPS via sslip.io (`https://<ip-dashed>.sslip.io` — free hostname from your
 IP, Let's Encrypt cert auto-provisioned), systemd service, firewall. Runbook:
 [docs/DEPLOY-VULTR.md](docs/DEPLOY-VULTR.md) (cloud-init first-boot option included).
+
+**4 · Localhost — zero keys, zero cloud:** `git clone` → `cd server && npm install && npm run dev`
+→ the deterministic parser + the stateful **mock PayPal gateway** run the entire trust plane
+offline: same control plane, same 12 use cases, same hash-chained ledger (full steps in
+[Quick start](#quick-start-zero-external-keys-needed) below).
 
 ## The 30-second architecture
 
