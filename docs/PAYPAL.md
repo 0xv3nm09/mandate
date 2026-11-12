@@ -252,10 +252,18 @@ whole product with zero credentials.
 | # | HTTP | PayPal error | Trigger | Mandate's handling |
 | --- | --- | --- | --- | --- |
 | 1 | 404 | `RESOURCE_NOT_FOUND` on `/invoices/undefined/send` | create returned HAL link, client read `body.id` | parse `href` + `Prefer: return=representation` (§2.1) |
-| 2 | 422 | `USER_NOT_FOUND` on send | recipient not a sandbox personal account | `PAYPAL_SANDBOX_RECIPIENT` routing + graceful `CREATED` + resend route (§2.2) |
+| 2 | 422 | `USER_NOT_FOUND` on send | recipient not a sandbox personal account | with no `PAYPAL_SANDBOX_RECIPIENT` the send is **skipped up front** (invoice stays `CREATED`, reason recorded); with one configured: routing + resend route (§2.2) |
 | 3 | 400 | `Batch with given sender_batch_id already exists` | local reset vs PayPal's longer retention | idempotent no-op, audited `duplicateOf` (§3.2) |
-| 4 | 422 | reminder rejected | >2 reminders/invoice/day | caught, audited, surfaced honestly (§2.3) |
+| 4 | 422 | reminder rejected | >2 reminders/invoice/day, or the invoice was never delivered (still DRAFT) | never-delivered invoices are **held up front** ("drafted — delivery held"); daily-cap rejections are caught, audited, surfaced honestly (§2.3) |
 | 5 | 5xx / timeout | — | transient | retry ×2 with backoff → queue; action stays PENDING, never silent-executes |
+| 6 | 422 | `INSUFFICIENT_FUNDS` on `/v1/payments/payouts` | sandbox sender balance drained by repeated demo payouts | execution marked FAILED + audited (FR-14), approval is not silently retried; operator tops up the sandbox account, the next payout settles (`L6ZH42C6UDWKA`, `5NQRHMTW3J7VG` → SUCCESS) |
+| 7 | 422 | `PAYEE_NOT_ENABLED_FOR_CARD_PROCESSING` on `/v2/checkout/orders` | diagnostic attempt to fund the sandbox balance with a test card — rejected at order **create**, before any card is evaluated, because the payee account has no card-processing capability | not a product path: Mandate moves money on the Invoicing + Payouts rails only; sandbox balances are managed in the developer dashboard |
+
+> **Rule: never send PayPal a request it will deterministically reject.** Rows 2 and 4 used to be
+> caught *after* the 422; the gateway now checks the precondition first (`sendInvoice` /
+> `remindInvoice` return `{ status, skipped }`), so the ledger stays honest and PayPal's API log
+> stays clean. Errors that depend on PayPal-side state we cannot see (rows 3, 5, 6) are still
+> caught and audited.
 
 ---
 
