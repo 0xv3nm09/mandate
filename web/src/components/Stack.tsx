@@ -540,10 +540,11 @@ export function Stack() {
         </Panel>
 
         {/* AG Grid */}
-        <Panel icon={<Grid3x3 size={14} />} chip="bg-violet-500/10 text-accent" title="AG Grid — the inspection surface" sub="docs/AG-GRID.md">
+        <Panel icon={<Grid3x3 size={14} />} chip="bg-violet-500/10 text-accent" title="AG Grid — the inspection surface (sponsor)" sub="docs/AG-GRID.md">
           <p className="text-[12px] leading-relaxed text-ink/85">
             The audit ledger in the <b>Console</b> is AG Grid Community over this exact
-            hash-chained data — <b>{c.auditRecords} rows</b> right now, fed by SSE.
+            hash-chained data — <b>{c.auditRecords} audit rows</b> and <b>{c.invoices} invoices</b>
+            right now, fed by SSE: settlements, gates and new decisions stream into the grid as they happen.
           </p>
           <div className="mt-3"><Caption>grid features in this build</Caption></div>
           <div className="mt-1.5 flex flex-wrap gap-1.5">
