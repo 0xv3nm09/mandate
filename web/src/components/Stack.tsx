@@ -369,6 +369,54 @@ export function Stack() {
         </div>
       </section>
 
+      {/* PayPal surface — live capability map */}
+      <section className="card card-gradient mt-4 p-4">
+        <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-muted">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-teal/10 text-teal"><Webhook size={14} /></span>
+          PayPal surface — live capability map
+          <span className="ml-auto font-normal normal-case tracking-normal text-muted/60">calls counted from the journal window above</span>
+        </div>
+        <div className="mt-3 overflow-x-auto">
+          <table className="w-full text-left text-[11px]">
+            <thead>
+              <tr className="border-b border-edge text-muted/70">
+                <th className="py-1.5 pr-3 font-semibold uppercase tracking-wide">Capability</th>
+                <th className="py-1.5 pr-3 font-semibold uppercase tracking-wide">Hardening</th>
+                <th className="py-1.5 pr-3 text-right font-semibold uppercase tracking-wide">Calls (window)</th>
+                <th className="py-1.5 text-right font-semibold uppercase tracking-wide">Last status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                { n: 'OAuth 2.0 token', re: /oauth2\/token/, m: 'POST', h: 'cached · re-minted ~60 s before expiry' },
+                { n: 'Invoicing — create', re: /invoices$/, m: 'POST', h: 'Prefer: return=representation · PayPal-Request-Id' },
+                { n: 'Invoicing — send', re: /\/send$/, m: 'POST', h: 'skipped up front when no sandbox recipient' },
+                { n: 'Invoicing — live status read', re: /invoices\/[A-Z0-9-]+$/, m: 'GET', h: 'remind pre-check — drafts are held, never a doomed 422' },
+                { n: 'Invoicing — remind', re: /\/remind$/, m: 'POST', h: '2/day cap surfaced verbatim' },
+                { n: 'Native setup-reminders', re: /setup-reminders/, m: 'POST', h: "PayPal's own dunning engine, configured once, audited" },
+                { n: 'Payouts — create', re: /payments\/payouts$/, m: 'POST', h: 'sender_batch_id = idempotency key (approval:/standing:/governed:)' },
+                { n: 'Payouts — status', re: /payments\/payouts\/[A-Z0-9]+$/, m: 'GET', h: 'UC-12 + boot reconciliation' },
+                { n: 'Webhooks — adopt/register', re: /notifications\/webhooks$/, m: 'GET/POST', h: 'adopt-or-create at boot · event types from the live catalog' },
+                { n: 'Webhooks — signature verify', re: /verify-webhook-signature/, m: 'POST', h: '7-field schema · failures logged with debug_id' },
+                { n: 'Webhooks — simulate', re: /simulate-event/, m: 'POST', h: 'genuinely signed sample delivery' },
+              ].map((cap) => {
+                const rows = live.filter((e) => e.path.match(cap.re) && e.method.startsWith(cap.m.split('/')[0]));
+                const last = rows[0];
+                return (
+                  <tr key={cap.n} className="border-b border-edge/40 last:border-0">
+                    <td className="py-1.5 pr-3 text-ink/85">{cap.n}</td>
+                    <td className="py-1.5 pr-3 text-muted/80">{cap.h}</td>
+                    <td className="py-1.5 pr-3 text-right font-semibold tabular-nums text-ink/80">{rows.length || '—'}</td>
+                    <td className={`py-1.5 text-right ${last ? (last.ok ? 'text-ok' : 'text-danger') : 'text-muted/50'}`}>{last ? `${last.status} · ${last.ms}ms` : 'no calls in window'}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        <p className="mt-2 text-[10px] text-muted/70">Counts cover the in-memory journal window (last 120 calls, persisted across restarts) — the full history lives in the hash-chained ledger.</p>
+      </section>
+
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
         {/* PayPal rails */}
         <Panel icon={<Database size={14} />} chip="bg-accent/10 text-accent" title="PayPal rails — live totals" sub="docs/PAYPAL.md">
@@ -431,9 +479,29 @@ export function Stack() {
             <li className="flex gap-2"><CheckCircle2 size={13} className="mt-[3px] shrink-0 text-ok" />
               <span><b>Read-only eyes.</b> official <Code>@paypal/agent-toolkit</Code> — {data.toolkit.available ? `attached (${data.toolkit.toolNames?.length} list/get tools)` : 'activates on first agent call'}; it can look, never touch.</span></li>
           </ul>
+          <div className="mt-3"><Caption>the governed tool set — what the model may call, by side</Caption></div>
+          <div className="mt-1.5 overflow-x-auto">
+            <table className="w-full text-left text-[11px]">
+              <tbody>
+                {[
+                  ['create_invoice', 'money-in · autonomous', 'runs after a policy ALLOW check — full HandleResult into actions[]'],
+                  ['send_reminder', 'money-in · autonomous', 'tone-escalating chase of the most-overdue invoice; drafts held up front'],
+                  ['propose_payout', 'proposal-only', 'NO execute — the control plane evaluates and gates'],
+                  ['propose_mandate_change', 'proposal-only', 'NO execute — the human signs (or denies) the drafted diff'],
+                  ['toolkit list/get ×4', 'read-only', 'invoices + disputes — eyes, never hands'],
+                ].map(([t, side, note]) => (
+                  <tr key={t} className="border-b border-edge/40 last:border-0">
+                    <td className="py-1 pr-2 font-mono font-semibold text-ink/80">{t}</td>
+                    <td className={`py-1 pr-2 whitespace-nowrap ${side.startsWith('proposal') ? 'text-amber-600' : 'text-ok'}`}>{side}</td>
+                    <td className="py-1 text-muted/80">{note}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
           <Foot>
             <a className="flex items-center gap-1 text-accent hover:underline" href="https://github.com/0xv3nm09/mandate/blob/main/docs/AI.md" target="_blank" rel="noreferrer">
-              <FileText size={11} /> AI architecture & benchmarks
+              <FileText size={11} /> AI architecture & benchmarks (§7 = live Vultr captures)
             </a>
             <Dot />
             <a className="flex items-center gap-1 text-accent hover:underline" href="https://github.com/0xv3nm09/mandate/blob/main/docs/AGENT.md" target="_blank" rel="noreferrer">
