@@ -260,6 +260,8 @@ api.get('/stack', (c) => {
     chain: verifyChain(),
     paypalLog: paypalLog(),
     toolkit: toolkitModule.toolkitStatus(),
+    // which brain is actually running, for the Stack page's AI panel
+    llmModel: llmMode === 'LLM' ? env.llm.model ?? 'gpt-4o' : null,
   });
 });
 

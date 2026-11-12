@@ -25,6 +25,7 @@ type StackData = {
   chain: { ok: boolean; count: number; brokenAt: number | null };
   paypalLog: CallEntry[];
   toolkit: { available: boolean; reason?: string; toolNames?: string[] };
+  llmModel: string | null;
 };
 
 // The deterministic rule catalog — one line each, merged with live hit counts from /api/stack.
@@ -391,6 +392,14 @@ export function Stack() {
             <Stat label="denied" value={approvals.DENIED ?? 0} tone="text-danger" />
             <Stat label="pending" value={approvals.PENDING ?? 0} tone="text-amber-600" />
           </div>
+          {data.mode.llm === 'LLM' && (
+            <div className="mt-3 flex flex-wrap items-center gap-1.5 text-[11px] text-muted">
+              <span className="font-semibold uppercase tracking-wide text-muted/70">live model:</span>
+              <Chip>{data.llmModel ?? 'gpt-4o'}</Chip>
+              <Chip>Vultr Serverless Inference</Chip>
+              <Chip>2.3–4.2 s measured</Chip>
+            </div>
+          )}
           <ul className="mt-3 space-y-2 text-[12px] leading-relaxed text-ink/85">
             <li className="flex gap-2"><CheckCircle2 size={13} className="mt-[3px] shrink-0 text-ok" />
               <span><b>Propose-only tools.</b> <Code>propose_payout</Code> ships with no <Code>execute</Code> — the model structurally cannot move money.</span></li>
