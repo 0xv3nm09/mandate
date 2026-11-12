@@ -38,6 +38,7 @@ rather than patches.
 | 15 | **SSE streams die behind proxies** | 15-second keepalive ping on the approval stream (survives Render's proxy) |
 | 16 | **Mermaid on GitHub is picky** — angle-bracket text in sequence messages is swallowed as HTML, pipes in node labels break parsing | Diagram set hardened (docs/ARCHITECTURE.md renders 12/12) |
 | 23 | **AI SDK v5's OpenAI provider defaults to `/responses`** — OpenAI's newer endpoint, which OpenAI-compatible providers (Vultr Serverless Inference, Groq, Together…) don't serve: every LLM call 404'd even with valid auth | Call `openai.chat(model)` — the classic `/chat/completions` with tools; found the moment a third-party provider was wired (`OPENAI_BASE_URL`), logged with the provider's error body ([docs/AI.md §7](AI.md)) |
+| 24 | **Invoice send `USER_NOT_FOUND` with a VALID recipient** — the missing user was the *invoicer*: a placeholder `merchant@mandate.demo` sender identity. Send resolves both parties; also caught an LLM-path gap (no money-in tool story) that hid behind it | UC-01's send 422ing across three recipient accounts until the sender was fixed | `PAYPAL_INVOICER_EMAIL` = the app's own business sandbox account; governed `send_reminder` tool + a system prompt that enumerates tools by side — the LLM suite then ran 12/12 ([PAYPAL.md §7 row 8](PAYPAL.md)) |
 
 ## Live deployment — issues faced on the Vultr VM
 

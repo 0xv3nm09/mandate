@@ -115,7 +115,7 @@ export function Dashboard({ go }: { go: (page: 'console' | 'usecases') => void }
                   ['docs/AG-GRID.md', 'AG Grid usage + this UI explained'],
                   ['docs/ARCHITECTURE.md', '12 annotated system diagrams'],
                   ['docs/EVIDENCE.md', 'Judging criteria → proof map'],
-                  ['docs/FEEDBACK.md', '23 issues faced and fixed'],
+                  ['docs/FEEDBACK.md', '24 issues faced and fixed'],
                 ].map(([path, label]) => (
                   <a
                     key={path}

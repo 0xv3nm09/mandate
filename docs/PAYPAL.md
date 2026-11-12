@@ -379,6 +379,7 @@ whole product with zero credentials.
 | 5 | 5xx / timeout | — | transient | retry ×2 with backoff → queue; action stays PENDING, never silent-executes |
 | 6 | 422 | `INSUFFICIENT_FUNDS` on `/v1/payments/payouts` | sandbox sender balance drained by repeated demo payouts | execution marked FAILED + audited (FR-14), approval is not silently retried; operator tops up the sandbox account, the next payout settles (`L6ZH42C6UDWKA`, `5NQRHMTW3J7VG` → SUCCESS) |
 | 7 | 422 | `PAYEE_NOT_ENABLED_FOR_CARD_PROCESSING` on `/v2/checkout/orders` | diagnostic attempt to fund the sandbox balance with a test card — rejected at order **create**, before any card is evaluated, because the payee account has no card-processing capability | not a product path: Mandate moves money on the Invoicing + Payouts rails only; sandbox balances are managed in the developer dashboard |
+| 8 | 422 | `USER_NOT_FOUND` on invoice **send** (with a valid sandbox recipient) | the INVOICER identity was a placeholder email (`merchant@mandate.demo`) — send resolves both parties, and a fake sender is a missing user too | `PAYPAL_INVOICER_EMAIL` set to the app's own business sandbox account; invoice send then returned `SENT` on the next call (§2.2) |
 
 > **Rule: never send PayPal a request it will deterministically reject.** Rows 2 and 4 used to be
 > caught *after* the 422; the gateway now checks the precondition first (`sendInvoice` /

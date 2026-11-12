@@ -139,7 +139,7 @@ From `evidence/runs-summary.json` (`durationMs` per use case):
 | Mode | Surface | Count |
 |---|---|---|
 | Deterministic parser | intents: invoice, payout, reminder, listInvoices, auditQuestion, mandateChange, halt, resume, runStanding, simulatePaid, help | **11** |
-| LLM tool loop | governed tools: `create_invoice`, `propose_payout`, `propose_mandate_change` | 3 |
+| LLM tool loop | governed tools: `create_invoice`, `send_reminder` (money-in, autonomous), `propose_payout`, `propose_mandate_change` (proposal-only) | 4 |
 | LLM read-only | toolkit: `list_invoices`, `get_invoice`, `list_disputes`, `get_dispute` | 4 |
 
 Both modes resolve to the **same control-plane contract**, so behavior is identical regardless of which brain is active.
