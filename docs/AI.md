@@ -29,10 +29,15 @@
 | Layer | Package / service | Role |
 |---|---|---|
 | Agent loop | **Vercel AI SDK v5** (`ai`) | Tool-calling loop; turns NL into governed tool calls |
-| Model (keyed) | **Anthropic Claude** (`@ai-sdk/anthropic`, e.g. `claude-sonnet-4-5`) **or OpenAI GPT-4o** (`@ai-sdk/openai`) | The LLM behind the agent — **language only** |
+| Model (keyed) | **Anthropic Claude** (`@ai-sdk/openai`'s sibling, e.g. `claude-sonnet-4-5`) **or any OpenAI-compatible provider** (`@ai-sdk/openai` + `OPENAI_BASE_URL`) — live-tested: **Vultr Serverless Inference, `kimi-k2-instruct`** | The LLM behind the agent — **language only** |
 | Model (zero-key) | **Deterministic parser** (`parser.ts`) | Regex/intent fallback so the demo runs with no key; same contract as the LLM |
 | PayPal AI | **Official `@paypal/agent-toolkit`** | Read-only eyes: `list_invoices`, `get_invoice`, `list_disputes`, `get_dispute` |
 | Schemas | **`zod`** | Tool input schemas the SDK validates |
+
+> `OPENAI_BASE_URL` (e.g. `https://api.vultrinference.com/v1`) points the OpenAI-compatible
+> provider anywhere; `OPENAI_API_KEY` becomes that provider's key. The provider calls go to
+> the classic **`/chat/completions`** endpoint (`openai.chat(...)`) — the SDK's default targets
+> OpenAI's newer `/responses` route, which third-party providers don't serve.
 
 ---
 
@@ -150,6 +155,43 @@ Both modes resolve to the **same control-plane contract**, so behavior is identi
 ## 6. Why these are the right AI benchmarks
 
 A classic AI benchmark asks "did the model get the answer right?" For a system that moves money, that is the **wrong** question — a 97%-accurate model still means 3-in-100 wrong payments. Mandate's design removes the model from the answer entirely: the decision is deterministic code with a verifiable audit trail, and the model is confined to language a human reads. So the benchmarks that matter are **(1) did anything bypass the gate (no), (2) how much latency does the gate add (~ms), (3) does the agent cover the workflow (yes, both modes), and (4) is the decision reproducible (yes, by construction).** That is a stronger safety claim than any accuracy score.
+
+---
+
+## 7. Live LLM mode — Vultr Serverless Inference (measured Nov 12, 2026)
+
+The full app **and** the LLM run on Vultr credits: `OPENAI_BASE_URL=https://api.vultrinference.com/v1`,
+model `kimi-k2-instruct`, tool calling through the AI SDK v5 loop. Everything below is captured from
+the live deployment (`POST /api/chat`, mandate v13).
+
+**Test 1 — gated payout (the model proposes, the engine decides).** Prompt: *"Pay Vita 180 for social
+media scheduling"* → **4,226 ms**. The model emitted a `propose_payout` tool call (no `execute` — it
+structurally cannot move money); the control plane evaluated and **gated** it; an approval was created;
+the chat reply read:
+
+> Gated — human approval required (R_GATE_THRESHOLD). Gated: $180 is 1.8× your per-transaction threshold of $100. Human approval required.
+
+That verdict sentence is the **deterministic engine's own text**, appended to the model's closing
+words — a model can be terse ("Done." was one observed reply), so the control-plane summary is always
+appended and the gate context is never lost.
+
+**Test 2 — policy interrogation.** Prompt: *"Why was the payout to NewVendor blocked and what would
+approve it?"* → **2,304 ms**. Verbatim (excerpt):
+
+> …the active mandate v13 has a closed allowlist — `sam@contractor.test`, `vita@va.test`, `acme@client.test`. NewVendor isn't on it. An allowlist miss is a hard BLOCK, not a GATE — no human approval step rescues it… Add NewVendor to the allowlist via `propose_mandate_change` … then **you** sign it. I can't sign it and can't route around it.
+
+The model cites the real mandate version, the real allowlist, and the correct BLOCK-vs-GATE rule — and
+it **declines to fabricate**: it says outright that it has no tool exposing the decision log and reasons
+from the signed mandate instead. Honest limitation, documented as observed: **audit interrogation is
+trail-grounded in deterministic mode** (the parser reads the chain) and mandate-grounded in LLM mode;
+both refuse to invent verdicts.
+
+**Failure handling, proven with a real failure.** Our first Inference key was rejected (`401 Invalid API
+key`) and the SDK initially targeted the wrong endpoint (`/responses`). Result: `llmChat` threw, the
+deterministic parser finished the same command mid-sentence, and a real $50 payout executed autonomously
+under `R_ALLOW_IN_BOUNDS` — the log line `[agent] LLM path failed, using deterministic parser` and the
+hash-chained records show the degrade. **The money path is model-independent by construction**, and now
+it is also demonstrated by an actual provider outage, not just by unit reasoning.
 
 ---
 
