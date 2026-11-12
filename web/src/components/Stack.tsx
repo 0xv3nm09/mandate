@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   Layers, Radio, Database, Cpu, ShieldCheck, Grid3x3, FileText, Webhook,
-  CheckCircle2, RefreshCw, Lock, KeyRound, Server, GitBranch, XOctagon,
+  CheckCircle2, RefreshCw, Copy, Download, Lock, KeyRound, Server, GitBranch, XOctagon,
 } from 'lucide-react';
 import { api } from '../lib/api';
 import { useSSE } from '../hooks/useSSE';
@@ -224,8 +224,29 @@ export function Stack() {
         <div className="flex items-center gap-2 border-b border-edge/70 px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted">
           <Radio size={13} className="text-accent" />
           PayPal sandbox API log — real calls, as they happen
-          <span className="ml-auto flex items-center gap-3 font-normal normal-case tracking-normal text-muted/60">
-            <span className="mono-hash">GET /api/paypal/log</span>
+          <span className="ml-auto flex items-center gap-2 font-normal normal-case tracking-normal text-muted/60">
+            <span className="mono-hash hidden sm:inline">GET /api/paypal/log</span>
+            <button
+              className="flex items-center gap-1 rounded-full border border-edge bg-raised px-2 py-0.5 hover:border-ink/40"
+              title="Copy the current journal as JSON"
+              onClick={() => { void navigator.clipboard?.writeText(JSON.stringify(live, null, 2)); }}
+            >
+              <Copy size={10} /> copy
+            </button>
+            <button
+              className="flex items-center gap-1 rounded-full border border-edge bg-raised px-2 py-0.5 hover:border-ink/40"
+              title="Download the current journal as JSON"
+              onClick={() => {
+                const blob = new Blob([JSON.stringify({ generatedAt: new Date().toISOString(), source: 'GET /api/paypal/log', entries: live }, null, 2)], { type: 'application/json' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `mandate-paypal-log-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}.json`;
+                a.click();
+                URL.revokeObjectURL(a.href);
+              }}
+            >
+              <Download size={10} /> json
+            </button>
             <button className="flex items-center gap-1 rounded-full border border-edge bg-raised px-2 py-0.5 hover:border-ink/40" onClick={load}>
               <RefreshCw size={10} /> refresh
             </button>
