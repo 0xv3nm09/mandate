@@ -1,1 +1,48 @@
-{"id":"UC-11","runId":"UC-11-mwcgoloh","title":"Subscription guard","outcome":"ok","headline":"Real bill auto-verified; price hike flagged SUSPICIOUS","steps":[{"n":1,"label":"Genuine subscription bill","detail":"billing@netflix.com · $15.49 → VERIFIED — matches the signed envelope, nothing for a human to do","status":"ok","data":{"verdict":"VERIFIED"}},{"n":2,"label":"Official sender raises the price","detail":"billing@netflix.com · $27.49 → SUSPICIOUS (R_SUSPICIOUS_AMOUNT)","status":"gate","data":{"verdict":"SUSPICIOUS"}},{"n":3,"label":"Envelope catches silent price changes","detail":"Sender is genuinely Netflix — but $27.49 is outside the $7.99–$24.99 envelope. Flagged for a human look instead of silently paid.","status":"gate"},{"n":4,"label":"Signed verification artifact","detail":"receipt mwcgolohs2oaoo committed to the chain (seq #23)","status":"info","data":{"auditSeq":23}}],"auditSeqs":[22,23],"ranAt":"2026-11-11T18:37:40.673Z","durationMs":1}
+{
+  "id": "UC-11",
+  "runId": "UC-11-mwdfnx1u",
+  "title": "Subscription guard",
+  "outcome": "ok",
+  "headline": "Real bill auto-verified; price hike flagged SUSPICIOUS",
+  "steps": [
+    {
+      "n": 1,
+      "label": "Genuine subscription bill",
+      "detail": "billing@netflix.com · $15.49 → VERIFIED — matches the signed envelope, nothing for a human to do",
+      "status": "ok",
+      "data": {
+        "verdict": "VERIFIED"
+      }
+    },
+    {
+      "n": 2,
+      "label": "Official sender raises the price",
+      "detail": "billing@netflix.com · $27.49 → SUSPICIOUS (R_SUSPICIOUS_AMOUNT)",
+      "status": "gate",
+      "data": {
+        "verdict": "SUSPICIOUS"
+      }
+    },
+    {
+      "n": 3,
+      "label": "Envelope catches silent price changes",
+      "detail": "Sender is genuinely Netflix — but $27.49 is outside the $7.99–$24.99 envelope. Flagged for a human look instead of silently paid.",
+      "status": "gate"
+    },
+    {
+      "n": 4,
+      "label": "Signed verification artifact",
+      "detail": "receipt mwdfnx1t7kpkw7 committed to the chain (seq #204)",
+      "status": "info",
+      "data": {
+        "auditSeq": 204
+      }
+    }
+  ],
+  "auditSeqs": [
+    203,
+    204
+  ],
+  "ranAt": "2026-11-12T10:56:55.314Z",
+  "durationMs": 3
+}

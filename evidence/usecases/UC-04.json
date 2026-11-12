@@ -1,1 +1,61 @@
-{"id":"UC-04","runId":"UC-04-mwcgokmu","title":"The guardrail","outcome":"block","headline":"BLOCKED by R_BLOCK_PAYEE: payee not on allowlist — deterministic, un-bypassable","steps":[{"n":1,"label":"Agent proposed money-out","detail":"{payout, $800, newvendor@unverified.test} — off-policy proposal","status":"info"},{"n":2,"label":"Policy engine: BLOCK (hard rule)","detail":"R_BLOCK_PAYEE — Blocked: newvendor@unverified.test is not on your allowlist. No approval path exists for this rule — edit the mandate (which re-signs it) to add the payee.","status":"block","data":{"decision":{"decision":"BLOCK","reasonCode":"R_BLOCK_PAYEE","reasonText":"Blocked: newvendor@unverified.test is not on your allowlist. No approval path exists for this rule — edit the mandate (which re-signs it) to add the payee.","policyHits":[{"rule":"R-02","detail":"Payee newvendor@unverified.test is not on the signed allowlist (3 payees)"}],"mandateVersion":1},"policyHits":[{"rule":"R-02","detail":"Payee newvendor@unverified.test is not on the signed allowlist (3 payees)"}]}},{"n":3,"label":"No approval path exists","detail":"R-02 fires before any GATE option — the money never moved and no prompt could move it","status":"block"},{"n":4,"label":"Audit record appended","detail":"seq #11","status":"info","data":{"auditSeq":11}}],"auditSeqs":[11],"ranAt":"2026-11-11T18:37:39.318Z","durationMs":3}
+{
+  "id": "UC-04",
+  "runId": "UC-04-mwdfnqh8",
+  "title": "The guardrail",
+  "outcome": "block",
+  "headline": "BLOCKED by R_BLOCK_PAYEE: payee not on allowlist — deterministic, un-bypassable",
+  "steps": [
+    {
+      "n": 1,
+      "label": "Agent proposed money-out",
+      "detail": "{payout, $800, newvendor@unverified.test} — off-policy proposal",
+      "status": "info"
+    },
+    {
+      "n": 2,
+      "label": "Policy engine: BLOCK (hard rule)",
+      "detail": "R_BLOCK_PAYEE — Blocked: NewVendor is not on your allowlist. No approval path exists for this rule — edit the mandate (which re-signs it) to add the payee.",
+      "status": "block",
+      "data": {
+        "decision": {
+          "decision": "BLOCK",
+          "reasonCode": "R_BLOCK_PAYEE",
+          "reasonText": "Blocked: NewVendor is not on your allowlist. No approval path exists for this rule — edit the mandate (which re-signs it) to add the payee.",
+          "policyHits": [
+            {
+              "rule": "R-02",
+              "detail": "Payee NewVendor is not on the signed allowlist (3 payees)"
+            }
+          ],
+          "mandateVersion": 15
+        },
+        "policyHits": [
+          {
+            "rule": "R-02",
+            "detail": "Payee NewVendor is not on the signed allowlist (3 payees)"
+          }
+        ]
+      }
+    },
+    {
+      "n": 3,
+      "label": "No approval path exists",
+      "detail": "R-02 fires before any GATE option — the money never moved and no prompt could move it",
+      "status": "block"
+    },
+    {
+      "n": 4,
+      "label": "Audit record appended",
+      "detail": "seq #195",
+      "status": "info",
+      "data": {
+        "auditSeq": 195
+      }
+    }
+  ],
+  "auditSeqs": [
+    195
+  ],
+  "ranAt": "2026-11-12T10:56:46.796Z",
+  "durationMs": 1319
+}

@@ -42,6 +42,6 @@ approval path), UC-10 (the Netflix impostor stamp). Then verify the chain yourse
 ## Deliverable status
 
 - ✅ App runs from a clean clone in under a minute (CI does exactly this on every push)
-- ✅ Live PayPal sandbox verified: OAuth, invoice create, payout batches (six `SUCCESS` on the deployed VM — $735 total debited from the sandbox sender, items `UNCLAIMED`: payees are placeholder addresses, §3.4 of PAYPAL.md), toolkit attached, webhook self-registration + signature-verified settlement events
-- ⚠️ Invoice *send* additionally needs `PAYPAL_SANDBOX_RECIPIENT` configured (documented; UC-01 degrades honestly to `CREATED`, and with no recipient configured the gateway skips the doomed call instead of 422-ing)
+- ✅ Live PayPal sandbox verified: OAuth, invoice create **and send** (invoicer + recipient both real sandbox accounts), payout batches — **every batch settled `SUCCESS`; $3,985 debited from the sandbox sender across 69 governed actions, 16 hard blocks, 9 human approvals** (payout items read `UNCLAIMED`: payees are placeholder addresses, §3.4 of PAYPAL.md), toolkit attached, webhook self-registration + signature-verified settlement events
+- ✅ `PAYPAL_SANDBOX_RECIPIENT` + `PAYPAL_INVOICER_EMAIL` configured with real sandbox accounts — invoices deliver end-to-end ([docs/PAYPAL.md](PAYPAL.md) error-catalog rows 2 & 8 for how each failure mode was found and fixed)
 - ✅ Open source (MIT) · third-party notices · system card · diagrams · evidence bundle

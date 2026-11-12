@@ -1,1 +1,45 @@
-{"id":"UC-12","runId":"UC-12-mwcgory5","title":"Dispute evidence pack","outcome":"ok","headline":"Dispute answered with a signed evidence pack (batch BVBZA9QYYXHUY, PENDING)","steps":[{"n":1,"label":"Scenario","detail":"The payee disputes: “I never received the $300 payment.” Mandate compiles the proof.","status":"info"},{"n":2,"label":"Human approval record","detail":"approval — — verdict  by  at ","status":"ok"},{"n":3,"label":"PayPal settlement proof","detail":"batch BVBZA9QYYXHUY · live status PENDING — PayPal's own ledger confirms the batch exists (settlement in progress; batch id is the immutable reference)","status":"info"},{"n":4,"label":"Immutable chain position","detail":"2 audit records reference this action — every hash-chained and reproducible (mandate v4)","status":"ok"},{"n":5,"label":"Signed evidence pack","detail":"pack 1952e798204e79c2… · HMAC signature verified — exportable as a single JSON artifact","status":"ok","data":{"packHash":"1952e798204e79c28aef264d2ebb6fc582ab30563e037f43df521ff95fc61027"}}],"auditSeqs":[],"ranAt":"2026-11-11T18:37:48.797Z","durationMs":8080}
+{
+  "id": "UC-12",
+  "runId": "UC-12-mwdfnx1x",
+  "title": "Dispute evidence pack",
+  "outcome": "ok",
+  "headline": "Dispute answered with a signed evidence pack (batch B7WT9YC6Z3GR2, SUCCESS)",
+  "steps": [
+    {
+      "n": 1,
+      "label": "Scenario",
+      "detail": "The payee disputes: “I never received the $500 payment.” Mandate compiles the proof.",
+      "status": "info"
+    },
+    {
+      "n": 2,
+      "label": "Human approval record",
+      "detail": "approval mwdf5w36dp — verdict APPROVED by usecase-runner (simulated human) at 2026-11-12T10:42:54.260Z",
+      "status": "ok"
+    },
+    {
+      "n": 3,
+      "label": "PayPal settlement proof",
+      "detail": "batch B7WT9YC6Z3GR2 · live status SUCCESS — PayPal's own ledger confirms the batch exists and settled",
+      "status": "ok"
+    },
+    {
+      "n": 4,
+      "label": "Immutable chain position",
+      "detail": "5 audit records reference this action — every hash-chained and reproducible (mandate v13)",
+      "status": "ok"
+    },
+    {
+      "n": 5,
+      "label": "Signed evidence pack",
+      "detail": "pack 534665f20c28ba03… · HMAC signature verified — exportable as a single JSON artifact",
+      "status": "ok",
+      "data": {
+        "packHash": "534665f20c28ba03a748cbf15aa9b8018b337f3d28ef81fd3b20717c8d5001e3"
+      }
+    }
+  ],
+  "auditSeqs": [],
+  "ranAt": "2026-11-12T10:56:55.317Z",
+  "durationMs": 0
+}

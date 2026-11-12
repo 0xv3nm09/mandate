@@ -1,1 +1,74 @@
-{"id":"UC-05","runId":"UC-05-mwcgokoi","title":"Audit everything","outcome":"ok","headline":"Chain verified: 11 records, zero tampering","steps":[{"n":1,"label":"Recomputed entire hash chain","detail":"11 records — prevHash→hash links re-hashed with SHA-256","status":"ok","data":{"verify":{"ok":true,"count":11,"brokenAt":null}}},{"n":2,"label":"Record #9 · APPROVAL","detail":"Human approved gated action","status":"info","data":{"seq":9,"hash":"8c172465ead03a965c69668a…"}},{"n":3,"label":"Record #10 · EXECUTION","detail":"Payout executed: $500 → sam@contractor.test (batch W7VFB6YGBZPMJ, PENDING)","status":"info","data":{"seq":10,"hash":"b7a10a659d5dc73c02278741…"}},{"n":4,"label":"Record #11 · ACTION_DECISION","detail":"Policy BLOCK: payout $800 → newvendor@unverified.test refused","status":"info","data":{"seq":11,"hash":"f41c6778008c5f6f3637600e…"}},{"n":5,"label":"Ledger summary","detail":"4 actions governed · $500 money-out · $2050 money-in · 1 blocked","status":"ok","data":{"stats":{"auditRecords":11,"governed":4,"allowed":2,"approved":1,"gated":1,"blocked":1,"moneyOut":500,"moneyIn":2050,"haltFlag":false}}}],"auditSeqs":[],"ranAt":"2026-11-11T18:37:39.378Z","durationMs":1}
+{
+  "id": "UC-05",
+  "runId": "UC-05-mwdfnqhj",
+  "title": "Audit everything",
+  "outcome": "ok",
+  "headline": "Chain verified: 195 records, zero tampering",
+  "steps": [
+    {
+      "n": 1,
+      "label": "Recomputed entire hash chain",
+      "detail": "195 records — prevHash→hash links re-hashed with SHA-256",
+      "status": "ok",
+      "data": {
+        "verify": {
+          "ok": true,
+          "count": 195,
+          "brokenAt": null
+        }
+      }
+    },
+    {
+      "n": 2,
+      "label": "Record #193 · APPROVAL",
+      "detail": "Human approved gated action",
+      "status": "info",
+      "data": {
+        "seq": 193,
+        "hash": "678d7dffeaf1c536f26f1c1a…"
+      }
+    },
+    {
+      "n": 3,
+      "label": "Record #194 · EXECUTION",
+      "detail": "Payout executed: $500 → sam@contractor.test (batch 8UJXAMG354GDJ, PENDING)",
+      "status": "info",
+      "data": {
+        "seq": 194,
+        "hash": "39ad14b3b2f5caeae596c84a…"
+      }
+    },
+    {
+      "n": 4,
+      "label": "Record #195 · ACTION_DECISION",
+      "detail": "Policy BLOCK: payout $800 → NewVendor refused",
+      "status": "info",
+      "data": {
+        "seq": 195,
+        "hash": "61af64159999eb3d01b3bdd3…"
+      }
+    },
+    {
+      "n": 5,
+      "label": "Ledger summary",
+      "detail": "65 actions governed · $3985 money-out · $24850 money-in · 15 blocked",
+      "status": "ok",
+      "data": {
+        "stats": {
+          "auditRecords": 195,
+          "governed": 65,
+          "allowed": 26,
+          "approved": 9,
+          "gated": 23,
+          "blocked": 15,
+          "moneyOut": 3985,
+          "moneyIn": 24850,
+          "haltFlag": false
+        }
+      }
+    }
+  ],
+  "auditSeqs": [],
+  "ranAt": "2026-11-12T10:56:46.807Z",
+  "durationMs": 5
+}

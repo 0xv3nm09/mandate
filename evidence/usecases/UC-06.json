@@ -1,1 +1,55 @@
-{"id":"UC-06","runId":"UC-06-mwcgokpu","title":"Global stop","outcome":"block","headline":"Halting worked: a live money-out was refused while the switch was on","steps":[{"n":1,"label":"Operator engaged GLOBAL STOP","detail":"Kill switch ON — agent halted (FR-15)","status":"block"},{"n":2,"label":"Agent attempt while halted","detail":"HALTED · R_BLOCK_HALT — Global stop is engaged — all agent action is frozen. Resume the agent to proceed.","status":"block","data":{"decision":{"decision":"BLOCK","reasonCode":"R_BLOCK_HALT","reasonText":"Global stop is engaged — all agent action is frozen. Resume the agent to proceed.","policyHits":[{"rule":"R-00","detail":"Kill switch"}],"mandateVersion":1}}},{"n":3,"label":"Operator resumed the agent","detail":"Kill switch OFF — normal governed flow restored","status":"ok"},{"n":4,"label":"Audit trail records both","detail":"seq #12","status":"info","data":{"auditSeq":12}}],"auditSeqs":[12],"ranAt":"2026-11-11T18:37:39.426Z","durationMs":2}
+{
+  "id": "UC-06",
+  "runId": "UC-06-mwdfns8w",
+  "title": "Global stop",
+  "outcome": "block",
+  "headline": "Halting worked: a live money-out was refused while the switch was on",
+  "steps": [
+    {
+      "n": 1,
+      "label": "Operator engaged GLOBAL STOP",
+      "detail": "Kill switch ON — agent halted (FR-15)",
+      "status": "block"
+    },
+    {
+      "n": 2,
+      "label": "Agent attempt while halted",
+      "detail": "HALTED · R_BLOCK_HALT — Global stop is engaged — all agent action is frozen. Resume the agent to proceed.",
+      "status": "block",
+      "data": {
+        "decision": {
+          "decision": "BLOCK",
+          "reasonCode": "R_BLOCK_HALT",
+          "reasonText": "Global stop is engaged — all agent action is frozen. Resume the agent to proceed.",
+          "policyHits": [
+            {
+              "rule": "R-00",
+              "detail": "Kill switch"
+            }
+          ],
+          "mandateVersion": 15
+        }
+      }
+    },
+    {
+      "n": 3,
+      "label": "Operator resumed the agent",
+      "detail": "Kill switch OFF — normal governed flow restored",
+      "status": "ok"
+    },
+    {
+      "n": 4,
+      "label": "Audit trail records both",
+      "detail": "seq #196",
+      "status": "info",
+      "data": {
+        "auditSeq": 196
+      }
+    }
+  ],
+  "auditSeqs": [
+    196
+  ],
+  "ranAt": "2026-11-12T10:56:49.088Z",
+  "durationMs": 2276
+}

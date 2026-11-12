@@ -1,1 +1,116 @@
-{"id":"UC-10","runId":"UC-10-mwcgoln6","title":"Impostor detection (the Netflix check)","outcome":"block","headline":"Lookalike domain + outlier amount caught: IMPOSTOR (R_IMPOSTOR_LOOKALIKE)","steps":[{"n":1,"label":"Scenario setup","detail":"An email arrives: “URGENT — your Netflix account will be suspended, settle $49.99 now” from billing@netflix-payments.com","status":"info"},{"n":2,"label":"Baseline: the genuine bill","detail":"billing@netflix.com · $15.49 → VERIFIED (R_VERIFIED_OFFICIAL) — official domain, amount in envelope","status":"ok","data":{"verdict":"VERIFIED","checks":[{"name":"Merchant directory","pass":true,"detail":"Netflix found — official payee billing@netflix.com"},{"name":"Sender identity","pass":true,"detail":"billing@netflix.com is the official billing payee (exact match)"},{"name":"Amount vs envelope","pass":true,"detail":"$15.49 is within Netflix's known range ($7.99–$24.99)"},{"name":"Payment history","pass":null,"detail":"First time seeing billing@netflix.com — no history to confirm against"}]}},{"n":3,"label":"The impostor claim runs the same checks","detail":"billing@netflix-payments.com · $49.99 → IMPOSTOR","status":"block","data":{"verdict":"IMPOSTOR","checks":[{"name":"Merchant directory","pass":true,"detail":"Netflix found — official payee billing@netflix.com"},{"name":"Sender identity","pass":false,"detail":"netflix-payments.com IMITATES Netflix (lookalike of netflix.com/mail.netflix.com) — classic impostor pattern"},{"name":"Amount vs envelope","pass":false,"detail":"$49.99 is OUTSIDE Netflix's known range ($7.99–$24.99) — price change or inflated bill"},{"name":"Payment history","pass":null,"detail":"First time seeing billing@netflix-payments.com — no history to confirm against"}]}},{"n":4,"label":"check · Merchant directory","detail":"Netflix found — official payee billing@netflix.com","status":"ok"},{"n":5,"label":"check · Sender identity","detail":"netflix-payments.com IMITATES Netflix (lookalike of netflix.com/mail.netflix.com) — classic impostor pattern","status":"block"},{"n":6,"label":"check · Amount vs envelope","detail":"$49.99 is OUTSIDE Netflix's known range ($7.99–$24.99) — price change or inflated bill","status":"block"},{"n":7,"label":"check · Payment history","detail":"First time seeing billing@netflix-payments.com — no history to confirm against","status":"info"},{"n":8,"label":"Signed verification artifact","detail":"receipt mwcgoln57smj9t — JWS-signed, downloadable, hash-committed to the audit chain (seq #21)","status":"info","data":{"auditSeq":21}}],"auditSeqs":[20,21],"ranAt":"2026-11-11T18:37:40.626Z","durationMs":4}
+{
+  "id": "UC-10",
+  "runId": "UC-10-mwdfnx1o",
+  "title": "Impostor detection (the Netflix check)",
+  "outcome": "block",
+  "headline": "Lookalike domain + outlier amount caught: IMPOSTOR (R_IMPOSTOR_LOOKALIKE)",
+  "steps": [
+    {
+      "n": 1,
+      "label": "Scenario setup",
+      "detail": "An email arrives: “URGENT — your Netflix account will be suspended, settle $49.99 now” from billing@netflix-payments.com",
+      "status": "info"
+    },
+    {
+      "n": 2,
+      "label": "Baseline: the genuine bill",
+      "detail": "billing@netflix.com · $15.49 → VERIFIED (R_VERIFIED_OFFICIAL) — official domain, amount in envelope",
+      "status": "ok",
+      "data": {
+        "verdict": "VERIFIED",
+        "checks": [
+          {
+            "name": "Merchant directory",
+            "pass": true,
+            "detail": "Netflix found — official payee billing@netflix.com"
+          },
+          {
+            "name": "Sender identity",
+            "pass": true,
+            "detail": "billing@netflix.com is the official billing payee (exact match)"
+          },
+          {
+            "name": "Amount vs envelope",
+            "pass": true,
+            "detail": "$15.49 is within Netflix's known range ($7.99–$24.99)"
+          },
+          {
+            "name": "Payment history",
+            "pass": true,
+            "detail": "You have paid billing@netflix.com before and it verified"
+          }
+        ]
+      }
+    },
+    {
+      "n": 3,
+      "label": "The impostor claim runs the same checks",
+      "detail": "billing@netflix-payments.com · $49.99 → IMPOSTOR",
+      "status": "block",
+      "data": {
+        "verdict": "IMPOSTOR",
+        "checks": [
+          {
+            "name": "Merchant directory",
+            "pass": true,
+            "detail": "Netflix found — official payee billing@netflix.com"
+          },
+          {
+            "name": "Sender identity",
+            "pass": false,
+            "detail": "netflix-payments.com IMITATES Netflix (lookalike of netflix.com/mail.netflix.com) — classic impostor pattern"
+          },
+          {
+            "name": "Amount vs envelope",
+            "pass": false,
+            "detail": "$49.99 is OUTSIDE Netflix's known range ($7.99–$24.99) — price change or inflated bill"
+          },
+          {
+            "name": "Payment history",
+            "pass": null,
+            "detail": "First time seeing billing@netflix-payments.com — no history to confirm against"
+          }
+        ]
+      }
+    },
+    {
+      "n": 4,
+      "label": "check · Merchant directory",
+      "detail": "Netflix found — official payee billing@netflix.com",
+      "status": "ok"
+    },
+    {
+      "n": 5,
+      "label": "check · Sender identity",
+      "detail": "netflix-payments.com IMITATES Netflix (lookalike of netflix.com/mail.netflix.com) — classic impostor pattern",
+      "status": "block"
+    },
+    {
+      "n": 6,
+      "label": "check · Amount vs envelope",
+      "detail": "$49.99 is OUTSIDE Netflix's known range ($7.99–$24.99) — price change or inflated bill",
+      "status": "block"
+    },
+    {
+      "n": 7,
+      "label": "check · Payment history",
+      "detail": "First time seeing billing@netflix-payments.com — no history to confirm against",
+      "status": "info"
+    },
+    {
+      "n": 8,
+      "label": "Signed verification artifact",
+      "detail": "receipt mwdfnx1n5797p2 — JWS-signed, downloadable, hash-committed to the audit chain (seq #202)",
+      "status": "info",
+      "data": {
+        "auditSeq": 202
+      }
+    }
+  ],
+  "auditSeqs": [
+    201,
+    202
+  ],
+  "ranAt": "2026-11-12T10:56:55.308Z",
+  "durationMs": 6
+}

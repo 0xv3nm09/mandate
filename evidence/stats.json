@@ -1,1 +1,11 @@
-{"auditRecords":23,"governed":7,"allowed":3,"approved":1,"gated":2,"blocked":2,"moneyOut":800,"moneyIn":2050,"haltFlag":false}
+{
+  "auditRecords": 208,
+  "governed": 69,
+  "allowed": 27,
+  "approved": 9,
+  "gated": 25,
+  "blocked": 16,
+  "moneyOut": 3985,
+  "moneyIn": 25490,
+  "haltFlag": false
+}

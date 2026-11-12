@@ -1,1 +1,50 @@
-{"id":"UC-02","runId":"UC-02-mwcgoili","title":"Autonomous chase","outcome":"ok","headline":"Reminder sent: \"Friendly reminder: invoice for September retainer\" (friendly nudge (rejected — PayPal daily reminder cap; try again tomorrow))","steps":[{"n":1,"label":"Setup: invoice aged past due","detail":"Invoice to Globex ($850) marked past-due to trigger the chase","status":"info"},{"n":2,"label":"Agent detected overdue + drafted reminder","detail":"Chased Globex: \"Friendly reminder: invoice for September retainer\" — reminder #0, tone: friendly nudge (rejected — PayPal daily reminder cap","status":"info"},{"n":3,"label":"Reminder sent autonomously","detail":"「Friendly reminder: invoice for September retainer」 — tone: friendly nudge (rejected — PayPal daily reminder cap; try again tomorrow) (attempt escalation)","status":"ok","data":{"reminder":{"subject":"Friendly reminder: invoice for September retainer","note":"Hi Globex — just a gentle nudge that the $850 USD invoice for \"September retainer\" is due. If it slipped your queue, no worries; here's the link again whenever you're ready.","tone":"friendly nudge (rejected — PayPal daily reminder cap; try again tomorrow)","invoice":"INV2-FV7P-QX8K-9K47-B4W9"}}},{"n":4,"label":"Audit record appended","detail":"seq #7","status":"info","data":{"auditSeq":7}}],"auditSeqs":[7],"ranAt":"2026-11-11T18:37:36.678Z","durationMs":2703}
+{
+  "id": "UC-02",
+  "runId": "UC-02-mwdfnln6",
+  "title": "Autonomous chase",
+  "outcome": "ok",
+  "headline": "Reminder drafted: \"Friendly reminder: invoice for September retainer\" — delivery held (invoice not on PayPal)",
+  "steps": [
+    {
+      "n": 1,
+      "label": "Setup: overdue invoice found",
+      "detail": "1 overdue invoice(s) already present",
+      "status": "info"
+    },
+    {
+      "n": 2,
+      "label": "Agent detected overdue + drafted reminder",
+      "detail": "Chased Globex — but it didn't go out. Here's what happened:\n\n- **Target invoice:** `INV2-FXWN-FU8F-T3B7-PJJR` — $850 USD, \"September retaine",
+      "status": "info"
+    },
+    {
+      "n": 3,
+      "label": "Reminder drafted — delivery held",
+      "detail": "「Friendly reminder: invoice for September retainer」 — tone: friendly nudge (rejected — PayPal daily reminder cap; try again tomorrow) (attempt escalation)",
+      "status": "info",
+      "data": {
+        "reminder": {
+          "subject": "Friendly reminder: invoice for September retainer",
+          "note": "Hi Globex team, just a friendly nudge that the $850 USD invoice for the September retainer is now past its due date. I wanted to check in and see if payment is already in progress, and I’m happy to resend the invoice if helpful. Thanks so much!",
+          "tone": "friendly nudge (rejected — PayPal daily reminder cap; try again tomorrow)",
+          "invoice": "INV2-FXWN-FU8F-T3B7-PJJR",
+          "delivered": false
+        }
+      }
+    },
+    {
+      "n": 4,
+      "label": "Audit record appended",
+      "detail": "seq #191",
+      "status": "info",
+      "data": {
+        "auditSeq": 191
+      }
+    }
+  ],
+  "auditSeqs": [
+    191
+  ],
+  "ranAt": "2026-11-12T10:56:40.530Z",
+  "durationMs": 4485
+}

@@ -1,1 +1,83 @@
-{"id":"UC-03","runId":"UC-03-mwcgokku","title":"Gated payout (the money shot)","outcome":"gate","headline":"GATED → approved → executed (batch W7VFB6YGBZPMJ)","steps":[{"n":1,"label":"Agent proposed money-out","detail":"{payout, $500, sam@contractor.test} — proposal only, never execution","status":"info"},{"n":2,"label":"Policy engine: GATE","detail":"R_GATE_THRESHOLD — Gated: $500 is 5.0× your per-transaction threshold of $100. Human approval required.","status":"gate","data":{"decision":{"decision":"GATE","reasonCode":"R_GATE_THRESHOLD","reasonText":"Gated: $500 is 5.0× your per-transaction threshold of $100. Human approval required.","policyHits":[{"rule":"R-01","detail":"$500 > per-transaction threshold $100 (5.0×)"}],"mandateVersion":1},"policyHits":[{"rule":"R-01","detail":"$500 > per-transaction threshold $100 (5.0×)"}]}},{"n":3,"label":"AI risk explainer wrote the summary","detail":"The agent proposes a $500 payout to sam@contractor.test — 5.0× your $100 per-transaction threshold. This payee is on your allowlist. Policy verdict: GATE (R_GATE_THRESHOLD). $500 > per-transaction threshold $100 (5.0×). Approving executes the payout immediately; denying aborts it permanently. Both outcomes are written to the hash-chained audit log.","status":"info","data":{"explanation":"The agent proposes a $500 payout to sam@contractor.test — 5.0× your $100 per-transaction threshold. This payee is on your allowlist. Policy verdict: GATE (R_GATE_THRESHOLD). $500 > per-transaction threshold $100 (5.0×). Approving executes the payout immediately; denying aborts it permanently. Both outcomes are written to the hash-chained audit log."}},{"n":4,"label":"Approval card queued (SSE)","detail":"approval mwcgoindzuicdn — status AWAIT_APPROVAL, TTL 10 min","status":"gate","data":{"approvalId":"mwcgoindzuicdn"}},{"n":5,"label":"One-tap APPROVE → payout executed","detail":"payout batch W7VFB6YGBZPMJ (PENDING) — idempotency key approval:mwcgoindzuicdn","status":"ok","data":{"paypalRef":"W7VFB6YGBZPMJ"}},{"n":6,"label":"PayPal status: batch accepted, settling asynchronously","detail":"PAYMENT.PAYOUTS.EVENT: batch W7VFB6YGBZPMJ → PENDING (sandbox batches settle in minutes)","status":"info","data":{"settled":"PENDING"}}],"auditSeqs":[10,9],"ranAt":"2026-11-11T18:37:39.246Z","durationMs":2502}
+{
+  "id": "UC-03",
+  "runId": "UC-03-mwdfnpga",
+  "title": "Gated payout (the money shot)",
+  "outcome": "gate",
+  "headline": "GATED → approved → executed (batch 8UJXAMG354GDJ)",
+  "steps": [
+    {
+      "n": 1,
+      "label": "Agent proposed money-out",
+      "detail": "{payout, $500, sam@contractor.test} — proposal only, never execution",
+      "status": "info"
+    },
+    {
+      "n": 2,
+      "label": "Policy engine: GATE",
+      "detail": "R_GATE_THRESHOLD — Gated: $500 is 5.0× your per-transaction threshold of $100. Human approval required.",
+      "status": "gate",
+      "data": {
+        "decision": {
+          "decision": "GATE",
+          "reasonCode": "R_GATE_THRESHOLD",
+          "reasonText": "Gated: $500 is 5.0× your per-transaction threshold of $100. Human approval required.",
+          "policyHits": [
+            {
+              "rule": "R-01",
+              "detail": "$500 > per-transaction threshold $100 (5.0×)"
+            }
+          ],
+          "mandateVersion": 15
+        },
+        "policyHits": [
+          {
+            "rule": "R-01",
+            "detail": "$500 > per-transaction threshold $100 (5.0×)"
+          }
+        ]
+      }
+    },
+    {
+      "n": 3,
+      "label": "AI risk explainer wrote the summary",
+      "detail": "This is a request to pay $500 USD to sam@contractor.test. The policy engine has gated it because $500 is five times your $100 per-transaction threshold, so it requires human approval; the payee is allowlisted, and $3,485 has already been spent today. Review the payout and today’s spending before approving.",
+      "status": "info",
+      "data": {
+        "explanation": "This is a request to pay $500 USD to sam@contractor.test. The policy engine has gated it because $500 is five times your $100 per-transaction threshold, so it requires human approval; the payee is allowlisted, and $3,485 has already been spent today. Review the payout and today’s spending before approving."
+      }
+    },
+    {
+      "n": 4,
+      "label": "Approval card queued (SSE)",
+      "detail": "approval mwdfnn4twnbgd9 — status AWAIT_APPROVAL, TTL 10 min",
+      "status": "gate",
+      "data": {
+        "approvalId": "mwdfnn4twnbgd9"
+      }
+    },
+    {
+      "n": 5,
+      "label": "One-tap APPROVE → payout executed",
+      "detail": "payout batch 8UJXAMG354GDJ (PENDING) — idempotency key approval:mwdfnn4twnbgd9",
+      "status": "ok",
+      "data": {
+        "paypalRef": "8UJXAMG354GDJ"
+      }
+    },
+    {
+      "n": 6,
+      "label": "PayPal status: batch accepted, settling asynchronously",
+      "detail": "PAYMENT.PAYOUTS.EVENT: batch 8UJXAMG354GDJ → PENDING (sandbox batches settle in minutes)",
+      "status": "info",
+      "data": {
+        "settled": "PENDING"
+      }
+    }
+  ],
+  "auditSeqs": [
+    194,
+    193
+  ],
+  "ranAt": "2026-11-12T10:56:45.466Z",
+  "durationMs": 4929
+}

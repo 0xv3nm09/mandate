@@ -1,1 +1,20 @@
-{"ok":true,"mode":{"paypal":"SANDBOX","llm":"DETERMINISTIC"},"halted":false,"mandateVersion":4,"dailySpent":800,"toolkit":{"available":false},"ts":"2026-11-11T18:38:40.289Z"}
+{
+  "ok": true,
+  "mode": {
+    "paypal": "SANDBOX",
+    "llm": "LLM"
+  },
+  "halted": false,
+  "mandateVersion": 17,
+  "dailySpent": 3985,
+  "toolkit": {
+    "available": true,
+    "toolNames": [
+      "list_invoices",
+      "get_invoice",
+      "list_disputes",
+      "get_dispute"
+    ]
+  },
+  "ts": "2026-11-12T10:57:03.922Z"
+}

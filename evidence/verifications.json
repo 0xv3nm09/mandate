@@ -1,1 +1,314 @@
-[{"id":"mwcgolohs2oaoo","claim":{"brand":"Netflix","from":"billing@netflix.com","fromName":"Netflix","amount":27.49,"currency":"USD","memo":"Netflix Premium — plan price updated","channel":"invoice"},"verdict":"SUSPICIOUS","reasonCode":"R_SUSPICIOUS_AMOUNT","reasonText":"SUSPICIOUS: sender looks official but $27.49 is outside the known envelope — confirm the price change in the official app before paying.","checks":[{"name":"Merchant directory","pass":true,"detail":"Netflix found — official payee billing@netflix.com"},{"name":"Sender identity","pass":true,"detail":"billing@netflix.com is the official billing payee (exact match)"},{"name":"Amount vs envelope","pass":false,"detail":"$27.49 is OUTSIDE Netflix's known range ($7.99–$24.99) — price change or inflated bill"},{"name":"Payment history","pass":true,"detail":"You have paid billing@netflix.com before and it verified"}],"jws":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ2ZXJkaWN0IjoiU1VTUElDSU9VUyIsInJlYXNvbkNvZGUiOiJSX1NVU1BJQ0lPVVNfQU1PVU5UIiwiY2xhaW0iOnsiYnJhbmQiOiJOZXRmbGl4IiwiZnJvbSI6ImJpbGxpbmdAbmV0ZmxpeC5jb20iLCJmcm9tTmFtZSI6Ik5ldGZsaXgiLCJhbW91bnQiOjI3LjQ5LCJjdXJyZW5jeSI6IlVTRCIsIm1lbW8iOiJOZXRmbGl4IFByZW1pdW0g4oCUIHBsYW4gcHJpY2UgdXBkYXRlZCIsImNoYW5uZWwiOiJpbnZvaWNlIn0sImlhdCI6MTc5NDQyMjI2MCwiaXNzIjoibWFuZGF0ZS5pbmJvdW5kLXZlcmlmaWNhdGlvbiJ9.jN2f6cgH3OENRP_gfXdVf8kn4NFN2U5iv8keicb-TvQ","createdAt":"2026-11-11T18:37:40.673Z"},{"id":"mwcgolog9d3za9","claim":{"brand":"Netflix","from":"billing@netflix.com","fromName":"Netflix","amount":15.49,"currency":"USD","memo":"Netflix Standard Plan — November","channel":"email"},"verdict":"VERIFIED","reasonCode":"R_VERIFIED_OFFICIAL","reasonText":"VERIFIED: official Netflix sender, amount within the signed envelope, and you have paid this sender before.","checks":[{"name":"Merchant directory","pass":true,"detail":"Netflix found — official payee billing@netflix.com"},{"name":"Sender identity","pass":true,"detail":"billing@netflix.com is the official billing payee (exact match)"},{"name":"Amount vs envelope","pass":true,"detail":"$15.49 is within Netflix's known range ($7.99–$24.99)"},{"name":"Payment history","pass":true,"detail":"You have paid billing@netflix.com before and it verified"}],"jws":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ2ZXJkaWN0IjoiVkVSSUZJRUQiLCJyZWFzb25Db2RlIjoiUl9WRVJJRklFRF9PRkZJQ0lBTCIsImNsYWltIjp7ImJyYW5kIjoiTmV0ZmxpeCIsImZyb20iOiJiaWxsaW5nQG5ldGZsaXguY29tIiwiZnJvbU5hbWUiOiJOZXRmbGl4IiwiYW1vdW50IjoxNS40OSwiY3VycmVuY3kiOiJVU0QiLCJtZW1vIjoiTmV0ZmxpeCBTdGFuZGFyZCBQbGFuIOKAlCBOb3ZlbWJlciIsImNoYW5uZWwiOiJlbWFpbCJ9LCJpYXQiOjE3OTQ0MjIyNjAsImlzcyI6Im1hbmRhdGUuaW5ib3VuZC12ZXJpZmljYXRpb24ifQ.Jdbht3eFvJzeYqW5aJi-LRTLcX4cU-orucY43ZNMneI","createdAt":"2026-11-11T18:37:40.672Z"},{"id":"mwcgoln57smj9t","claim":{"brand":"Netflix","from":"billing@netflix-payments.com","fromName":"Netflix Billing","amount":49.99,"currency":"USD","memo":"URGENT: your account will be suspended — settle $49.99 now","channel":"email"},"verdict":"IMPOSTOR","reasonCode":"R_IMPOSTOR_LOOKALIKE","reasonText":"IMPOSTOR: “Netflix” invoice from billing@netflix-payments.com — the domain imitates the official one and the amount is unusual. Do not pay; report it.","checks":[{"name":"Merchant directory","pass":true,"detail":"Netflix found — official payee billing@netflix.com"},{"name":"Sender identity","pass":false,"detail":"netflix-payments.com IMITATES Netflix (lookalike of netflix.com/mail.netflix.com) — classic impostor pattern"},{"name":"Amount vs envelope","pass":false,"detail":"$49.99 is OUTSIDE Netflix's known range ($7.99–$24.99) — price change or inflated bill"},{"name":"Payment history","pass":null,"detail":"First time seeing billing@netflix-payments.com — no history to confirm against"}],"jws":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ2ZXJkaWN0IjoiSU1QT1NUT1IiLCJyZWFzb25Db2RlIjoiUl9JTVBPU1RPUl9MT09LQUxJS0UiLCJjbGFpbSI6eyJicmFuZCI6Ik5ldGZsaXgiLCJmcm9tIjoiYmlsbGluZ0BuZXRmbGl4LXBheW1lbnRzLmNvbSIsImZyb21OYW1lIjoiTmV0ZmxpeCBCaWxsaW5nIiwiYW1vdW50Ijo0OS45OSwiY3VycmVuY3kiOiJVU0QiLCJtZW1vIjoiVVJHRU5UOiB5b3VyIGFjY291bnQgd2lsbCBiZSBzdXNwZW5kZWQg4oCUIHNldHRsZSAkNDkuOTkgbm93IiwiY2hhbm5lbCI6ImVtYWlsIn0sImlhdCI6MTc5NDQyMjI2MCwiaXNzIjoibWFuZGF0ZS5pbmJvdW5kLXZlcmlmaWNhdGlvbiJ9.I_e_L_XUgvTdQ9n05zdTULrT0AH-kowhPaMSFYV365o","createdAt":"2026-11-11T18:37:40.625Z"},{"id":"mwcgoln3b7k7a8","claim":{"brand":"Netflix","from":"billing@netflix.com","fromName":"Netflix","amount":15.49,"currency":"USD","memo":"Netflix Standard Plan — November","channel":"email"},"verdict":"VERIFIED","reasonCode":"R_VERIFIED_OFFICIAL","reasonText":"VERIFIED: official Netflix sender, amount within the signed envelope.","checks":[{"name":"Merchant directory","pass":true,"detail":"Netflix found — official payee billing@netflix.com"},{"name":"Sender identity","pass":true,"detail":"billing@netflix.com is the official billing payee (exact match)"},{"name":"Amount vs envelope","pass":true,"detail":"$15.49 is within Netflix's known range ($7.99–$24.99)"},{"name":"Payment history","pass":null,"detail":"First time seeing billing@netflix.com — no history to confirm against"}],"jws":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ2ZXJkaWN0IjoiVkVSSUZJRUQiLCJyZWFzb25Db2RlIjoiUl9WRVJJRklFRF9PRkZJQ0lBTCIsImNsYWltIjp7ImJyYW5kIjoiTmV0ZmxpeCIsImZyb20iOiJiaWxsaW5nQG5ldGZsaXguY29tIiwiZnJvbU5hbWUiOiJOZXRmbGl4IiwiYW1vdW50IjoxNS40OSwiY3VycmVuY3kiOiJVU0QiLCJtZW1vIjoiTmV0ZmxpeCBTdGFuZGFyZCBQbGFuIOKAlCBOb3ZlbWJlciIsImNoYW5uZWwiOiJlbWFpbCJ9LCJpYXQiOjE3OTQ0MjIyNjAsImlzcyI6Im1hbmRhdGUuaW5ib3VuZC12ZXJpZmljYXRpb24ifQ.Jdbht3eFvJzeYqW5aJi-LRTLcX4cU-orucY43ZNMneI","createdAt":"2026-11-11T18:37:40.623Z"}]
+[
+  {
+    "id": "mwdfnx1t7kpkw7",
+    "claim": {
+      "brand": "Netflix",
+      "from": "billing@netflix.com",
+      "fromName": "Netflix",
+      "amount": 27.49,
+      "currency": "USD",
+      "memo": "Netflix Premium — plan price updated",
+      "channel": "invoice"
+    },
+    "verdict": "SUSPICIOUS",
+    "reasonCode": "R_SUSPICIOUS_AMOUNT",
+    "reasonText": "SUSPICIOUS: sender looks official but $27.49 is outside the known envelope — confirm the price change in the official app before paying.",
+    "checks": [
+      {
+        "name": "Merchant directory",
+        "pass": true,
+        "detail": "Netflix found — official payee billing@netflix.com"
+      },
+      {
+        "name": "Sender identity",
+        "pass": true,
+        "detail": "billing@netflix.com is the official billing payee (exact match)"
+      },
+      {
+        "name": "Amount vs envelope",
+        "pass": false,
+        "detail": "$27.49 is OUTSIDE Netflix's known range ($7.99–$24.99) — price change or inflated bill"
+      },
+      {
+        "name": "Payment history",
+        "pass": true,
+        "detail": "You have paid billing@netflix.com before and it verified"
+      }
+    ],
+    "jws": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ2ZXJkaWN0IjoiU1VTUElDSU9VUyIsInJlYXNvbkNvZGUiOiJSX1NVU1BJQ0lPVVNfQU1PVU5UIiwiY2xhaW0iOnsiYnJhbmQiOiJOZXRmbGl4IiwiZnJvbSI6ImJpbGxpbmdAbmV0ZmxpeC5jb20iLCJmcm9tTmFtZSI6Ik5ldGZsaXgiLCJhbW91bnQiOjI3LjQ5LCJjdXJyZW5jeSI6IlVTRCIsIm1lbW8iOiJOZXRmbGl4IFByZW1pdW0g4oCUIHBsYW4gcHJpY2UgdXBkYXRlZCIsImNoYW5uZWwiOiJpbnZvaWNlIn0sImlhdCI6MTc5NDQ4MTAxNSwiaXNzIjoibWFuZGF0ZS5pbmJvdW5kLXZlcmlmaWNhdGlvbiJ9.inLR-O50SSil9ZwxLgLfDqrdCNEOlN-yPRyj470xTWs",
+    "createdAt": "2026-11-12T10:56:55.313Z"
+  },
+  {
+    "id": "mwdfnx1s9rcbbr",
+    "claim": {
+      "brand": "Netflix",
+      "from": "billing@netflix.com",
+      "fromName": "Netflix",
+      "amount": 15.49,
+      "currency": "USD",
+      "memo": "Netflix Standard Plan — November",
+      "channel": "email"
+    },
+    "verdict": "VERIFIED",
+    "reasonCode": "R_VERIFIED_OFFICIAL",
+    "reasonText": "VERIFIED: official Netflix sender, amount within the signed envelope, and you have paid this sender before.",
+    "checks": [
+      {
+        "name": "Merchant directory",
+        "pass": true,
+        "detail": "Netflix found — official payee billing@netflix.com"
+      },
+      {
+        "name": "Sender identity",
+        "pass": true,
+        "detail": "billing@netflix.com is the official billing payee (exact match)"
+      },
+      {
+        "name": "Amount vs envelope",
+        "pass": true,
+        "detail": "$15.49 is within Netflix's known range ($7.99–$24.99)"
+      },
+      {
+        "name": "Payment history",
+        "pass": true,
+        "detail": "You have paid billing@netflix.com before and it verified"
+      }
+    ],
+    "jws": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ2ZXJkaWN0IjoiVkVSSUZJRUQiLCJyZWFzb25Db2RlIjoiUl9WRVJJRklFRF9PRkZJQ0lBTCIsImNsYWltIjp7ImJyYW5kIjoiTmV0ZmxpeCIsImZyb20iOiJiaWxsaW5nQG5ldGZsaXguY29tIiwiZnJvbU5hbWUiOiJOZXRmbGl4IiwiYW1vdW50IjoxNS40OSwiY3VycmVuY3kiOiJVU0QiLCJtZW1vIjoiTmV0ZmxpeCBTdGFuZGFyZCBQbGFuIOKAlCBOb3ZlbWJlciIsImNoYW5uZWwiOiJlbWFpbCJ9LCJpYXQiOjE3OTQ0ODEwMTUsImlzcyI6Im1hbmRhdGUuaW5ib3VuZC12ZXJpZmljYXRpb24ifQ.cC-3uFMOXxxmeDkZAJPe3G70DjMW4oDWgrc8EZUDaVg",
+    "createdAt": "2026-11-12T10:56:55.312Z"
+  },
+  {
+    "id": "mwdfnx1n5797p2",
+    "claim": {
+      "brand": "Netflix",
+      "from": "billing@netflix-payments.com",
+      "fromName": "Netflix Billing",
+      "amount": 49.99,
+      "currency": "USD",
+      "memo": "URGENT: your account will be suspended — settle $49.99 now",
+      "channel": "email"
+    },
+    "verdict": "IMPOSTOR",
+    "reasonCode": "R_IMPOSTOR_LOOKALIKE",
+    "reasonText": "IMPOSTOR: “Netflix” invoice from billing@netflix-payments.com — the domain imitates the official one and the amount is unusual. Do not pay; report it.",
+    "checks": [
+      {
+        "name": "Merchant directory",
+        "pass": true,
+        "detail": "Netflix found — official payee billing@netflix.com"
+      },
+      {
+        "name": "Sender identity",
+        "pass": false,
+        "detail": "netflix-payments.com IMITATES Netflix (lookalike of netflix.com/mail.netflix.com) — classic impostor pattern"
+      },
+      {
+        "name": "Amount vs envelope",
+        "pass": false,
+        "detail": "$49.99 is OUTSIDE Netflix's known range ($7.99–$24.99) — price change or inflated bill"
+      },
+      {
+        "name": "Payment history",
+        "pass": null,
+        "detail": "First time seeing billing@netflix-payments.com — no history to confirm against"
+      }
+    ],
+    "jws": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ2ZXJkaWN0IjoiSU1QT1NUT1IiLCJyZWFzb25Db2RlIjoiUl9JTVBPU1RPUl9MT09LQUxJS0UiLCJjbGFpbSI6eyJicmFuZCI6Ik5ldGZsaXgiLCJmcm9tIjoiYmlsbGluZ0BuZXRmbGl4LXBheW1lbnRzLmNvbSIsImZyb21OYW1lIjoiTmV0ZmxpeCBCaWxsaW5nIiwiYW1vdW50Ijo0OS45OSwiY3VycmVuY3kiOiJVU0QiLCJtZW1vIjoiVVJHRU5UOiB5b3VyIGFjY291bnQgd2lsbCBiZSBzdXNwZW5kZWQg4oCUIHNldHRsZSAkNDkuOTkgbm93IiwiY2hhbm5lbCI6ImVtYWlsIn0sImlhdCI6MTc5NDQ4MTAxNSwiaXNzIjoibWFuZGF0ZS5pbmJvdW5kLXZlcmlmaWNhdGlvbiJ9.ltji0ZY2d9jWe1faqD-uRX-FpP8VYRWW_db2_5hssZU",
+    "createdAt": "2026-11-12T10:56:55.307Z"
+  },
+  {
+    "id": "mwdfnx1loauzjp",
+    "claim": {
+      "brand": "Netflix",
+      "from": "billing@netflix.com",
+      "fromName": "Netflix",
+      "amount": 15.49,
+      "currency": "USD",
+      "memo": "Netflix Standard Plan — November",
+      "channel": "email"
+    },
+    "verdict": "VERIFIED",
+    "reasonCode": "R_VERIFIED_OFFICIAL",
+    "reasonText": "VERIFIED: official Netflix sender, amount within the signed envelope, and you have paid this sender before.",
+    "checks": [
+      {
+        "name": "Merchant directory",
+        "pass": true,
+        "detail": "Netflix found — official payee billing@netflix.com"
+      },
+      {
+        "name": "Sender identity",
+        "pass": true,
+        "detail": "billing@netflix.com is the official billing payee (exact match)"
+      },
+      {
+        "name": "Amount vs envelope",
+        "pass": true,
+        "detail": "$15.49 is within Netflix's known range ($7.99–$24.99)"
+      },
+      {
+        "name": "Payment history",
+        "pass": true,
+        "detail": "You have paid billing@netflix.com before and it verified"
+      }
+    ],
+    "jws": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ2ZXJkaWN0IjoiVkVSSUZJRUQiLCJyZWFzb25Db2RlIjoiUl9WRVJJRklFRF9PRkZJQ0lBTCIsImNsYWltIjp7ImJyYW5kIjoiTmV0ZmxpeCIsImZyb20iOiJiaWxsaW5nQG5ldGZsaXguY29tIiwiZnJvbU5hbWUiOiJOZXRmbGl4IiwiYW1vdW50IjoxNS40OSwiY3VycmVuY3kiOiJVU0QiLCJtZW1vIjoiTmV0ZmxpeCBTdGFuZGFyZCBQbGFuIOKAlCBOb3ZlbWJlciIsImNoYW5uZWwiOiJlbWFpbCJ9LCJpYXQiOjE3OTQ0ODEwMTUsImlzcyI6Im1hbmRhdGUuaW5ib3VuZC12ZXJpZmljYXRpb24ifQ.cC-3uFMOXxxmeDkZAJPe3G70DjMW4oDWgrc8EZUDaVg",
+    "createdAt": "2026-11-12T10:56:55.305Z"
+  },
+  {
+    "id": "mwdf64ivwbhpsk",
+    "claim": {
+      "brand": "Netflix",
+      "from": "billing@netflix.com",
+      "fromName": "Netflix",
+      "amount": 27.49,
+      "currency": "USD",
+      "memo": "Netflix Premium — plan price updated",
+      "channel": "invoice"
+    },
+    "verdict": "SUSPICIOUS",
+    "reasonCode": "R_SUSPICIOUS_AMOUNT",
+    "reasonText": "SUSPICIOUS: sender looks official but $27.49 is outside the known envelope — confirm the price change in the official app before paying.",
+    "checks": [
+      {
+        "name": "Merchant directory",
+        "pass": true,
+        "detail": "Netflix found — official payee billing@netflix.com"
+      },
+      {
+        "name": "Sender identity",
+        "pass": true,
+        "detail": "billing@netflix.com is the official billing payee (exact match)"
+      },
+      {
+        "name": "Amount vs envelope",
+        "pass": false,
+        "detail": "$27.49 is OUTSIDE Netflix's known range ($7.99–$24.99) — price change or inflated bill"
+      },
+      {
+        "name": "Payment history",
+        "pass": true,
+        "detail": "You have paid billing@netflix.com before and it verified"
+      }
+    ],
+    "jws": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ2ZXJkaWN0IjoiU1VTUElDSU9VUyIsInJlYXNvbkNvZGUiOiJSX1NVU1BJQ0lPVVNfQU1PVU5UIiwiY2xhaW0iOnsiYnJhbmQiOiJOZXRmbGl4IiwiZnJvbSI6ImJpbGxpbmdAbmV0ZmxpeC5jb20iLCJmcm9tTmFtZSI6Ik5ldGZsaXgiLCJhbW91bnQiOjI3LjQ5LCJjdXJyZW5jeSI6IlVTRCIsIm1lbW8iOiJOZXRmbGl4IFByZW1pdW0g4oCUIHBsYW4gcHJpY2UgdXBkYXRlZCIsImNoYW5uZWwiOiJpbnZvaWNlIn0sImlhdCI6MTc5NDQ4MDE4NSwiaXNzIjoibWFuZGF0ZS5pbmJvdW5kLXZlcmlmaWNhdGlvbiJ9.Vo1EsNtJbpalmdBOHaJFssYWjZR13OK8aAqOJacpGnI",
+    "createdAt": "2026-11-12T10:43:05.191Z"
+  },
+  {
+    "id": "mwdf64itq6s8wi",
+    "claim": {
+      "brand": "Netflix",
+      "from": "billing@netflix.com",
+      "fromName": "Netflix",
+      "amount": 15.49,
+      "currency": "USD",
+      "memo": "Netflix Standard Plan — November",
+      "channel": "email"
+    },
+    "verdict": "VERIFIED",
+    "reasonCode": "R_VERIFIED_OFFICIAL",
+    "reasonText": "VERIFIED: official Netflix sender, amount within the signed envelope, and you have paid this sender before.",
+    "checks": [
+      {
+        "name": "Merchant directory",
+        "pass": true,
+        "detail": "Netflix found — official payee billing@netflix.com"
+      },
+      {
+        "name": "Sender identity",
+        "pass": true,
+        "detail": "billing@netflix.com is the official billing payee (exact match)"
+      },
+      {
+        "name": "Amount vs envelope",
+        "pass": true,
+        "detail": "$15.49 is within Netflix's known range ($7.99–$24.99)"
+      },
+      {
+        "name": "Payment history",
+        "pass": true,
+        "detail": "You have paid billing@netflix.com before and it verified"
+      }
+    ],
+    "jws": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ2ZXJkaWN0IjoiVkVSSUZJRUQiLCJyZWFzb25Db2RlIjoiUl9WRVJJRklFRF9PRkZJQ0lBTCIsImNsYWltIjp7ImJyYW5kIjoiTmV0ZmxpeCIsImZyb20iOiJiaWxsaW5nQG5ldGZsaXguY29tIiwiZnJvbU5hbWUiOiJOZXRmbGl4IiwiYW1vdW50IjoxNS40OSwiY3VycmVuY3kiOiJVU0QiLCJtZW1vIjoiTmV0ZmxpeCBTdGFuZGFyZCBQbGFuIOKAlCBOb3ZlbWJlciIsImNoYW5uZWwiOiJlbWFpbCJ9LCJpYXQiOjE3OTQ0ODAxODUsImlzcyI6Im1hbmRhdGUuaW5ib3VuZC12ZXJpZmljYXRpb24ifQ.0nvN5Rfk24aeJmHyIQjWjKe8-BKR-mgVOJB7ZlqCPg8",
+    "createdAt": "2026-11-12T10:43:05.189Z"
+  },
+  {
+    "id": "mwdf64ho7cg70m",
+    "claim": {
+      "brand": "Netflix",
+      "from": "billing@netflix-payments.com",
+      "fromName": "Netflix Billing",
+      "amount": 49.99,
+      "currency": "USD",
+      "memo": "URGENT: your account will be suspended — settle $49.99 now",
+      "channel": "email"
+    },
+    "verdict": "IMPOSTOR",
+    "reasonCode": "R_IMPOSTOR_LOOKALIKE",
+    "reasonText": "IMPOSTOR: “Netflix” invoice from billing@netflix-payments.com — the domain imitates the official one and the amount is unusual. Do not pay; report it.",
+    "checks": [
+      {
+        "name": "Merchant directory",
+        "pass": true,
+        "detail": "Netflix found — official payee billing@netflix.com"
+      },
+      {
+        "name": "Sender identity",
+        "pass": false,
+        "detail": "netflix-payments.com IMITATES Netflix (lookalike of netflix.com/mail.netflix.com) — classic impostor pattern"
+      },
+      {
+        "name": "Amount vs envelope",
+        "pass": false,
+        "detail": "$49.99 is OUTSIDE Netflix's known range ($7.99–$24.99) — price change or inflated bill"
+      },
+      {
+        "name": "Payment history",
+        "pass": null,
+        "detail": "First time seeing billing@netflix-payments.com — no history to confirm against"
+      }
+    ],
+    "jws": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ2ZXJkaWN0IjoiSU1QT1NUT1IiLCJyZWFzb25Db2RlIjoiUl9JTVBPU1RPUl9MT09LQUxJS0UiLCJjbGFpbSI6eyJicmFuZCI6Ik5ldGZsaXgiLCJmcm9tIjoiYmlsbGluZ0BuZXRmbGl4LXBheW1lbnRzLmNvbSIsImZyb21OYW1lIjoiTmV0ZmxpeCBCaWxsaW5nIiwiYW1vdW50Ijo0OS45OSwiY3VycmVuY3kiOiJVU0QiLCJtZW1vIjoiVVJHRU5UOiB5b3VyIGFjY291bnQgd2lsbCBiZSBzdXNwZW5kZWQg4oCUIHNldHRsZSAkNDkuOTkgbm93IiwiY2hhbm5lbCI6ImVtYWlsIn0sImlhdCI6MTc5NDQ4MDE4NSwiaXNzIjoibWFuZGF0ZS5pbmJvdW5kLXZlcmlmaWNhdGlvbiJ9.YtkhTTFyoNR87r0FNCIUlwAHStgQgwq1gpSa4jDqc7o",
+    "createdAt": "2026-11-12T10:43:05.148Z"
+  },
+  {
+    "id": "mwdf64hmili35b",
+    "claim": {
+      "brand": "Netflix",
+      "from": "billing@netflix.com",
+      "fromName": "Netflix",
+      "amount": 15.49,
+      "currency": "USD",
+      "memo": "Netflix Standard Plan — November",
+      "channel": "email"
+    },
+    "verdict": "VERIFIED",
+    "reasonCode": "R_VERIFIED_OFFICIAL",
+    "reasonText": "VERIFIED: official Netflix sender, amount within the signed envelope, and you have paid this sender before.",
+    "checks": [
+      {
+        "name": "Merchant directory",
+        "pass": true,
+        "detail": "Netflix found — official payee billing@netflix.com"
+      },
+      {
+        "name": "Sender identity",
+        "pass": true,
+        "detail": "billing@netflix.com is the official billing payee (exact match)"
+      },
+      {
+        "name": "Amount vs envelope",
+        "pass": true,
+        "detail": "$15.49 is within Netflix's known range ($7.99–$24.99)"
+      },
+      {
+        "name": "Payment history",
+        "pass": true,
+        "detail": "You have paid billing@netflix.com before and it verified"
+      }
+    ],
+    "jws": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ2ZXJkaWN0IjoiVkVSSUZJRUQiLCJyZWFzb25Db2RlIjoiUl9WRVJJRklFRF9PRkZJQ0lBTCIsImNsYWltIjp7ImJyYW5kIjoiTmV0ZmxpeCIsImZyb20iOiJiaWxsaW5nQG5ldGZsaXguY29tIiwiZnJvbU5hbWUiOiJOZXRmbGl4IiwiYW1vdW50IjoxNS40OSwiY3VycmVuY3kiOiJVU0QiLCJtZW1vIjoiTmV0ZmxpeCBTdGFuZGFyZCBQbGFuIOKAlCBOb3ZlbWJlciIsImNoYW5uZWwiOiJlbWFpbCJ9LCJpYXQiOjE3OTQ0ODAxODUsImlzcyI6Im1hbmRhdGUuaW5ib3VuZC12ZXJpZmljYXRpb24ifQ.0nvN5Rfk24aeJmHyIQjWjKe8-BKR-mgVOJB7ZlqCPg8",
+    "createdAt": "2026-11-12T10:43:05.146Z"
+  }
+]

@@ -1,1 +1,119 @@
-{"mandate":{"limits":{"perTxn":100,"dailyTotal":1000,"currency":"USD"},"payeeAllowlist":["sam@contractor.test","vita@va.test","acme@client.test"],"standing":{"payee":"vita@va.test","payeeName":"Vita (VA)","amount":300,"currency":"USD","cadence":"weekly","note":"Standing weekly payout authorized by human signature (v+1)"},"issuedAt":"2026-11-11T18:37:39.532Z","summary":["Invoices (money-in) flow autonomously.","Payouts/refunds to allowlisted payees under $100 per transaction flow autonomously.","Money-out over $100, or any payout that drifts from a standing envelope, is gated for one-tap human approval.","Payouts to anyone NOT on the allowlist, over the $1,000 daily cap, or in a foreign currency are blocked outright."],"version":4},"versions":[{"version":4,"createdAt":"2026-11-11T18:37:39.532Z","jws":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaW1pdHM…"},{"version":3,"createdAt":"2026-11-11T18:37:39.485Z","jws":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaW1pdHM…"},{"version":2,"createdAt":"2026-11-11T18:37:39.484Z","jws":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaW1pdHM…"},{"version":1,"createdAt":"2026-11-11T18:37:31.938Z","jws":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaW1pdHM…"}],"signatureValid":true,"jws":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaW1pdHMiOnsicGVyVHhuIjoxMDAsImRhaWx5VG90YWwiOjEwMDAsImN1cnJlbmN5IjoiVVNEIn0sInBheWVlQWxsb3dsaXN0IjpbInNhbUBjb250cmFjdG9yLnRlc3QiLCJ2aXRhQHZhLnRlc3QiLCJhY21lQGNsaWVudC50ZXN0Il0sInN0YW5kaW5nIjp7InBheWVlIjoidml0YUB2YS50ZXN0IiwicGF5ZWVOYW1lIjoiVml0YSAoVkEpIiwiYW1vdW50IjozMDAsImN1cnJlbmN5IjoiVVNEIiwiY2FkZW5jZSI6IndlZWtseSIsIm5vdGUiOiJTdGFuZGluZyB3ZWVrbHkgcGF5b3V0IGF1dGhvcml6ZWQgYnkgaHVtYW4gc2lnbmF0dXJlICh2KzEpIn0sImlzc3VlZEF0IjoiMjAyNi0xMS0xMVQxODozNzozOS41MzJaIiwic3VtbWFyeSI6WyJJbnZvaWNlcyAobW9uZXktaW4pIGZsb3cgYXV0b25vbW91c2x5LiIsIlBheW91dHMvcmVmdW5kcyB0byBhbGxvd2xpc3RlZCBwYXllZXMgdW5kZXIgJDEwMCBwZXIgdHJhbnNhY3Rpb24gZmxvdyBhdXRvbm9tb3VzbHkuIiwiTW9uZXktb3V0IG92ZXIgJDEwMCwgb3IgYW55IHBheW91dCB0aGF0IGRyaWZ0cyBmcm9tIGEgc3RhbmRpbmcgZW52ZWxvcGUsIGlzIGdhdGVkIGZvciBvbmUtdGFwIGh1bWFuIGFwcHJvdmFsLiIsIlBheW91dHMgdG8gYW55b25lIE5PVCBvbiB0aGUgYWxsb3dsaXN0LCBvdmVyIHRoZSAkMSwwMDAgZGFpbHkgY2FwLCBvciBpbiBhIGZvcmVpZ24gY3VycmVuY3kgYXJlIGJsb2NrZWQgb3V0cmlnaHQuIl0sInZlcnNpb24iOjQsImlhdCI6MTc5NDQyMjI1OSwiaXNzIjoibWFuZGF0ZS5jb250cm9sLXBsYW5lIiwic3ViIjoiaW50ZW50LW1hbmRhdGU6djQifQ.CSIXcBA730E3pRNQfi7-2I_lj0b9Ds6lUYg_MUJ3NDc"}
+{
+  "mandate": {
+    "limits": {
+      "perTxn": 100,
+      "dailyTotal": 5000,
+      "currency": "USD"
+    },
+    "payeeAllowlist": [
+      "sam@contractor.test",
+      "vita@va.test",
+      "acme@client.test"
+    ],
+    "standing": {
+      "payee": "vita@va.test",
+      "payeeName": "Vita (VA)",
+      "amount": 300,
+      "currency": "USD",
+      "cadence": "weekly",
+      "note": "Standing weekly payout authorized by human signature (v+1)"
+    },
+    "issuedAt": "2026-11-12T10:56:49.768Z",
+    "summary": [
+      "Invoices (money-in) flow autonomously.",
+      "Payouts/refunds to allowlisted payees under $100 per transaction flow autonomously.",
+      "Money-out over $100, or any payout that drifts from a standing envelope, is gated for one-tap human approval.",
+      "Payouts to anyone NOT on the allowlist, over the $1,000 daily cap, or in a foreign currency are blocked outright."
+    ],
+    "version": 17
+  },
+  "versions": [
+    {
+      "version": 17,
+      "createdAt": "2026-11-12T10:56:49.768Z",
+      "jws": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaW1pdHM…"
+    },
+    {
+      "version": 16,
+      "createdAt": "2026-11-12T10:56:49.767Z",
+      "jws": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaW1pdHM…"
+    },
+    {
+      "version": 15,
+      "createdAt": "2026-11-12T10:43:00.412Z",
+      "jws": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaW1pdHM…"
+    },
+    {
+      "version": 14,
+      "createdAt": "2026-11-12T10:43:00.409Z",
+      "jws": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaW1pdHM…"
+    },
+    {
+      "version": 13,
+      "createdAt": "2026-11-12T09:18:15.639Z",
+      "jws": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaW1pdHM…"
+    },
+    {
+      "version": 12,
+      "createdAt": "2026-11-12T09:18:15.635Z",
+      "jws": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaW1pdHM…"
+    },
+    {
+      "version": 11,
+      "createdAt": "2026-11-12T08:37:53.678Z",
+      "jws": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaW1pdHM…"
+    },
+    {
+      "version": 10,
+      "createdAt": "2026-11-12T08:37:53.675Z",
+      "jws": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaW1pdHM…"
+    },
+    {
+      "version": 9,
+      "createdAt": "2026-11-12T08:23:48.020Z",
+      "jws": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaW1pdHM…"
+    },
+    {
+      "version": 8,
+      "createdAt": "2026-11-12T08:23:48.018Z",
+      "jws": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaW1pdHM…"
+    },
+    {
+      "version": 7,
+      "createdAt": "2026-11-12T07:53:27.230Z",
+      "jws": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaW1pdHM…"
+    },
+    {
+      "version": 6,
+      "createdAt": "2026-11-11T20:10:14.749Z",
+      "jws": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaW1pdHM…"
+    },
+    {
+      "version": 5,
+      "createdAt": "2026-11-11T20:10:14.747Z",
+      "jws": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaW1pdHM…"
+    },
+    {
+      "version": 4,
+      "createdAt": "2026-11-11T20:04:46.892Z",
+      "jws": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaW1pdHM…"
+    },
+    {
+      "version": 3,
+      "createdAt": "2026-11-11T20:04:46.845Z",
+      "jws": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaW1pdHM…"
+    },
+    {
+      "version": 2,
+      "createdAt": "2026-11-11T20:04:46.841Z",
+      "jws": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaW1pdHM…"
+    },
+    {
+      "version": 1,
+      "createdAt": "2026-11-11T19:53:02.047Z",
+      "jws": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaW1pdHM…"
+    }
+  ],
+  "signatureValid": true,
+  "jws": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsaW1pdHMiOnsicGVyVHhuIjoxMDAsImRhaWx5VG90YWwiOjUwMDAsImN1cnJlbmN5IjoiVVNEIn0sInBheWVlQWxsb3dsaXN0IjpbInNhbUBjb250cmFjdG9yLnRlc3QiLCJ2aXRhQHZhLnRlc3QiLCJhY21lQGNsaWVudC50ZXN0Il0sInN0YW5kaW5nIjp7InBheWVlIjoidml0YUB2YS50ZXN0IiwicGF5ZWVOYW1lIjoiVml0YSAoVkEpIiwiYW1vdW50IjozMDAsImN1cnJlbmN5IjoiVVNEIiwiY2FkZW5jZSI6IndlZWtseSIsIm5vdGUiOiJTdGFuZGluZyB3ZWVrbHkgcGF5b3V0IGF1dGhvcml6ZWQgYnkgaHVtYW4gc2lnbmF0dXJlICh2KzEpIn0sImlzc3VlZEF0IjoiMjAyNi0xMS0xMlQxMDo1Njo0OS43NjhaIiwic3VtbWFyeSI6WyJJbnZvaWNlcyAobW9uZXktaW4pIGZsb3cgYXV0b25vbW91c2x5LiIsIlBheW91dHMvcmVmdW5kcyB0byBhbGxvd2xpc3RlZCBwYXllZXMgdW5kZXIgJDEwMCBwZXIgdHJhbnNhY3Rpb24gZmxvdyBhdXRvbm9tb3VzbHkuIiwiTW9uZXktb3V0IG92ZXIgJDEwMCwgb3IgYW55IHBheW91dCB0aGF0IGRyaWZ0cyBmcm9tIGEgc3RhbmRpbmcgZW52ZWxvcGUsIGlzIGdhdGVkIGZvciBvbmUtdGFwIGh1bWFuIGFwcHJvdmFsLiIsIlBheW91dHMgdG8gYW55b25lIE5PVCBvbiB0aGUgYWxsb3dsaXN0LCBvdmVyIHRoZSAkMSwwMDAgZGFpbHkgY2FwLCBvciBpbiBhIGZvcmVpZ24gY3VycmVuY3kgYXJlIGJsb2NrZWQgb3V0cmlnaHQuIl0sInZlcnNpb24iOjE3LCJpYXQiOjE3OTQ0ODEwMDksImlzcyI6Im1hbmRhdGUuY29udHJvbC1wbGFuZSIsInN1YiI6ImludGVudC1tYW5kYXRlOnYxNyJ9.pOG78ag3F74rU6n29jDGT7ABTc5QpCZ5SGhkSGoI2Us"
+}

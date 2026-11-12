@@ -1,1 +1,104 @@
-{"mode":"SANDBOX","available":true,"tools":{"list_invoices":{"description":"\nList invoices from PayPal.\n\nThis function retrieves a list of invoices with optional pagination parameters.\n","parameters":{"_def":{"unknownKeys":"strip","catchall":{"_def":{"typeName":"ZodNever"},"~standard":{"version":1,"vendor":"zod"}},"typeName":"ZodObject"},"~standard":{"version":1,"vendor":"zod"},"_cached":null}},"get_invoice":{"description":"\nGet an invoice from PayPal.\n\nThis function retrieves details of a specific invoice using its ID.\n","parameters":{"_def":{"unknownKeys":"strip","catchall":{"_def":{"typeName":"ZodNever"},"~standard":{"version":1,"vendor":"zod"}},"typeName":"ZodObject"},"~standard":{"version":1,"vendor":"zod"},"_cached":null}},"list_disputes":{"description":"\nList disputes from PayPal.\n\nThis function retrieves a list of disputes with optional pagination and filtering parameters.\n","parameters":{"_def":{"unknownKeys":"strip","catchall":{"_def":{"typeName":"ZodNever"},"~standard":{"version":1,"vendor":"zod"}},"typeName":"ZodObject"},"~standard":{"version":1,"vendor":"zod"},"_cached":null}},"get_dispute":{"description":"\nGet details for a specific dispute from PayPal.\n\nThis tool is used to lists disputes with a summary set of details, which shows the dispute_id, reason, status, dispute_state, dispute_life_cycle_stage, dispute_channel, dispute_amount, create_time and update_time fields.\n","parameters":{"_def":{"unknownKeys":"strip","catchall":{"_def":{"typeName":"ZodNever"},"~standard":{"version":1,"vendor":"zod"}},"typeName":"ZodObject"},"~standard":{"version":1,"vendor":"zod"},"_cached":null}}},"toolNames":["list_invoices","get_invoice","list_disputes","get_dispute"]}
+{
+  "mode": "SANDBOX",
+  "available": true,
+  "tools": {
+    "list_invoices": {
+      "description": "\nList invoices from PayPal.\n\nThis function retrieves a list of invoices with optional pagination parameters.\n",
+      "parameters": {
+        "_def": {
+          "unknownKeys": "strip",
+          "catchall": {
+            "_def": {
+              "typeName": "ZodNever"
+            },
+            "~standard": {
+              "version": 1,
+              "vendor": "zod"
+            }
+          },
+          "typeName": "ZodObject"
+        },
+        "~standard": {
+          "version": 1,
+          "vendor": "zod"
+        },
+        "_cached": null
+      }
+    },
+    "get_invoice": {
+      "description": "\nGet an invoice from PayPal.\n\nThis function retrieves details of a specific invoice using its ID.\n",
+      "parameters": {
+        "_def": {
+          "unknownKeys": "strip",
+          "catchall": {
+            "_def": {
+              "typeName": "ZodNever"
+            },
+            "~standard": {
+              "version": 1,
+              "vendor": "zod"
+            }
+          },
+          "typeName": "ZodObject"
+        },
+        "~standard": {
+          "version": 1,
+          "vendor": "zod"
+        },
+        "_cached": null
+      }
+    },
+    "list_disputes": {
+      "description": "\nList disputes from PayPal.\n\nThis function retrieves a list of disputes with optional pagination and filtering parameters.\n",
+      "parameters": {
+        "_def": {
+          "unknownKeys": "strip",
+          "catchall": {
+            "_def": {
+              "typeName": "ZodNever"
+            },
+            "~standard": {
+              "version": 1,
+              "vendor": "zod"
+            }
+          },
+          "typeName": "ZodObject"
+        },
+        "~standard": {
+          "version": 1,
+          "vendor": "zod"
+        },
+        "_cached": null
+      }
+    },
+    "get_dispute": {
+      "description": "\nGet details for a specific dispute from PayPal.\n\nThis tool is used to lists disputes with a summary set of details, which shows the dispute_id, reason, status, dispute_state, dispute_life_cycle_stage, dispute_channel, dispute_amount, create_time and update_time fields.\n",
+      "parameters": {
+        "_def": {
+          "unknownKeys": "strip",
+          "catchall": {
+            "_def": {
+              "typeName": "ZodNever"
+            },
+            "~standard": {
+              "version": 1,
+              "vendor": "zod"
+            }
+          },
+          "typeName": "ZodObject"
+        },
+        "~standard": {
+          "version": 1,
+          "vendor": "zod"
+        },
+        "_cached": null
+      }
+    }
+  },
+  "toolNames": [
+    "list_invoices",
+    "get_invoice",
+    "list_disputes",
+    "get_dispute"
+  ]
+}
