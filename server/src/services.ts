@@ -42,20 +42,30 @@ export async function sendReminder(invoiceId: string): Promise<{ invoice: Invoic
 
   const attempt = inv.remindersSent + 1;
   const draft = await reminderDraft(inv.payeeName ?? inv.payee, inv.amount, inv.currency, inv.memo, attempt);
+  // Never remind an invoice PayPal still holds as DRAFT — the call is deterministically
+  // rejected (a draft was never delivered). The local status can lie (the demo's overdue
+  // hack can mark a never-sent invoice OVERDUE), so ask PayPal for the live status first.
   // Docs: PayPal allows only 2 reminders per invoice per day — a 422 there is the daily cap.
-  // The gateway skips the call entirely when the invoice was never delivered (no sandbox
-  // recipient → still DRAFT on PayPal); both paths surface honestly below.
   let delivered = true;
   let notDelivered: string | undefined;
-  try {
-    const r = await paypal.remindInvoice(inv.paypalId, draft.subject, draft.note);
-    if (r.status !== 'REMIND_SENT') {
+  if (paypal.mode === 'SANDBOX') {
+    const live = await paypal.getInvoice(inv.paypalId);
+    if (live && live.status === 'DRAFT') {
       delivered = false;
-      notDelivered = r.skipped;
+      notDelivered = 'invoice not delivered to PayPal (still a DRAFT — send it first)';
     }
-  } catch (e: unknown) {
-    delivered = false;
-    notDelivered = String(e).slice(0, 160);
+  }
+  if (delivered) {
+    try {
+      const r = await paypal.remindInvoice(inv.paypalId, draft.subject, draft.note);
+      if (r.status !== 'REMIND_SENT') {
+        delivered = false;
+        notDelivered = r.skipped;
+      }
+    } catch (e: unknown) {
+      delivered = false;
+      notDelivered = String(e).slice(0, 160);
+    }
   }
   if (!delivered) {
     appendAudit({
@@ -87,8 +97,8 @@ export async function sendReminder(invoiceId: string): Promise<{ invoice: Invoic
     subject: draft.subject,
     note: draft.note,
     tone: `${draft.tone} (${notDelivered?.startsWith('invoice not delivered')
-      ? 'held — invoice was never sent to PayPal; set PAYPAL_SANDBOX_RECIPIENT to enable delivery'
-      : 'rejected — PayPal daily reminder cap; try again tomorrow'})`,
+      ? 'held — this invoice was never delivered (still a draft on PayPal); send it from Console → Invoices first'
+      : `rejected by PayPal — ${notDelivered?.slice(0, 90) ?? 'unknown reason'}`})`,
     delivered: false,
   };
 }
