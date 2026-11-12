@@ -28,7 +28,10 @@ export const env = {
   llm: {
     anthropicKey: required('ANTHROPIC_API_KEY'),
     openaiKey: required('OPENAI_API_KEY'),
-    model: process.env.MANDATE_LLM_MODEL, // e.g. claude-sonnet-4-5 / gpt-4o
+    model: process.env.MANDATE_LLM_MODEL, // e.g. claude-sonnet-4-5 / gpt-4o / kimi-k2-instruct (Vultr)
+    /** OpenAI-compatible base URL. Set OPENAI_BASE_URL=https://api.vultrinference.com/v1 to run on
+     *  Vultr Serverless Inference (uses OPENAI_API_KEY as the Vultr Inference key). Unset = OpenAI. */
+    baseUrl: process.env.OPENAI_BASE_URL,
   },
 
   signingSecret: process.env.MANDATE_SIGNING_SECRET ?? 'dev-only-mandate-signing-secret-change-me',
