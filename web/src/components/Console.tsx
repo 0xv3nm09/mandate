@@ -56,15 +56,15 @@ export function Console({ halted, onHaltChange }: { halted: boolean; onHaltChang
             plane decides, and gated money-out waits for your tap.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-2 whitespace-nowrap overflow-x-auto">
           {modes && (
             <>
-              <span className="pill bg-raised text-slate-300 border border-edge">PayPal: <b>{modes.paypal}</b></span>
-              <span className="pill bg-raised text-slate-300 border border-edge">agent: <b>{modes.llm === 'LLM' ? 'LLM (AI SDK)' : 'deterministic'}</b></span>
+              <span className="pill shrink-0 bg-raised text-slate-300 border border-edge">PayPal: <b>{modes.paypal}</b></span>
+              <span className="pill shrink-0 bg-raised text-slate-300 border border-edge">agent: <b>{modes.llm === 'LLM' ? 'LLM (AI SDK)' : 'deterministic'}</b></span>
             </>
           )}
           {mandateVersion != null && (
-            <span className="pill bg-accent/15 text-indigo-300 border border-accent/30">
+            <span className="pill shrink-0 bg-accent/15 text-indigo-300 border border-accent/30">
               <ShieldCheck size={12} /> mandate v{mandateVersion}
             </span>
           )}

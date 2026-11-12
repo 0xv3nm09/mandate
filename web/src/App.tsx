@@ -130,7 +130,7 @@ function NavBtn({ active, onClick, icon, label }: { active: boolean; onClick: ()
   return (
     <button
       onClick={onClick}
-      className={`btn px-3 py-1.5 text-[13px] ${active ? 'bg-accent/15 text-indigo-200 border border-accent/40' : 'text-muted border border-transparent hover:text-ink'}`}
+      className={`btn whitespace-nowrap px-3 py-1.5 text-[13px] ${active ? 'bg-accent/15 text-indigo-200 border border-accent/40' : 'text-muted border border-transparent hover:text-ink'}`}
     >
       {icon} {label}
     </button>
