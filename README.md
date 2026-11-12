@@ -92,17 +92,42 @@ IP, Let's Encrypt cert auto-provisioned), systemd service, firewall. Runbook:
 offline: same control plane, same 12 use cases, same hash-chained ledger (full steps in
 [Quick start](#quick-start-zero-external-keys-needed) below).
 
-## The 30-second architecture
+## The architecture, technically
 
 ```mermaid
-flowchart LR
-  U["Operator<br/>console + approval inbox"] --> A["AI Agent<br/>proposes only"]
-  A -- "proposal" --> CP["Control Plane<br/>deterministic: policy engine ·<br/>signed mandate · audit chain"]
-  CP -- "ALLOW" --> PP["PayPal Sandbox<br/>Invoicing · Payouts"]
-  CP -- "GATE" --> INBOX["Human gate<br/>AI risk summary · one tap"]
-  CP -- "BLOCK" --> REF["Refused + audited<br/>no bypass"]
-  INBOX -- "approve" --> CP
+flowchart TB
+  subgraph BROWSER["Browser · React 18 + Vite · TypeScript"]
+    PAGES["5 pages · AG Grid Community v34<br/>REST JSON + EventSource live rows"]
+  end
+  subgraph VM["Vultr VM · systemd · Caddy auto-TLS · Node 24 tsx"]
+    HONO["Hono API :8787<br/>reads open · mutations need x-mandate-token<br/>webhook: verify-signature, then dedupe"]
+    CHAT["agent chat<br/>AI SDK v5 tool loop when keyed<br/>else deterministic parser · 11 intents"]
+    TOOLS["governed tools<br/>create_invoice · send_reminder money-in<br/>propose_payout · propose_mandate_change<br/>proposals ship with no execute"]
+    CP["control plane<br/>policy.evaluate pure fn · R-00…R-09<br/>approvals TTL 10 min · global kill switch"]
+    AUDIT[("audit chain<br/>SHA-256 prev-hash link<br/>JWS + HMAC receipts per record")]
+    GW["PayPal gateway<br/>SANDBOX REST · stateful MOCK twin"]
+    JOURNAL[("paypal_calls journal<br/>persisted · seeds the Live Stack log")]
+  end
+  PP["PayPal sandbox<br/>api-m.sandbox.paypal.com"]
+
+  PAGES -->|"HTTPS JSON"| HONO
+  PAGES -.->|"EventSource"| HONO
+  HONO --> CHAT
+  CHAT --> TOOLS
+  TOOLS -->|"proposal → decide"| CP
+  TOOLS -->|"money-in: create · remind"| GW
+  CP -->|"ALLOW → execute idempotent"| GW
+  CP -->|"every step appended"| AUDIT
+  GW -->|"Bearer OAuth · Request-Id"| PP
+  PP -->|"signed settlement events"| HONO
+  CP --> JOURNAL
+  JOURNAL -->|"seeds the Live Stack log"| HONO
 ```
+
+**Read it as a one-way valve:** requests enter through the browser, pass the agent and the control
+plane, and only `ALLOW`ed actions reach PayPal — every step appending to the same hash chain the
+operator inspects in AG Grid. Webhooks enter from the other direction and are **verified before
+anything is trusted**; the journal keeps the last calls visible across restarts.
 
 **The trust boundary sits between the control plane and PayPal**: money leaves the account only after a policy pass (plus a human approval when gated). The agent holds no PayPal credentials for money movement. **Code owns the facts; the model only writes language** — no LLM call sits anywhere on the decision path, so a hallucination can't move money. **How the AI connects module-by-module, and what it benchmarks to → [docs/AI.md](docs/AI.md).**
 
@@ -116,6 +141,8 @@ flowchart LR
 
 ## Quick start (zero external keys needed)
 
+Way **4** in detail — the commands behind the localhost option:
+
 ```bash
 # 1. server (Node ≥ 24 — uses the built-in node:sqlite)
 cd server
@@ -128,11 +155,7 @@ npm install
 npm run dev          # → http://localhost:5173 (proxies /api to :8787)
 ```
 
-That's it — with no env vars the app runs in **full demo mode**: a stateful `MockPayPal` gateway (identical semantics to the real REST client, including webhook events) and a deterministic NL parser drive the exact same control plane as live mode.
-
-Then open **http://localhost:8787** and either:
-- hit **Usecases → “Run all 12 sequentially”** — every scenario executes end-to-end through the real engine and renders the actual trace, or
-- chat with the agent in the **Console** (suggestion chips included).
+No env vars → **full demo mode**: the stateful `MockPayPal` gateway and the deterministic NL parser drive the exact same control plane as live mode. Open **http://localhost:8787** — run the suite from **Usecases**, or chat with the agent in the **Console**.
 
 ### Live PayPal sandbox (optional)
 
