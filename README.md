@@ -41,16 +41,11 @@
 
 > **Full detail:** [docs/PAYPAL.md](docs/PAYPAL.md) — every endpoint, payload & real response · [docs/AI.md](docs/AI.md) — the AI wired to PayPal module-by-module, with safety/latency benchmarks · [docs/AG-GRID.md](docs/AG-GRID.md) — how the operator inspects all of it.
 
-## Field guides — the AI layer and the control plane, on one page each
+## PayPal × AI × AG Grid — how they link
 
 <p align="center">
-  <img src="docs/media/mandate-ai-field-guide.png" alt="AI layer field guide — the model proposes, it never holds the money. Live LLM mode on Vultr Serverless Inference (kimi-k2-instruct, AI SDK v5): gated payout 4,226 ms, interrogation 2,304 ms, failure→fallback→live card, 0 money-out keys in the model, 8/8 actions governed, 0 off-policy executions; module map of the four AI files, model boundary (never executes, never moves, never daily caps, never sign), stack and benchmarks; sources AI.md, AGENT.md, README, SYSTEM_CARD" width="100%">
+  <img src="docs/media/mandate-paypal-ai-aggrid-poster.png" alt="Mandate field guide — PayPal × AI × AG Grid, one governed loop. The model proposes, it never holds the keys: a live LLM (kimi-k2-instruct on Vultr, Vercel AI SDK v5 tool loop) turns plain English into tool calls while every money call passes the deterministic control plane first. Live panel: 15/15 payout batches SUCCESS, 23 invoices · 8 sent, 24 webhooks verified, audit chain 229 · ok, 0 PayPal creds in the model. Test captures: gated payout 4,226 ms (R_GATE_THRESHOLD → approval), interrogation 2,304 ms, and a real 401 → fallback → $50 executed live. Sections: the loop (operator → AI agent → control plane → PayPal → AG Grid), AI tool → PayPal call latency table (create_invoice 668–1,750 ms, propose_payout 584–1,298 ms, toolkit reads), PayPal surface · 10 capabilities, AG Grid feature panel (229 audit rows, 23 invoice rows, quick search, decision-tinted rows, CSV export, signed receipt export, Community v34 · MIT); sources README PayPal surface table, AI.md, PAYPAL.md, AG-GRID.md, live /api/stack" width="100%">
 </p>
-<p align="center">
-  <img src="docs/media/mandate-controlplane-field-guide.png" alt="Control plane field guide — ten checks in fixed order, no prompt can reach them. R-00…R-09 hard blocks first, signed autonomy, gate-then-execute; PayPal calls (OAuth 2.0, Invoicing v2, Payouts v1 with idempotency namespaces, webhooks self-registered + signature-verified); SHA-256 hash chain, JWS receipts, no double-pay; 10-table SQLite, Vultr VM with Caddy HTTPS, live batches and webhook-settlement timing; sources ARCHITECTURE.md, PAYPAL.md, RESULTS.md, SYSTEM_CARD" width="100%">
-</p>
-
-Every number on both posters is measured — sources: [docs/AI.md](docs/AI.md) · [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) · [docs/PAYPAL.md](docs/PAYPAL.md) · [SYSTEM_CARD.md](SYSTEM_CARD.md).
 
 ## For judges — run it in 60 seconds
 
@@ -107,6 +102,12 @@ flowchart LR
 **The trust boundary sits between the control plane and PayPal**: money leaves the account only after a policy pass (plus a human approval when gated). The agent holds no PayPal credentials for money movement. **Code owns the facts; the model only writes language** — no LLM call sits anywhere on the decision path, so a hallucination can't move money. **How the AI connects module-by-module, and what it benchmarks to → [docs/AI.md](docs/AI.md).**
 
 **Full architecture set** — [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), each diagram annotated with what it proves: system zones · policy decision flowchart · gated-payout and standing-payout sequences · inbound-verification flow · dispute evidence pack sequence · action lifecycle state machine · invoice lifecycle · audit hash-chain construction · data model (ER) · deployment architecture · evidence workflow.
+
+<p align="center">
+  <img src="docs/media/mandate-live-control-plane-poster.png" alt="Live control plane poster — ten checks, fixed order, every dollar on the record. Read from the running system on Vultr (api/stats + api/stack, 12 Nov 2026): $26,690 invoiced · $4,485 governed money-out · 74 governed actions · 27 gated for a human · 18 hard blocks · 229 audit rows, chain ok. The ten rules in run order with live hit counts (R-00 kill switch 9 hits · R-02 payee-not-allowlisted 9 hits · R-07 money-in 23 hits · R-01 over-threshold 28 hits · R-09 in-bounds 4 hits …), the signed mandate v19 ($100 per txn · $5,000/day · $300 weekly standing → Vita · allowlist sam/vita/acme), humans + inbound trust (13 approved · 9 denied · 5 expired · 16 verified · 8 suspicious · 8 impostor), and real PayPal traffic with latencies (payouts 201 · reminders 204 · webhook verifications 200). Footnote: 15/15 payout batches SUCCESS, 24 webhook events signature-verified, try it at 139-84-172-28.sslip.io" width="100%">
+</p>
+
+*The poster above is a snapshot of the running system — the same numbers, live, on the [Stack page](https://139-84-172-28.sslip.io/#stack) and via `GET /api/stats` + `GET /api/stack`.*
 
 ## Quick start (zero external keys needed)
 
