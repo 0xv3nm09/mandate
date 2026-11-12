@@ -16,6 +16,8 @@ import { listInvoices, stats, runStandingPayout, simulateInvoicePaid } from '../
 import { usecaseCatalog, runUsecase } from '../usecases/runner.js';
 import { paypalMode, llmMode, env } from '../env.js';
 import { paypal } from '../paypal/gateway.js';
+import { paypalLog, recordPaypalCall } from '../paypal/journal.js';
+import { webhookInfo } from '../paypal/webhook-config.js';
 import * as verifyModule from '../control-plane/verify.js';
 import * as auditModule from '../control-plane/audit.js';
 import * as toolkitModule from '../paypal/toolkit.js';
@@ -184,6 +186,7 @@ api.post('/system/halt', async (c) => {
 
 // ── PayPal webhook ingestion ─────────────────────────────────────────────────
 api.post('/paypal/webhook', async (c) => {
+  const t0 = Date.now();
   const raw = await c.req.text();
   let body: { id?: string; event_type?: string; resource_id?: string; summary?: string; resource?: Record<string, unknown> };
   try {
@@ -204,8 +207,13 @@ api.post('/paypal/webhook', async (c) => {
       transmissionSig: c.req.header('paypal-transmission-sig') ?? '',
       webhookEvent: JSON.parse(raw),
     });
-    if (!ok) return c.json({ error: 'webhook signature verification failed' }, 403);
+    if (!ok) {
+      recordPaypalCall({ ts: now(), method: 'WEBHOOK', path: '/api/paypal/webhook', status: 403, ms: Date.now() - t0, ok: false, note: `${body.event_type ?? '?'} — signature rejected` });
+      return c.json({ error: 'webhook signature verification failed' }, 403);
+    }
   }
+
+  recordPaypalCall({ ts: now(), method: 'WEBHOOK', path: '/api/paypal/webhook', status: 200, ms: Date.now() - t0, ok: true, note: `${body.event_type ?? '?'} verified` });
 
   handlePaypalEvent({
     id: body.id ?? uid(),
@@ -215,6 +223,35 @@ api.post('/paypal/webhook', async (c) => {
     payload: body.resource as Record<string, unknown> | undefined,
   });
   return c.json({ ok: true });
+});
+
+// ── Stack tab: live sandbox log + one read-only bundle of live system facts ──
+api.get('/paypal/log', (c) => c.json({ log: paypalLog() }));
+
+api.get('/stack', (c) => {
+  const one = (sql: string): number => (db.prepare(sql).get() as { c: number } | undefined)?.c ?? 0;
+  const group = (sql: string): Record<string, number> =>
+    Object.fromEntries((db.prepare(sql).all() as { k: string; c: number }[]).map((r) => [r.k ?? '—', r.c]));
+  return c.json({
+    mode: { paypal: paypalMode, llm: llmMode },
+    webhook: webhookInfo(),
+    counts: {
+      auditRecords: one('SELECT COUNT(*) c FROM audit'),
+      eventsIngested: one('SELECT COUNT(*) c FROM events'),
+      invoices: one('SELECT COUNT(*) c FROM invoices'),
+      invoicesSent: one("SELECT COUNT(*) c FROM invoices WHERE status IN ('SENT','OVERDUE','PAID')"),
+      payoutBatches: one('SELECT COUNT(*) c FROM payouts'),
+      payoutBatchesSuccess: one("SELECT COUNT(*) c FROM payouts WHERE status = 'SUCCESS'"),
+      approvals: group("SELECT status k, COUNT(*) c FROM approvals GROUP BY status"),
+      verifications: group("SELECT verdict k, COUNT(*) c FROM verifications GROUP BY verdict"),
+    },
+    ruleHits: (db.prepare(
+      "SELECT json_extract(payload,'$.reasonCode') k, COUNT(*) c FROM audit WHERE kind = 'ACTION_DECISION' AND json_extract(payload,'$.reasonCode') IS NOT NULL GROUP BY k ORDER BY c DESC"
+    ).all() as { k: string; c: number }[]),
+    chain: verifyChain(),
+    paypalLog: paypalLog(),
+    toolkit: toolkitModule.toolkitStatus(),
+  });
 });
 
 // ── Inbound verification (the Netflix check, FR-21) ──────────────────────────

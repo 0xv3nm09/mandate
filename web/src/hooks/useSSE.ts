@@ -15,6 +15,7 @@ export function useSSE(onEvent: (type: string, data: any) => void): { connected:
     const types = [
       'hello', 'approval.created', 'approval.resolved', 'action.decision',
       'invoice.updated', 'payout.updated', 'agent.activity', 'system.halt', 'system.reset',
+      'paypal.call',
     ];
     const listeners: [string, (e: MessageEvent) => void][] = types.map((t) => [
       t,

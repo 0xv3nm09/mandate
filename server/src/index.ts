@@ -8,6 +8,7 @@ import { ensureMandate } from './control-plane/mandate.js';
 import { appendAudit } from './control-plane/audit.js';
 import { reconcilePendingPayouts } from './controlPlane.js';
 import { paypal } from './paypal/gateway.js';
+import { WEBHOOK_EVENT_TYPES } from './paypal/webhook-config.js';
 
 const app = new Hono();
 
@@ -52,16 +53,6 @@ const bootstrap = async () => {
     } catch { /* best-effort */ }
   }
 };
-
-// Events the ledger acts on: invoice payments (money-in) and payout settlements (money-out).
-const WEBHOOK_EVENT_TYPES = [
-  'INVOICING.INVOICE.PAID',
-  'PAYMENT.PAYOUTSBATCH.SUCCESS',
-  'PAYMENT.PAYOUTSBATCH.DENIED',
-  'PAYMENT.PAYOUTS-ITEM.SUCCEEDED',
-  'PAYMENT.PAYOUTS-ITEM.UNCLAIMED',
-  'PAYMENT.PAYOUTS-ITEM.FAILED',
-];
 
 /** Self-register the PayPal webhook when SANDBOX credentials and PUBLIC_BASE_URL are both set:
  *  real events then reach /api/paypal/webhook and pass verify-webhook-signature without any

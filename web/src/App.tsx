@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
-import { ShieldCheck, Home as HomeIcon, LayoutDashboard, TerminalSquare, FlaskConical, Github, OctagonPause } from 'lucide-react';
+import { ShieldCheck, Home as HomeIcon, LayoutDashboard, TerminalSquare, FlaskConical, Github, OctagonPause, Layers } from 'lucide-react';
 import { api, isSnapshotMode, onSnapshotMode } from './lib/api';
 import { Home } from './components/Home';
 import { Dashboard } from './components/Dashboard';
 import { Console } from './components/Console';
 import { Usecases } from './components/Usecases';
+import { Stack } from './components/Stack';
 import { useSSE } from './hooks/useSSE';
 
-type Page = 'home' | 'dashboard' | 'console' | 'usecases';
+type Page = 'home' | 'dashboard' | 'console' | 'usecases' | 'stack';
 
 // GitHub repo — shown in the header once public (private while in review)
 const REPO_URL = 'https://github.com/0xv3nm09/mandate';
@@ -26,7 +27,7 @@ export default function App() {
   useEffect(() => {
     const onHash = () => {
       const h = location.hash.replace('#', '') as Page;
-      if (h === 'home' || h === 'dashboard' || h === 'console' || h === 'usecases') setPage(h);
+      if (h === 'home' || h === 'dashboard' || h === 'console' || h === 'usecases' || h === 'stack') setPage(h);
     };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
@@ -65,6 +66,7 @@ export default function App() {
             <NavBtn active={page === 'dashboard'} onClick={() => setPage('dashboard')} icon={<LayoutDashboard size={14} />} label="Dashboard" />
             <NavBtn active={page === 'console'} onClick={() => setPage('console')} icon={<TerminalSquare size={14} />} label="Console" />
             <NavBtn active={page === 'usecases'} onClick={() => setPage('usecases')} icon={<FlaskConical size={14} />} label="Usecases" />
+            <NavBtn active={page === 'stack'} onClick={() => setPage('stack')} icon={<Layers size={14} />} label="Stack" />
             {modes && (
               <span className="ml-2 hidden rounded-full border border-edge bg-raised px-2.5 py-1 text-[10px] text-muted lg:inline">
                 PayPal: <b className="text-slate-300">{modes.paypal === 'SANDBOX' ? 'live sandbox' : modes.paypal}</b> · agent: <b className="text-slate-300">{modes.llm === 'LLM' ? 'LLM (AI SDK)' : 'deterministic'}</b>
@@ -110,6 +112,7 @@ export default function App() {
         {page === 'dashboard' && <Dashboard go={setPage} />}
         {page === 'console' && <Console halted={halted} onHaltChange={setHalted} />}
         {page === 'usecases' && <Usecases />}
+        {page === 'stack' && <Stack />}
       </main>
 
       <footer className="border-t border-edge py-6 text-center text-[11px] text-slate-500">

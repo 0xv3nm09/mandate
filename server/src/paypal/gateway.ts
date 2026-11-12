@@ -5,6 +5,7 @@
 
 import { env, paypalMode } from '../env.js';
 import { db, now, uid } from '../db.js';
+import { recordPaypalCall } from './journal.js';
 
 export interface InvoiceInput {
   payee: string;
@@ -95,12 +96,20 @@ class SandboxGateway implements PaypalGateway {
 
   private async call<T>(method: string, path: string, body?: unknown, attempt = 0, extraHeaders?: Record<string, string>): Promise<T> {
     const token = await this.accessToken();
-    const res = await fetch(`${env.paypal.base}${path}`, {
-      method,
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', ...(extraHeaders ?? {}) },
-      body: body ? JSON.stringify(body) : undefined,
-      signal: AbortSignal.timeout(15_000),
-    });
+    const t0 = Date.now();
+    let res: Response;
+    try {
+      res = await fetch(`${env.paypal.base}${path}`, {
+        method,
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', ...(extraHeaders ?? {}) },
+        body: body ? JSON.stringify(body) : undefined,
+        signal: AbortSignal.timeout(15_000),
+      });
+    } catch (err: unknown) {
+      recordPaypalCall({ ts: now(), method, path, status: 0, ms: Date.now() - t0, ok: false, note: attempt ? `retry ${attempt}` : String(err).slice(0, 60) });
+      throw err;
+    }
+    recordPaypalCall({ ts: now(), method, path, status: res.status, ms: Date.now() - t0, ok: res.ok, ...(attempt ? { note: `retry ${attempt}` } : {}) });
     // FR-14: 5xx/timeouts → retry with backoff; the caller never silently proceeds on failure
     if (res.status >= 500 && attempt < 2) {
       await new Promise((r) => setTimeout(r, 300 * 2 ** attempt));
