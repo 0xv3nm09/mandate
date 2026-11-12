@@ -71,13 +71,35 @@ export function AuditGrid() {
       {
         headerName: 'Decision', field: 'decision', width: 190, filter: 'agTextColumnFilter',
         cellRenderer: (p: any) => {
-          if (!p.value) return <>—</>;
-          const cls =
-            p.value === 'ALLOW' ? 'bg-ok/15 text-ok border-ok/30' : p.value === 'GATE' ? 'bg-amber/15 text-amber border-amber/30' : 'bg-danger/15 text-danger border-danger/30';
+          if (p.value) {
+            const cls =
+              p.value === 'ALLOW' ? 'bg-ok/15 text-ok border-ok/30' : p.value === 'GATE' ? 'bg-amber/15 text-amber border-amber/30' : 'bg-danger/15 text-danger border-danger/30';
+            return (
+              <span className="inline-flex items-center gap-1.5">
+                <span className={`pill ${cls}`} style={{ borderWidth: 1 }}>{p.value}</span>
+                <span className="mono-hash">{p.data?.payload?.reasonCode ?? ''}</span>
+              </span>
+            );
+          }
+          // Non-decision kinds: only ACTION_DECISION rows carry a policy verdict — executions,
+          // approvals, webhook events and admin records get their own neutral label instead of a
+          // bare dash, so the column never reads as missing data.
+          const kind: string = p.data?.kind ?? '';
+          const verdict = p.data?.payload?.verdict;
+          const label =
+            kind === 'EXECUTION' ? 'EXECUTED'
+            : kind === 'APPROVAL' ? (verdict === 'DENIED' ? 'DENIED' : verdict === 'APPROVED' ? 'APPROVED' : 'RESOLVED')
+            : kind === 'WEBHOOK' ? 'EVENT'
+            : kind === 'MANDATE_SIGNED' ? 'SIGNED'
+            : kind ? kind.toUpperCase()
+            : '—';
+          const tone =
+            label === 'APPROVED' ? 'bg-ok/15 text-ok border-ok/30'
+            : label === 'DENIED' || label === 'FAILED' ? 'bg-danger/15 text-danger border-danger/30'
+            : 'bg-slate-600/10 text-muted border-edge';
           return (
             <span className="inline-flex items-center gap-1.5">
-              <span className={`pill ${cls}`} style={{ borderWidth: 1 }}>{p.value}</span>
-              <span className="mono-hash">{p.data?.payload?.reasonCode ?? ''}</span>
+              <span className={`pill ${tone}`} style={{ borderWidth: 1 }}>{label}</span>
             </span>
           );
         },
