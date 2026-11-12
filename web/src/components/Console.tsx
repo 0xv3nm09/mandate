@@ -19,7 +19,7 @@ import { useSSE } from '../hooks/useSSE';
 import { money, type Invoice } from '../lib/api';
 
 const TABS = [
-  { id: 'audit', label: 'Audit Log', icon: ScrollText },
+  { id: 'audit', label: 'Audit Grid', icon: ScrollText },
   { id: 'mandate', label: 'Intent Mandate', icon: FileSignature },
   { id: 'invoices', label: 'Invoices', icon: ReceiptText },
 ] as const;
@@ -56,15 +56,15 @@ export function Console({ halted, onHaltChange }: { halted: boolean; onHaltChang
             plane decides, and gated money-out waits for your tap.
           </p>
         </div>
-        <div className="flex items-center gap-2 whitespace-nowrap overflow-x-auto">
+        <div className="flex flex-wrap items-center gap-2">
           {modes && (
             <>
-              <span className="pill shrink-0 bg-raised text-slate-300 border border-edge">PayPal: <b>{modes.paypal}</b></span>
-              <span className="pill shrink-0 bg-raised text-slate-300 border border-edge">agent: <b>{modes.llm === 'LLM' ? 'LLM (AI SDK)' : 'deterministic'}</b></span>
+              <span className="pill bg-raised text-slate-300 border border-edge">PayPal: <b>{modes.paypal}</b></span>
+              <span className="pill bg-raised text-slate-300 border border-edge">agent: <b>{modes.llm === 'LLM' ? 'LLM (AI SDK)' : 'deterministic'}</b></span>
             </>
           )}
           {mandateVersion != null && (
-            <span className="pill shrink-0 bg-accent/15 text-indigo-300 border border-accent/30">
+            <span className="pill bg-accent/15 text-indigo-300 border border-accent/30">
               <ShieldCheck size={12} /> mandate v{mandateVersion}
             </span>
           )}
@@ -89,8 +89,18 @@ export function Console({ halted, onHaltChange }: { halted: boolean; onHaltChang
         </div>
       </div>
 
-      {/* audit ledger + lower tabs — on top, so the hash-chained record is the first thing an operator sees */}
-      <div className="flex flex-wrap items-center gap-1.5 pb-1">
+      {/* main row — symmetric columns */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <section className="card card-gradient flex h-[600px] flex-col p-4">
+          <AgentConsole />
+        </section>
+        <section className="card card-gradient flex h-[600px] flex-col p-4">
+          <ApprovalInbox />
+        </section>
+      </div>
+
+      {/* lower tabs */}
+      <div className="flex flex-wrap items-center gap-1.5 pt-1">
         {TABS.map((t) => (
           <button
             key={t.id}
@@ -100,23 +110,13 @@ export function Console({ halted, onHaltChange }: { halted: boolean; onHaltChang
             <t.icon size={14} /> {t.label}
           </button>
         ))}
-        <span className="mono-hash ml-auto hidden sm:inline">everything here reads the same live control-plane state</span>
+        <span className="mono-hash ml-auto hidden sm:inline">everything below reads the same live control-plane state</span>
       </div>
 
       <div className="card card-gradient min-h-[560px] p-4">
         {tab === 'audit' && <AuditGrid />}
         {tab === 'mandate' && <MandateEditor />}
         {tab === 'invoices' && <InvoicesGrid />}
-      </div>
-
-      {/* main row — symmetric columns */}
-      <div className="grid gap-4 pt-4 lg:grid-cols-2">
-        <section className="card card-gradient flex h-[600px] flex-col p-4">
-          <AgentConsole />
-        </section>
-        <section className="card card-gradient flex h-[600px] flex-col p-4">
-          <ApprovalInbox />
-        </section>
       </div>
     </div>
   );
