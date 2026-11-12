@@ -227,6 +227,17 @@ async function llmChat(message: string): Promise<AgentReply> {
         return { ...res, kind: 'invoice' as const };
       },
     }),
+    send_reminder: ai.tool({
+      description: 'Draft (tone-escalating) and deliver a payment reminder for an overdue invoice — money-IN side, autonomous. Optionally target a payee by name; otherwise the most-overdue unpaid invoice is chased.',
+      inputSchema: z.object({ payeeName: z.string().optional() }),
+      execute: async (a) => {
+        sweepOverdue();
+        const inv = a.payeeName ? pickOverdue(a.payeeName) : pickOverdue();
+        if (!inv) return { ok: false as const, reason: 'no unpaid invoice to chase' };
+        const r = await sendReminder(inv.id);
+        return { ok: true as const, subject: r.subject, note: r.note, tone: r.tone, delivered: r.delivered, invoiceNumber: r.invoice.invoiceNumber, payee: r.invoice.payee };
+      },
+    }),
     propose_payout: ai.tool({
       description: 'Propose sending money OUT via PayPal payout. Requires policy evaluation; may gate for human approval.',
       inputSchema: z.object({ receiver: z.string(), receiverName: z.string().optional(), amount: z.number(), note: z.string() }),
@@ -261,6 +272,7 @@ async function llmChat(message: string): Promise<AgentReply> {
   });
 
   const actions: (HandleResult & { kind: string })[] = [];
+  const ui: Record<string, unknown> = {};
   const proposals = steps.flatMap((s) => s.toolCalls).filter((c) => c.toolName !== 'create_invoice');
   // create_invoice executes inside the tool — surface its full result as an action so
   // runners (and the reply summary) see the same HandleResult shape as proposal paths
@@ -292,6 +304,16 @@ async function llmChat(message: string): Promise<AgentReply> {
     }
   }
 
+  // send_reminder results feed the runner via ui.reminder (same shape the parser emits)
+  for (const s of steps) {
+    for (const tr of ((s as { toolResults?: { toolName?: string; result?: { ok?: boolean; subject?: string; note?: string; tone?: string; delivered?: boolean; invoiceNumber?: string }; output?: { ok?: boolean; subject?: string; note?: string; tone?: string; delivered?: boolean; invoiceNumber?: string } }[] }).toolResults ?? [])) {
+      const r = tr.result ?? tr.output;
+      if (tr.toolName === 'send_reminder' && r?.subject) {
+        ui.reminder = { subject: r.subject, note: r.note, tone: r.tone, invoice: r.invoiceNumber, delivered: !!r.delivered };
+      }
+    }
+  }
+
   // The model can reply without emitting ANY tool call (open models are
   // non-deterministic). Scripted use-case runners require an action — degrade to the
   // deterministic parser for this message rather than crash (chat() catches the throw).
@@ -316,5 +338,5 @@ async function llmChat(message: string): Promise<AgentReply> {
     .join(' ');
   const reply = [text?.trim(), summary].filter(Boolean).join(' — ');
 
-  return { reply: reply || 'Done.', actions, ui: {}, mode: 'LLM' };
+  return { reply: reply || 'Done.', actions, ui, mode: 'LLM' };
 }
