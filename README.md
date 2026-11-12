@@ -38,10 +38,10 @@
 ## Field guides — the AI layer and the control plane, on one page each
 
 <p align="center">
-  <img src="docs/media/mandate-ai-field-guide.webp" alt="AI layer field guide — the model proposes, it never holds the money. Live LLM mode on Vultr Serverless Inference (kimi-k2-instruct, AI SDK v5): gated payout 4,226 ms, interrogation 2,304 ms, failure→fallback→live card, 0 money-out keys in the model, 8/8 actions governed, 0 off-policy executions; module map of the four AI files, model boundary (never executes, never moves, never daily caps, never sign), stack and benchmarks; sources AI.md, AGENT.md, README, SYSTEM_CARD" width="100%">
+  <img src="docs/media/mandate-ai-field-guide.png" alt="AI layer field guide — the model proposes, it never holds the money. Live LLM mode on Vultr Serverless Inference (kimi-k2-instruct, AI SDK v5): gated payout 4,226 ms, interrogation 2,304 ms, failure→fallback→live card, 0 money-out keys in the model, 8/8 actions governed, 0 off-policy executions; module map of the four AI files, model boundary (never executes, never moves, never daily caps, never sign), stack and benchmarks; sources AI.md, AGENT.md, README, SYSTEM_CARD" width="100%">
 </p>
 <p align="center">
-  <img src="docs/media/mandate-controlplane-field-guide.webp" alt="Control plane field guide — ten checks in fixed order, no prompt can reach them. R-00…R-09 hard blocks first, signed autonomy, gate-then-execute; PayPal calls (OAuth 2.0, Invoicing v2, Payouts v1 with idempotency namespaces, webhooks self-registered + signature-verified); SHA-256 hash chain, JWS receipts, no double-pay; 10-table SQLite, Vultr VM with Caddy HTTPS, live batches and webhook-settlement timing; sources ARCHITECTURE.md, PAYPAL.md, RESULTS.md, SYSTEM_CARD" width="100%">
+  <img src="docs/media/mandate-controlplane-field-guide.png" alt="Control plane field guide — ten checks in fixed order, no prompt can reach them. R-00…R-09 hard blocks first, signed autonomy, gate-then-execute; PayPal calls (OAuth 2.0, Invoicing v2, Payouts v1 with idempotency namespaces, webhooks self-registered + signature-verified); SHA-256 hash chain, JWS receipts, no double-pay; 10-table SQLite, Vultr VM with Caddy HTTPS, live batches and webhook-settlement timing; sources ARCHITECTURE.md, PAYPAL.md, RESULTS.md, SYSTEM_CARD" width="100%">
 </p>
 
 Every number on both posters is measured — sources: [docs/AI.md](docs/AI.md) · [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) · [docs/PAYPAL.md](docs/PAYPAL.md) · [SYSTEM_CARD.md](SYSTEM_CARD.md).
