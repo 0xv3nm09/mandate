@@ -1,0 +1,373 @@
+{
+  "capturedAt": "2026-11-12T06:15:28.759Z",
+  "source": "live Vultr VM — PayPal sandbox REST + local ledger (read-only collection)",
+  "registration": {
+    "http": 200,
+    "webhooks": [
+      {
+        "id": "4R872941YY1053835",
+        "url": "https://139-84-172-28.sslip.io/api/paypal/webhook",
+        "event_types": [
+          "INVOICING.INVOICE.PAID",
+          "PAYMENT.PAYOUTS-ITEM.FAILED",
+          "PAYMENT.PAYOUTS-ITEM.SUCCEEDED",
+          "PAYMENT.PAYOUTS-ITEM.UNCLAIMED",
+          "PAYMENT.PAYOUTSBATCH.DENIED",
+          "PAYMENT.PAYOUTSBATCH.SUCCESS"
+        ]
+      }
+    ]
+  },
+  "paypalEventNotifications": {
+    "http": 200,
+    "count": 6,
+    "events": [
+      {
+        "id": "WH-7MT23999WU264510X-6NJ91846XG3358520",
+        "event_type": "PAYMENT.PAYOUTSBATCH.SUCCESS",
+        "create_time": "2026-11-12T05:48:15.141Z",
+        "summary": "Payouts batch completed successfully.",
+        "resource_batch_id": "7CB7GVMMZTRL8",
+        "batch_status": "SUCCESS",
+        "tx_status": null
+      },
+      {
+        "id": "WH-5YL68483KG950824P-6U0511711T756492U",
+        "event_type": "PAYMENT.PAYOUTS-ITEM.UNCLAIMED",
+        "create_time": "2026-11-12T05:48:05.289Z",
+        "summary": "A payout item is unclaimed",
+        "resource_batch_id": "7CB7GVMMZTRL8",
+        "batch_status": null,
+        "tx_status": "UNCLAIMED"
+      },
+      {
+        "id": "WH-98067626YJ846352S-5YL8128125724330C",
+        "event_type": "PAYMENT.PAYOUTS-ITEM.UNCLAIMED",
+        "create_time": "2026-11-12T05:40:29.574Z",
+        "summary": "A payout item is unclaimed",
+        "resource_batch_id": "Q2FN9R95QLS9L",
+        "batch_status": null,
+        "tx_status": "UNCLAIMED"
+      },
+      {
+        "id": "WH-8RH11131FX250393S-5N2764452R5518352",
+        "event_type": "PAYMENT.PAYOUTSBATCH.SUCCESS",
+        "create_time": "2026-11-12T05:40:29.567Z",
+        "summary": "Payouts batch completed successfully.",
+        "resource_batch_id": "Q2FN9R95QLS9L",
+        "batch_status": "SUCCESS",
+        "tx_status": null
+      },
+      {
+        "id": "WH-4CK60018NB5883507-09V91828W1928163E",
+        "event_type": "PAYMENT.PAYOUTSBATCH.SUCCESS",
+        "create_time": "2026-11-12T05:17:45.613Z",
+        "summary": "Payouts batch completed successfully.",
+        "resource_batch_id": "NE3S9PB4EQA7G",
+        "batch_status": "SUCCESS",
+        "tx_status": null
+      },
+      {
+        "id": "WH-8K9985978C8476212-4XN51590EG3179820",
+        "event_type": "PAYMENT.PAYOUTS-ITEM.UNCLAIMED",
+        "create_time": "2026-11-12T05:17:37.499Z",
+        "summary": "A payout item is unclaimed",
+        "resource_batch_id": "NE3S9PB4EQA7G",
+        "batch_status": null,
+        "tx_status": "UNCLAIMED"
+      }
+    ]
+  },
+  "payoutBatches": [
+    {
+      "batchId": "BVBZA9QYYXHUY",
+      "http": 200,
+      "batch_status": "SUCCESS",
+      "amount": {
+        "currency": "USD",
+        "value": "300.00"
+      },
+      "fees": {
+        "currency": "USD",
+        "value": "6.00"
+      },
+      "time_created": "2026-11-11T18:37:40Z",
+      "time_completed": "2026-11-11T18:38:04Z",
+      "items": [
+        {
+          "transaction_status": "UNCLAIMED",
+          "receiver": "vita@va.test",
+          "amount": {
+            "currency": "USD",
+            "value": "300.00"
+          }
+        }
+      ]
+    },
+    {
+      "batchId": "L6ZH42C6UDWKA",
+      "http": 200,
+      "batch_status": "SUCCESS",
+      "amount": {
+        "currency": "USD",
+        "value": "200.00"
+      },
+      "fees": {
+        "currency": "USD",
+        "value": "4.00"
+      },
+      "time_created": "2026-11-12T04:30:23Z",
+      "time_completed": "2026-11-12T04:30:47Z",
+      "items": [
+        {
+          "transaction_status": "UNCLAIMED",
+          "receiver": "sam@contractor.test",
+          "amount": {
+            "currency": "USD",
+            "value": "200.00"
+          }
+        }
+      ]
+    },
+    {
+      "batchId": "5NQRHMTW3J7VG",
+      "http": 200,
+      "batch_status": "SUCCESS",
+      "amount": {
+        "currency": "USD",
+        "value": "150.00"
+      },
+      "fees": {
+        "currency": "USD",
+        "value": "3.00"
+      },
+      "time_created": "2026-11-12T04:30:24Z",
+      "time_completed": "2026-11-12T04:30:48Z",
+      "items": [
+        {
+          "transaction_status": "UNCLAIMED",
+          "receiver": "vita@va.test",
+          "amount": {
+            "currency": "USD",
+            "value": "150.00"
+          }
+        }
+      ]
+    },
+    {
+      "batchId": "NE3S9PB4EQA7G",
+      "http": 200,
+      "batch_status": "SUCCESS",
+      "amount": {
+        "currency": "USD",
+        "value": "50.00"
+      },
+      "fees": {
+        "currency": "USD",
+        "value": "1.00"
+      },
+      "time_created": "2026-11-12T05:17:06Z",
+      "time_completed": "2026-11-12T05:17:30Z",
+      "items": [
+        {
+          "transaction_status": "UNCLAIMED",
+          "receiver": "sam@contractor.test",
+          "amount": {
+            "currency": "USD",
+            "value": "50.00"
+          }
+        }
+      ]
+    },
+    {
+      "batchId": "Q2FN9R95QLS9L",
+      "http": 200,
+      "batch_status": "SUCCESS",
+      "amount": {
+        "currency": "USD",
+        "value": "25.00"
+      },
+      "fees": {
+        "currency": "USD",
+        "value": "0.50"
+      },
+      "time_created": "2026-11-12T05:39:55Z",
+      "time_completed": "2026-11-12T05:40:18Z",
+      "items": [
+        {
+          "transaction_status": "UNCLAIMED",
+          "receiver": "vita@va.test",
+          "amount": {
+            "currency": "USD",
+            "value": "25.00"
+          }
+        }
+      ]
+    },
+    {
+      "batchId": "7CB7GVMMZTRL8",
+      "http": 200,
+      "batch_status": "SUCCESS",
+      "amount": {
+        "currency": "USD",
+        "value": "10.00"
+      },
+      "fees": {
+        "currency": "USD",
+        "value": "0.20"
+      },
+      "time_created": "2026-11-12T05:47:41Z",
+      "time_completed": "2026-11-12T05:48:05Z",
+      "items": [
+        {
+          "transaction_status": "UNCLAIMED",
+          "receiver": "vita@va.test",
+          "amount": {
+            "currency": "USD",
+            "value": "10.00"
+          }
+        }
+      ]
+    }
+  ],
+  "ledger": {
+    "eventsTable": [
+      {
+        "id": "WH-83C777576Y8332450-2L845887S3616745G",
+        "type": "PAYMENT.PAYOUTSBATCH.SUCCESS",
+        "ts": "2026-11-12T05:30:23.073Z"
+      },
+      {
+        "id": "WH-8RH11131FX250393S-5N2764452R5518352",
+        "type": "PAYMENT.PAYOUTSBATCH.SUCCESS",
+        "ts": "2026-11-12T05:40:37.837Z"
+      },
+      {
+        "id": "WH-98067626YJ846352S-5YL8128125724330C",
+        "type": "PAYMENT.PAYOUTS-ITEM.UNCLAIMED",
+        "ts": "2026-11-12T05:40:38.343Z"
+      },
+      {
+        "id": "WH-5YL68483KG950824P-6U0511711T756492U",
+        "type": "PAYMENT.PAYOUTS-ITEM.UNCLAIMED",
+        "ts": "2026-11-12T05:48:18.301Z"
+      },
+      {
+        "id": "WH-7MT23999WU264510X-6NJ91846XG3358520",
+        "type": "PAYMENT.PAYOUTSBATCH.SUCCESS",
+        "ts": "2026-11-12T05:48:22.222Z"
+      },
+      {
+        "id": "WH-0T490472X6099635W-7LJ29748BW389372K",
+        "type": "INVOICING.INVOICE.PAID",
+        "ts": "2026-11-12T05:51:29.171Z"
+      }
+    ],
+    "webhookAuditRecords": [
+      {
+        "seq": 67,
+        "ts": "2026-11-12T05:40:37.838Z",
+        "event": "PayPal webhook: payout batch Q2FN9R95QLS9L → SUCCESS",
+        "eventType": "PAYMENT.PAYOUTSBATCH.SUCCESS",
+        "resourceId": "Q2FN9R95QLS9L",
+        "status": "SUCCESS"
+      },
+      {
+        "seq": 68,
+        "ts": "2026-11-12T05:40:38.344Z",
+        "event": "PayPal webhook: payout batch Q2FN9R95QLS9L → SUCCESS — item UNCLAIMED (YNAPFJQ4M3YZ8)",
+        "eventType": "PAYMENT.PAYOUTS-ITEM.UNCLAIMED",
+        "resourceId": "Q2FN9R95QLS9L",
+        "status": "SUCCESS"
+      },
+      {
+        "seq": 74,
+        "ts": "2026-11-12T05:48:18.301Z",
+        "event": "PayPal webhook: payout batch 7CB7GVMMZTRL8 — item UNCLAIMED (VJ2YXNPJ55AU4)",
+        "eventType": "PAYMENT.PAYOUTS-ITEM.UNCLAIMED",
+        "itemStatus": "UNCLAIMED",
+        "resourceId": "7CB7GVMMZTRL8"
+      },
+      {
+        "seq": 75,
+        "ts": "2026-11-12T05:48:22.224Z",
+        "event": "PayPal webhook: payout batch 7CB7GVMMZTRL8 → SUCCESS",
+        "eventType": "PAYMENT.PAYOUTSBATCH.SUCCESS",
+        "resourceId": "7CB7GVMMZTRL8",
+        "status": "SUCCESS"
+      }
+    ],
+    "systemWebhookRecords": [
+      {
+        "seq": 62,
+        "ts": "2026-11-12T05:15:35.221Z",
+        "event": "PayPal webhook self-registered (4R872941YY1053835) → https://139-84-172-28.sslip.io/api/paypal/webhook — 6 event types"
+      },
+      {
+        "seq": 69,
+        "ts": "2026-11-12T05:44:38.917Z",
+        "event": "Reconciled payout batch L6ZH42C6UDWKA: PENDING → SUCCESS (live PayPal status — no webhook received for this batch)"
+      },
+      {
+        "seq": 70,
+        "ts": "2026-11-12T05:44:39.725Z",
+        "event": "Reconciled payout batch 5NQRHMTW3J7VG: PENDING → SUCCESS (live PayPal status — no webhook received for this batch)"
+      },
+      {
+        "seq": 71,
+        "ts": "2026-11-12T05:44:40.741Z",
+        "event": "Reconciled payout batch NE3S9PB4EQA7G: PENDING → SUCCESS (live PayPal status — no webhook received for this batch)"
+      }
+    ],
+    "reconcileRecords": [
+      {
+        "seq": 69,
+        "ts": "2026-11-12T05:44:38.917Z",
+        "event": "Reconciled payout batch L6ZH42C6UDWKA: PENDING → SUCCESS (live PayPal status — no webhook received for this batch)"
+      },
+      {
+        "seq": 70,
+        "ts": "2026-11-12T05:44:39.725Z",
+        "event": "Reconciled payout batch 5NQRHMTW3J7VG: PENDING → SUCCESS (live PayPal status — no webhook received for this batch)"
+      },
+      {
+        "seq": 71,
+        "ts": "2026-11-12T05:44:40.741Z",
+        "event": "Reconciled payout batch NE3S9PB4EQA7G: PENDING → SUCCESS (live PayPal status — no webhook received for this batch)"
+      }
+    ],
+    "payoutRows": [
+      {
+        "batchId": "BVBZA9QYYXHUY",
+        "status": "SUCCESS",
+        "updatedAt": "2026-11-11T20:04:48.007Z"
+      },
+      {
+        "batchId": "L6ZH42C6UDWKA",
+        "status": "SUCCESS",
+        "updatedAt": "2026-11-12T05:44:38.916Z"
+      },
+      {
+        "batchId": "5NQRHMTW3J7VG",
+        "status": "SUCCESS",
+        "updatedAt": "2026-11-12T05:44:39.724Z"
+      },
+      {
+        "batchId": "NE3S9PB4EQA7G",
+        "status": "SUCCESS",
+        "updatedAt": "2026-11-12T05:44:40.740Z"
+      },
+      {
+        "batchId": "Q2FN9R95QLS9L",
+        "status": "SUCCESS",
+        "updatedAt": "2026-11-12T05:40:38.343Z"
+      },
+      {
+        "batchId": "7CB7GVMMZTRL8",
+        "status": "SUCCESS",
+        "updatedAt": "2026-11-12T05:48:22.223Z"
+      }
+    ],
+    "auditCount": 75
+  }
+}

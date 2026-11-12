@@ -184,8 +184,10 @@ class SandboxGateway implements PaypalGateway {
     note: string;
     idempotencyKey: string;
   }): Promise<{ batchId: string; status: string }> {
-    // Sandbox: route to the configured personal test account (if set) so the batch actually
-    // settles to SUCCESS between sandbox accounts; the ledger keeps the logical payee.
+    // Sandbox: route to the configured personal test account (if set) so the batch settles on
+    // PayPal — with a real sandbox recipient the items claim and funds actually move between
+    // accounts; with placeholder payees they stay UNCLAIMED and only the sender is debited.
+    // The ledger keeps the logical payee.
     const receiver = env.paypal.invoiceRecipient ?? input.payee;
     const res = await this.call<{ batch_header: { payout_batch_id: string; batch_status: string } }>(
       'POST',

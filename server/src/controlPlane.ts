@@ -305,9 +305,11 @@ export function handlePaypalEvent(e: { id: string; eventType: string; resourceId
   if (dup) return; // replay/dedupe by event id
   db.prepare('INSERT INTO events (id, type, payload, ts) VALUES (?, ?, ?, ?)').run(e.id, e.eventType, JSON.stringify(e), now());
   // Normalize payout events: batch id and status live in different places per event family.
+  // Batch events carry the authoritative batch status. Item events describe one recipient's
+  // outcome — they never invent a batch status; only FAILED changes the row (money did not move).
   let payoutBatchId: string | undefined = e.resourceId;
   let payoutStatus: string | undefined;
-  let payoutNote = '';
+  let itemStatus: string | undefined;
   if (e.eventType === 'PAYMENT.PAYOUTS.EVENT') {
     payoutStatus = (e.payload?.batch_status as string) ?? 'SUCCESS';
   } else if (e.eventType.startsWith('PAYMENT.PAYOUTSBATCH.')) {
@@ -316,40 +318,82 @@ export function handlePaypalEvent(e: { id: string; eventType: string; resourceId
     payoutStatus = header?.batch_status;
   } else if (e.eventType.startsWith('PAYMENT.PAYOUTS-ITEM.')) {
     payoutBatchId = e.payload?.payout_batch_id as string | undefined;
-    payoutStatus = e.payload?.tx_status as string | undefined;
-    payoutNote = ` — item ${e.eventType.replace('PAYMENT.PAYOUTS-ITEM.', '')}${e.payload?.payout_item_id ? ` (${String(e.payload.payout_item_id)})` : ''}`;
+    itemStatus = (e.payload?.transaction_status as string | undefined) ?? e.eventType.replace('PAYMENT.PAYOUTS-ITEM.', '');
+    if (itemStatus === 'FAILED') payoutStatus = 'FAILED';
   }
 
-  if (payoutBatchId) {
+  if (payoutBatchId && (payoutStatus || itemStatus)) {
     const payout = db.prepare('SELECT actionId, status FROM payouts WHERE batchId = ?').get(payoutBatchId) as
       | { actionId: string; status: string }
       | undefined;
-    const status = payoutStatus ?? 'SUCCESS';
     if (payout) {
-      db.prepare('UPDATE payouts SET status = ?, updatedAt = ? WHERE batchId = ?').run(status, now(), payoutBatchId);
+      if (payoutStatus) {
+        db.prepare('UPDATE payouts SET status = ?, updatedAt = ? WHERE batchId = ?').run(payoutStatus, now(), payoutBatchId);
+      }
+      const itemId = e.payload?.payout_item_id ? ` (${String(e.payload.payout_item_id)})` : '';
       appendAudit({
         kind: 'WEBHOOK',
         actionId: payout.actionId,
         payload: {
-          event: `PayPal webhook: payout batch ${payoutBatchId} → ${status}${payoutNote}`,
-          eventType: e.eventType, resourceId: payoutBatchId, status,
+          event: itemStatus
+            ? `PayPal webhook: payout batch ${payoutBatchId} — item ${itemStatus}${itemId}`
+            : `PayPal webhook: payout batch ${payoutBatchId} → ${payoutStatus}`,
+          eventType: e.eventType, resourceId: payoutBatchId,
+          ...(payoutStatus ? { status: payoutStatus } : {}),
+          ...(itemStatus ? { itemStatus } : {}),
         },
       });
-      publish('payout.updated', { actionId: payout.actionId, batchId: payoutBatchId, status });
+      publish('payout.updated', { actionId: payout.actionId, batchId: payoutBatchId, status: payoutStatus ?? payout.status, ...(itemStatus ? { itemStatus } : {}) });
     }
   }
 
-  if (e.eventType === 'INVOICING.INVOICE.PAID' && e.resourceId) {
-    const inv = db.prepare('SELECT id FROM invoices WHERE paypalId = ?').get(e.resourceId) as { id: string } | undefined;
-    if (inv) {
-      db.prepare('UPDATE invoices SET status = ?, updatedAt = ? WHERE paypalId = ?').run('PAID', now(), e.resourceId);
+  if (e.eventType === 'INVOICING.INVOICE.PAID') {
+    // PayPal's envelope has no top-level resource_id: the invoice id is at resource.id (observed on
+    // a signed delivery) or resource.invoice.id (v2 envelope shape, handled defensively). Internal
+    // events pass resourceId directly.
+    const invoiceId = e.resourceId
+      ?? (e.payload?.id as string | undefined)
+      ?? (e.payload?.invoice as { id?: string } | undefined)?.id;
+    const inv = invoiceId
+      ? (db.prepare('SELECT id FROM invoices WHERE paypalId = ?').get(invoiceId) as { id: string } | undefined)
+      : undefined;
+    if (inv && invoiceId) {
+      db.prepare('UPDATE invoices SET status = ?, updatedAt = ? WHERE paypalId = ?').run('PAID', now(), invoiceId);
       appendAudit({
         kind: 'WEBHOOK',
-        payload: { event: `PayPal webhook: invoice ${e.resourceId} PAID`, eventType: e.eventType, resourceId: e.resourceId },
+        payload: { event: `PayPal webhook: invoice ${invoiceId} PAID`, eventType: e.eventType, resourceId: invoiceId },
       });
-      publish('invoice.updated', { invoiceId: e.resourceId, status: 'PAID' });
+      publish('invoice.updated', { invoiceId, status: 'PAID' });
     }
   }
 }
 
 onPaypalEvent(handlePaypalEvent);
+
+/** Safety net behind webhooks: batches registered before the webhook existed, deliveries lost to
+ *  downtime or rejection, and any future gap are settled here from PayPal's live batch status.
+ *  Webhooks are the fast path; this is the correctness backstop (runs at boot, SANDBOX only). */
+export async function reconcilePendingPayouts(): Promise<number> {
+  const rows = db
+    .prepare("SELECT batchId, actionId, status FROM payouts WHERE status IN ('PENDING', 'PROCESSING')")
+    .all() as { batchId: string; actionId: string; status: string }[];
+  let n = 0;
+  for (const r of rows) {
+    try {
+      const live = await paypal.getPayoutStatus(r.batchId);
+      if (live.status && live.status !== r.status) {
+        db.prepare('UPDATE payouts SET status = ?, updatedAt = ? WHERE batchId = ?').run(live.status, now(), r.batchId);
+        appendAudit({
+          kind: 'SYSTEM',
+          actionId: r.actionId,
+          payload: { event: `Reconciled payout batch ${r.batchId}: ${r.status} → ${live.status} (live PayPal status — no verified webhook recorded for this batch)`, resourceId: r.batchId, status: live.status },
+        });
+        publish('payout.updated', { actionId: r.actionId, batchId: r.batchId, status: live.status });
+        n++;
+      }
+    } catch {
+      // transient — left for the next pass; never fabricates a status
+    }
+  }
+  return n;
+}

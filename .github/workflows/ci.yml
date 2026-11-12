@@ -31,6 +31,9 @@ jobs:
           curl -s localhost:8787/api/audit/verify | grep -q '"ok":true' \
             && echo "audit chain verified" \
             || { echo "audit chain broken"; exit 1; }
+          # real PayPal webhook envelopes (shapes taken from signed sandbox deliveries):
+          # no top-level resource_id, split batch/item payload locations, unordered delivery
+          node ../scripts/ci_webhook_envelopes.mjs http://localhost:8787
       - name: Web — install + typecheck + build
         working-directory: web
         run: |

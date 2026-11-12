@@ -6,6 +6,7 @@ import { api } from './routes/api.js';
 import { env } from './env.js';
 import { ensureMandate } from './control-plane/mandate.js';
 import { appendAudit } from './control-plane/audit.js';
+import { reconcilePendingPayouts } from './controlPlane.js';
 import { paypal } from './paypal/gateway.js';
 
 const app = new Hono();
@@ -44,6 +45,12 @@ const bootstrap = async () => {
   → http://localhost:${env.port}
 `);
   await ensurePaypalWebhook();
+  if (paypal.mode === 'SANDBOX') {
+    try {
+      const n = await reconcilePendingPayouts();
+      if (n) console.log(`  Payout reconcile : ${n} pending batch(es) settled from live PayPal status`);
+    } catch { /* best-effort */ }
+  }
 };
 
 // Events the ledger acts on: invoice payments (money-in) and payout settlements (money-out).

@@ -44,9 +44,16 @@ the script opens them in ufw; also allow TCP 80/443 in the Vultr firewall group 
 ssh root@<VM-IP>
 vi /opt/mandate/server/.env    # PAYPAL_CLIENT_ID/SECRET, PAYPAL_SANDBOX_RECIPIENT,
                                # PAYPAL_INVOICER_NAME/EMAIL, MANDATE_SIGNING_SECRET,
-                               # MANDATE_ADMIN_TOKEN (recommended on a public URL)
+                               # MANDATE_ADMIN_TOKEN (recommended on a public URL),
+                               # PUBLIC_BASE_URL=https://<your-host>.sslip.io
 systemctl restart mandate
 ```
+
+`PUBLIC_BASE_URL` makes the server **self-register its PayPal webhook at boot**
+(`/v1/notifications/webhooks` — adopt-or-create, six payout/invoice event types) and verify
+every inbound event with `verify-webhook-signature`; boot-time reconciliation then settles any
+payout rows a delivery missed from PayPal's live batch status. `PAYPAL_WEBHOOK_ID` becomes
+optional. Full details: [docs/PAYPAL.md §4](PAYPAL.md).
 
 ## 3. Verify
 
@@ -56,9 +63,10 @@ curl https://<your-host>.sslip.io/api/audit/verify
 open https://<your-host>.sslip.io/#usecases       # Run all 12 — real batches, real invoices
 ```
 
-**PayPal webhooks** then work against the VM: point the developer-dashboard webhook at
-`https://<your-host>.sslip.io/api/paypal/webhook` (verification + dedupe are already wired),
-and `simulate-event` becomes a one-call demo trigger.
+**PayPal webhooks** then work against the VM with zero dashboard steps: with `PUBLIC_BASE_URL`
+set, boot self-registers the listener at `https://<your-host>.sslip.io/api/paypal/webhook`
+(adopt-or-create — restarts never duplicate it) and every inbound event is signature-verified
+and deduped. `simulate-event` remains a one-call demo trigger.
 
 ## 4. Pair the GitHub Pages snapshot site (optional)
 

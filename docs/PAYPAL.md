@@ -1,10 +1,13 @@
 # PayPal integration — every call, payload, and real response
 
 The complete map of how Mandate talks to PayPal: authentication, Invoicing v2, Payouts v1,
-webhooks, the official agent toolkit, and the exact errors we hit on the live sandbox with
-how each is handled. Every request body below is the literal shape the gateway sends
+webhooks (self-registered at boot, signature-verified, reconciled), the official agent
+toolkit, and the exact errors we hit on the live sandbox with how each is handled. Every
+request body below is the literal shape the gateway sends
 ([`server/src/paypal/gateway.ts`](../server/src/paypal/gateway.ts)); every response excerpt is
-from a real run captured in [`evidence/`](../evidence/).
+from a real run captured in [`evidence/`](../evidence/), and the webhook claims in §4 are
+backed by [`evidence/webhooks.json`](../evidence/webhooks.json) — PayPal's delivery log, live
+batch statuses and the ledger records side by side.
 
 Base URL: `https://api-m.sandbox.paypal.com` (env: `PAYPAL_BASE`).
 
@@ -156,7 +159,7 @@ Real response excerpt:
 ```
 
 Real batches (see [`evidence/paypal-payouts.json`](../evidence/paypal-payouts.json)):
-`CM9XMWV3ZZYFC` → **SUCCESS** (funds settled between sandbox accounts) ·
+`CM9XMWV3ZZYFC` → **SUCCESS** (batch settled in ~24 s; item `UNCLAIMED` — placeholder payee, §3.4) ·
 `ZCWVF6MKS57FG` → PROCESSING.
 
 ### 3.2 Duplicate `sender_batch_id` — PayPal's idempotency, honored
@@ -181,34 +184,151 @@ silent-execute).
 GET /v1/payments/payouts/{payout_batch_id}   →   batch_header.batch_status
 ```
 
-Sandbox batches settle **asynchronously** (minutes) — UC-12 polls this live instead of
-trusting the local cache, which is how `CM9XMWV3ZZYFC` was observed flipping to SUCCESS.
+Sandbox batches settle **asynchronously** — UC-12 polls this live instead of trusting the
+local cache, which is how `CM9XMWV3ZZYFC` was observed flipping to SUCCESS. On the deployed VM
+the same call powers boot-time reconciliation (§4.5), and settlements normally arrive first as
+verified webhooks (§4.4).
+
+### 3.4 Live batches on the deployed VM
+
+Every batch Mandate created from the live deployment, with PayPal's own figures
+(`GET /v1/payments/payouts/{id}`, captured in [`evidence/webhooks.json`](../evidence/webhooks.json)):
+
+| Batch | Amount | Fee | Payee | Decision path | Settled in | How the ledger learned |
+| --- | --- | --- | --- | --- | --- | --- |
+| `BVBZA9QYYXHUY` | $300.00 | $6.00 | `vita@va.test` | standing mandate (`R_STANDING_ALLOW`) | 24 s | live status poll (UC-12) |
+| `L6ZH42C6UDWKA` | $200.00 | $4.00 | `sam@contractor.test` | gated → human approved | 24 s | reconciliation (#69) |
+| `5NQRHMTW3J7VG` | $150.00 | $3.00 | `vita@va.test` | gated → human approved | 24 s | reconciliation (#70) |
+| `NE3S9PB4EQA7G` | $50.00 | $1.00 | `sam@contractor.test` | autonomous (`R_ALLOW_IN_BOUNDS`) | 24 s | reconciliation (#71) |
+| `Q2FN9R95QLS9L` | $25.00 | $0.50 | `vita@va.test` | autonomous (`R_ALLOW_IN_BOUNDS`) | 23 s | verified webhook (#67, #68) |
+| `7CB7GVMMZTRL8` | $10.00 | $0.20 | `vita@va.test` | autonomous (`R_ALLOW_IN_BOUNDS`) | 24 s | verified webhook (#74, #75) |
+
+All six report `batch_status: SUCCESS`; PayPal charged a fee of exactly 2% on each. Every item
+reads **`UNCLAIMED`**: the payees are placeholder addresses, not sandbox accounts, so the money
+left the sender but nobody has claimed it. Batch `SUCCESS` means PayPal processed the batch,
+not that a recipient was paid — which is why the ledger records the item outcome separately
+(§4.2) instead of collapsing both into one status.
 
 ---
 
-## 4. Webhooks
+## 4. Webhooks — self-registered, signature-verified, reconciled
 
-Inbound: `POST /api/paypal/webhook` (our endpoint). Events handled:
+Real PayPal events reach the ledger over HTTPS, are verified with PayPal before anything is
+trusted, and are backed by a reconciler for the deliveries that never arrive. Everything in
+this section was observed on the live deployment (`https://139-84-172-28.sslip.io`,
+Nov 12 2026) and is captured in [`evidence/webhooks.json`](../evidence/webhooks.json):
+PayPal's own delivery log, the live batch statuses, and the ledger records side by side.
 
-| Event | Effect |
-| --- | --- |
-| `INVOICING.INVOICE.PAID` | invoice → PAID, audit `WEBHOOK` record, SSE to the console |
-| `PAYMENT.PAYOUTS.EVENT` | payout status updated (e.g. → SUCCESS), audited |
+### 4.1 Self-registration at boot
 
-**Verification (sandbox with `PAYPAL_WEBHOOK_ID`):** every inbound event is verified via
+With sandbox credentials **and** `PUBLIC_BASE_URL` set, the server registers its own listener —
+no dashboard step, and `PAYPAL_WEBHOOK_ID` becomes optional (`ensurePaypalWebhook()` in
+[`server/src/index.ts`](../server/src/index.ts), `ensureWebhook()` in the gateway):
+
+```
+GET  /v1/notifications/webhooks          → adopt the entry whose url equals ours
+POST /v1/notifications/webhooks          → otherwise create it
+{ "url": "https://139-84-172-28.sslip.io/api/paypal/webhook",
+  "event_types": [ { "name": "INVOICING.INVOICE.PAID" },
+                   { "name": "PAYMENT.PAYOUTSBATCH.SUCCESS" }, … ] }
+```
+
+Real result: webhook **`4R872941YY1053835`**. The first boot logs `registered` and appends audit
+record #62 (`PayPal webhook self-registered (4R872941YY1053835) → … — 6 event types`); every
+later boot logs `adopted` and creates nothing, so restarts never duplicate the listener. The id
+is held in memory and used for verification (§4.3) and `simulate-event` (§4.6). Registration is
+best-effort: a failure is logged and never blocks boot.
+
+### 4.2 Event types — read from PayPal's catalog before subscribing
+
+The names were taken from `GET /v1/notifications/webhooks-event-types` (205 event types
+available to this app), not from memory. Where each one keeps its identifiers matters — it
+differs per event family, and PayPal's envelope has **no top-level `resource_id`**:
+
+| Event | Identifier location | Effect on the ledger |
+| --- | --- | --- |
+| `PAYMENT.PAYOUTSBATCH.SUCCESS` · `.DENIED` | `resource.batch_header.payout_batch_id`, status in `batch_header.batch_status` | payout row ← batch status · `WEBHOOK` audit record · SSE `payout.updated` |
+| `PAYMENT.PAYOUTS-ITEM.SUCCEEDED` · `.UNCLAIMED` · `.FAILED` | `resource.payout_batch_id`, outcome in `resource.transaction_status` | `WEBHOOK` audit record carrying `itemStatus`; the row status changes **only** on `FAILED` (the money did not move) — an item event never invents a batch status |
+| `INVOICING.INVOICE.PAID` | `resource.id` (observed on a signed delivery); `resource.invoice.id` (v2 envelope shape) handled defensively | invoice → `PAID` · `WEBHOOK` audit record · SSE `invoice.updated` |
+
+**Delivery order is not guaranteed.** Two consecutive batches arrived in opposite orders:
+`Q2FN9R95QLS9L` as batch-then-item, `7CB7GVMMZTRL8` as item-then-batch. The handler is
+order-independent for exactly that reason. (`PAYMENT.PAYOUTS.EVENT` also appears in the code:
+it is Mandate's *internal* synthetic event for mock-mode settlement, not a PayPal event type.)
+
+Not yet observed live: a real `INVOICING.INVOICE.PAID` for one of our own invoices — that
+needs a sandbox buyer to pay an invoice. Its envelope shape is known from a signed simulated
+delivery and both id locations are covered by the CI regression test (§4.5).
+
+### 4.3 Signature verification — every event, before anything else
 
 ```
 POST /v1/notifications/verify-webhook-signature
-{ "transmission_id": "…", "transmission_time": "…", "cert_url": "…", "auth_algo": "…",
-  "transmission_sig": "…", "webhook_id": "…", "webhook_event": { … } }
+{ "webhook_id": "4R872941YY1053835",
+  "transmission_id":   <paypal-transmission-id header>,
+  "transmission_time": <paypal-transmission-time header>,
+  "cert_url":          <paypal-cert-url header>,
+  "auth_algo":         <paypal-auth-algo header>,
+  "transmission_sig":  <paypal-transmission-sig header>,
+  "webhook_event":     <the received JSON body> }
 ```
 
-→ `{ "verification_status": "SUCCESS" }` required, else the event is rejected (403). All
-events are additionally deduped by event id (replay-safe).
+→ `{ "verification_status": "SUCCESS" }` is required; anything else returns **403** and the
+event is never processed. Those seven fields are the whole schema — an eighth, undocumented
+`transfer_type` field in our first implementation made PayPal reject *every* verification
+call, so every real event was refused (see [FEEDBACK #20](FEEDBACK.md)). The failure had been
+invisible because verification errors were swallowed; they are now logged with PayPal's
+`debug_id`.
 
-**Deterministic demos:** `POST /v1/notifications/simulate-event` with
-`{ "webhook_id": "…", "event_type": "INVOICING.INVOICE.PAID" }` fires any webhook on demand
-(exposed as `POST /api/paypal/simulate-event` in sandbox mode).
+Accepted events are recorded in the `events` table **before** processing, on every path, so a
+replayed event id is a no-op (dedupe). Signed `simulate-event` deliveries verify too:
+`WH-83C777576Y8332450-2L845887S3616745G` → `200` in 506 ms.
+
+### 4.4 A real settlement, end to end
+
+Batch `Q2FN9R95QLS9L` — $25 to `vita@va.test`, executed autonomously (`R_ALLOW_IN_BOUNDS`):
+
+| Time (UTC) | What happened | Source |
+| --- | --- | --- |
+| 05:39:55 | `POST /v1/payments/payouts` → batch created, `PENDING` | PayPal `time_created` |
+| 05:40:18 | batch completed, `SUCCESS` (23 s) | PayPal `time_completed` |
+| 05:40:29 | PayPal emits `PAYOUTSBATCH.SUCCESS` + `PAYOUTS-ITEM.UNCLAIMED` | `GET /v1/notifications/webhooks-events` |
+| 05:40:37 | delivery verified → audit **#67** `payout batch Q2FN9R95QLS9L → SUCCESS`, row → `SUCCESS` | ledger |
+| 05:40:38 | delivery verified → audit **#68** (item `UNCLAIMED`) | ledger |
+
+42 seconds from the API call to a signature-verified, hash-chained settlement record, with no
+polling. The next batch, `7CB7GVMMZTRL8` ($10), landed as audit #74 (item `UNCLAIMED`, no
+status change) then #75 (`→ SUCCESS`). Record #68 predates the item-status fix and still
+carries the earlier wording (`→ SUCCESS — item UNCLAIMED`); the chain is append-only, so it
+stays as written and #74 shows the corrected form.
+
+### 4.5 Reconciliation — the safety net behind webhooks
+
+Webhooks are the fast path, not the source of truth. `reconcilePendingPayouts()` runs at boot
+in sandbox mode: every payout row still `PENDING`/`PROCESSING` is checked against
+`GET /v1/payments/payouts/{id}` and, if PayPal has moved on, updated with a `SYSTEM` audit
+record. It settled three batches on its first run (audit #69–71):
+
+- `L6ZH42C6UDWKA` and `5NQRHMTW3J7VG` were created **before** the webhook was registered —
+  PayPal does not backfill events for listeners added later.
+- `NE3S9PB4EQA7G` — PayPal's delivery log shows both of its events sent at 05:17; the verifier
+  bug above refused them. (Record #71 words this as "no webhook received"; precisely, none was
+  *accepted*. Later records say "no verified webhook recorded".)
+
+A transient error leaves the row untouched for the next pass — reconciliation never writes a
+status PayPal did not report. The envelope shapes in §4.2 are locked in by
+[`scripts/ci_webhook_envelopes.mjs`](../scripts/ci_webhook_envelopes.mjs), which CI runs on
+every push: both invoice id locations, replay dedupe, item-before-batch ordering, no
+fabricated status, and `FAILED` handling.
+
+### 4.6 Deterministic demos
+
+`POST /v1/notifications/simulate-event` with
+`{ "webhook_id": "…", "event_type": "INVOICING.INVOICE.PAID" }` makes PayPal send a signed
+sample event to the registered URL (exposed as `POST /api/paypal/simulate-event` in sandbox
+mode). The sample carries PayPal's own resource ids, so it exercises verification and
+recording but matches no ledger row — the console's "simulate paid" button uses the internal
+event path instead, which targets a real invoice.
 
 ---
 
@@ -236,10 +356,11 @@ above. Live status: `GET /api/paypal/toolkit` → `{ available: true, toolNames:
 
 | | `SANDBOX` (keys set) | `MOCK` (zero keys) |
 | --- | --- | --- |
-| createInvoice / send / remind | real REST above | stateful fake, same semantics |
-| createPayout / status | real REST, idempotency keys honored | PENDING → SUCCESS, emits the same webhook event |
+| createInvoice / send / remind | real REST above (send/remind skipped up front when no sandbox recipient is configured — §2.2) | stateful fake, same semantics |
+| createPayout / status | real REST, idempotency keys honored; boot-time reconciliation of stale rows (§4.5) | PENDING → SUCCESS, emits the same webhook event internally |
 | verifyWebhook | `verify-webhook-signature` | accepts its own events |
 | simulateEvent | docs endpoint | internal emission |
+| ensureWebhook | adopt-or-create via `/v1/notifications/webhooks` at boot (§4.1) | n/a |
 
 The control plane never knows which implementation is live — the entire trust layer is
 identical in both modes, which is why CI runs the full suite offline and judges can run the
@@ -276,4 +397,25 @@ whole product with zero credentials.
   runtime trust layer; the toolkit's AI-SDK surface is the right integration for this
   architecture.
 - **Orders v2 / capture** — kept as the documented fallback if Payouts were ever unavailable
-  for a gated money-out; not needed (Payouts verified live).
+  for a gated money-out; not needed (Payouts verified live). Card rails through Orders are
+  also unavailable to this app: `PAYEE_NOT_ENABLED_FOR_CARD_PROCESSING` is returned at order
+  *create*, before any card is evaluated, because the sandbox business account has no
+  card-processing capability (error catalog row 7).
+- **Official server SDKs (Java/Python/… `PaypalServerSdkClient`)** — they wrap the same REST
+  endpoints with managed OAuth (client-credentials, token refresh callbacks). Mandate
+  implements client-credentials directly (§1): one less dependency in the trust path, and the
+  token lifecycle is ~30 lines we can read.
+- **JS SDK v6 buyer surfaces (checkout buttons, Venmo, Pay Later, vault, subscriptions
+  buttons)** — those flows put a *buyer* through PayPal's consent UI. Mandate's approval
+  surface is the operator, by design: the human who owns the signed mandate is the one who
+  approves. A storefront product built on Mandate would pick these up; the trust layer would
+  not change.
+- **Recurring invoices (`/v2/invoicing/recurring-invoices`)** — confirmed present in sandbox
+  (create / activate / cancel / search, plus conditional rules), and the natural money-in
+  mirror of UC-08's standing payout: a series created once under a signed envelope, each
+  generated invoice checked against it. Deliberately not built for the submission: no verified
+  request schema was captured in time, and an unverified use case in the suite is worse than a
+  documented roadmap item.
+- **Subscriptions API (`/v1/billing/subscriptions`)** — the same mirror from the buyer side,
+  but it requires buyer approval through PayPal's UI before a subscription activates; not
+  drivable end-to-end from a server, so it cannot be demonstrated honestly here.

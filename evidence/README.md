@@ -7,7 +7,7 @@ Regenerate any time: Usecases tab → "Run all 12" → reset + re-export.
 | File | What it proves |
 |---|---|
 | `usecases/UC-01…UC-12.json` | Full execution traces: every policy decision (ALLOW/GATE/BLOCK + reason codes), policy hits, PayPal refs, audit seqs. UC-03 shows the human gate → approve → payout; UC-04 the hard block; UC-10 the Netflix impostor catch; UC-12 the signed evidence pack. |
-| `paypal-payouts.json` | Real payout batches created via `POST /v1/payments/payouts` — includes `CM9XMWV3ZZYFC` which **settled to SUCCESS on live PayPal** (funds moved between sandbox accounts). |
+| `paypal-payouts.json` | Real payout batches created via `POST /v1/payments/payouts` — includes `CM9XMWV3ZZYFC`: batch status `SUCCESS` on live PayPal. Precisely: the sender is debited, the item is `UNCLAIMED` — the batch's payee is a placeholder address, so no sandbox account received it (with `PAYPAL_SANDBOX_RECIPIENT` set to a real sandbox account, items claim and funds actually move). |
 | `verifications.json` | Inbound-claim verdicts (the "Netflix check"): VERIFIED / SUSPICIOUS / IMPOSTOR with per-check details (directory, sender domain, amount envelope, history). |
 | `verification-receipt-impostor.json` | The signed (JWS) receipt for the caught impostor — independently verifiable. |
 | `audit-chain.json` | The full hash-chained audit ledger (SHA-256 prev→hash links) plus the recompute result `verify: ok`. |

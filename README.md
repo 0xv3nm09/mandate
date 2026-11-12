@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/0xv3nm09/mandate/actions/workflows/ci.yml/badge.svg)](https://github.com/0xv3nm09/mandate/actions/workflows/ci.yml)
 ![use-case suite](https://img.shields.io/badge/use%E2%80%91case%20suite-12%2F12-brightgreen)
-![audit chain](https://img.shields.io/badge/audit%20chain-verified%20%C2%B7%2024%20records-success)
+![audit chain](https://img.shields.io/badge/audit%20chain-verified-success)
 ![policy violations executed](https://img.shields.io/badge/off%E2%80%91policy%20money%E2%80%91out%20executed-0-success)
 ![license](https://img.shields.io/badge/license-MIT-blue)
 
@@ -29,7 +29,7 @@
 | --- | --- |
 | **Invoicing v2** | Create (with `Prefer: return=representation` + `PayPal-Request-Id` idempotency) → send → AI-drafted escalating reminders, plus PayPal's **native auto-reminders** configured via `setup-reminders` |
 | **Payouts v1** | All money-out executes as idempotent batches (`sender_batch_id` = approval/standing keys); live batch status polled; PayPal-side duplicate detection honored as a no-op |
-| **Webhooks** | `verify-webhook-signature` on every inbound event + dedupe by id; `simulate-event` for deterministic live demos |
+| **Webhooks** | **self-registered at boot** (`POST /v1/notifications/webhooks`, six payout/invoice event types read from PayPal's live catalog) · `verify-webhook-signature` on every inbound event · dedupe by event id · boot-time reconciliation from live batch status · real settlements land in the hash-chained ledger in ~40 s — proof: [`evidence/webhooks.json`](evidence/webhooks.json) ([docs/PAYPAL.md §4](docs/PAYPAL.md#4-webhooks--self-registered-signature-verified-reconciled)) |
 | **Agent Toolkit** | Official `@paypal/agent-toolkit` attached **read-only** (list/get invoices + disputes) — the agent gets eyes, never hands |
 | **[AI](docs/AI.md)** | Vercel AI SDK v5 governed tool loop — `propose_payout` ships with **no `execute`**, so the model structurally cannot move money; a deterministic agent is the zero-key fallback |
 
@@ -59,8 +59,11 @@ The live instance is **mutation-guarded**: running use cases / approving payouts
 admin token — this public demo's token is **`mandate-live-29f107bffa6e`** (sandbox money; the guard
 demonstrates the pattern, see `MANDATE_ADMIN_TOKEN` in `.env.example`). The server also
 **self-registers its PayPal webhook on boot** (`/v1/notifications/webhooks`, six payout/invoice
-event types) and verifies every inbound event with `verify-webhook-signature` — settlements reach
-the hash-chained ledger with no dashboard copy-paste and no `PAYPAL_WEBHOOK_ID` manual step.
+event types verified against PayPal's live catalog) and verifies every inbound event with
+`verify-webhook-signature` — settlements reach the hash-chained ledger in ~40 s with no
+dashboard copy-paste and no `PAYPAL_WEBHOOK_ID` manual step, and boot-time reconciliation
+settles anything a delivery missed. End-to-end proof (PayPal's delivery log + verified events +
+batch statuses): [`evidence/webhooks.json`](evidence/webhooks.json).
 
 It's reproducible with **one command**: `bash scripts/vultr_deploy.sh root@<VM-IP>` → auto-installs
 Node 24 + Caddy auto-HTTPS via sslip.io (`https://<ip-dashed>.sslip.io` — free hostname from your
@@ -106,7 +109,7 @@ Then open **http://localhost:8787** and either:
 ### Live PayPal sandbox (optional)
 
 1. Create sandbox business + personal accounts at [developer.paypal.com](https://developer.paypal.com/).
-2. Copy `server/.env.example` → `server/.env`, fill `PAYPAL_CLIENT_ID` / `PAYPAL_CLIENT_SECRET` (+ `PAYPAL_WEBHOOK_ID` after adding a webhook pointing at `POST /api/paypal/webhook`).
+2. Copy `server/.env.example` → `server/.env`, fill `PAYPAL_CLIENT_ID` / `PAYPAL_CLIENT_SECRET`. `PAYPAL_WEBHOOK_ID` is optional — set `PUBLIC_BASE_URL` to your public origin and the server registers its own webhook at boot (and verifies every inbound event).
 3. Restart the server — the health pill switches to `SANDBOX` and all money movement goes through `api-m.sandbox.paypal.com`.
 
 ### LLM mode (optional)
@@ -155,6 +158,7 @@ invoice **send** needs `PAYPAL_SANDBOX_RECIPIENT` configured — is written up, 
 **At a glance**
 
 - ✅ **Deterministic policy engine** — pure function, zero LLM on the decision path; CI asserts the hard block holds
+- ✅ **Webhooks, for real** — self-registered at boot, signature-verified per event, reconciled from live batch status at boot; the exact PayPal envelope shapes are regression-tested in CI
 - ✅ **Signed Intent Mandate** — versioned JWS policy; every decision records the version it used
 - ✅ **Hash-chained audit** — 24 records recomputed clean; receipts exportable and independently verifiable
 - ✅ **Idempotent money-out** — local keys + PayPal `sender_batch_id`; duplicate-after-reset is a no-op, double-pay is structurally impossible
@@ -258,12 +262,12 @@ the bugs our own audit loop caught. Feedback matters; the failures are documenta
 | [`docs/AG-GRID.md`](docs/AG-GRID.md) | **AG Grid (sponsor tool)** — how the audit ledger uses AG Grid Community (filters, quick search, CSV export, cell renderers, conditional styling, live refresh), a copy-paste dev guide to extend it, and how to showcase it. |
 | [`docs/AI.md`](docs/AI.md) | **The AI, measured** — where AI is used vs forbidden, the full module-connection map (agent → control plane → PayPal), the two AI↔PayPal paths, and benchmarks: safety (0 unauthorized moves), latency (~1–4 ms gate), intent coverage, determinism. |
 | [`docs/EVIDENCE.md`](docs/EVIDENCE.md) | **Criteria → proof map** — each judging criterion mapped to runnable commands and committed artifacts, trust guarantees → evidence, deliverable status, 60-second tour. |
-| [`docs/FEEDBACK.md`](docs/FEEDBACK.md) | **Build retrospective** — 19 issues faced and fixed (PayPal API behavior, toolkit, frameworks, infra, live-deployment), what worked well, known gaps documented not hidden. |
+| [`docs/FEEDBACK.md`](docs/FEEDBACK.md) | **Build retrospective** — 22 issues faced and fixed (PayPal API behavior, toolkit, frameworks, infra, live-deployment), what worked well, known gaps documented not hidden. |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | **12 annotated Mermaid diagrams** — zones + trust boundary, policy decision flow, gated/standing payout + evidence-pack sequences, inbound verification flow, action & invoice lifecycles, hash chain, data model, deployment, evidence workflow — each with a "what it tells you" note. | |
 | [`SYSTEM_CARD.md`](SYSTEM_CARD.md) | **System card** — agent identity, the five hard boundaries (no execute on money-out tools, model never decides, human gates, hash-chained audit, kill switch), data behavior, limitations. |
 | [`evidence/README.md`](evidence/README.md) | **Evidence bundle guide** — what each JSON artifact proves and how to verify it independently (recompute hashes, check JWS receipts, query PayPal for batch ids). |
 | [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md) | All bundled open-source components and licenses. |
 | [`render.yaml`](render.yaml) | Render blueprint — one service, API + console same-origin, env slots documented inline. |
-| [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | CI — typechecks both packages, boots the server, asserts the hard block + chain verification, builds the web app. |
+| [`.github/workflows/ci.yml`](.github/workflows/ci.yml) | CI — typechecks both packages, boots the server, asserts the hard block + chain verification + real PayPal webhook envelope handling, builds the web app. |
 
 MIT licensed.

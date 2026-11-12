@@ -373,17 +373,22 @@ erDiagram
 
 ## 11. Deployment architecture
 
-**What it tells you:** how this ships. One build (relative assets) runs at localhost, on Render (API + console same-origin — the full product) and on GitHub Pages (static console pointed at the Render API). Cross-origin access is allow-listed and admin-token-guarded; nothing is open-wide.
+**What it tells you:** how this ships. One build (relative assets) runs at localhost, on Render (API + console same-origin — the full product), on a Vultr VM with Caddy auto-HTTPS (the live deployment: `https://139-84-172-28.sslip.io`), and on GitHub Pages (static console pointed at a hosted API). Cross-origin access is allow-listed and admin-token-guarded; nothing is open-wide. The webhook listener needs no dashboard step: with `PUBLIC_BASE_URL` set, the server self-registers it at boot and reconciles anything a delivery missed.
 
 ```mermaid
 flowchart LR
   DEV["Local dev<br/>tsx watch :8787 + Vite :5173 (proxy)"] --> BUILD["vite build (base './')<br/>relative assets — one build, any host"]
   BUILD --> RENDER["Render web service<br/>serves API + console same-origin<br/>render.yaml blueprint · env secrets"]
+  BUILD --> VM["Vultr VM (live)<br/>systemd mandate.service + Caddy HTTPS<br/>PUBLIC_BASE_URL → self-registered webhook"]
   BUILD --> GHP["GitHub Pages (static console)<br/>root index.html stub → web/dist/<br/>VITE_API_BASE → Render URL"]
   RENDER -- "health-check /api/health" --> USERS["Judges / operators"]
+  VM -- "https://139-84-172-28.sslip.io" --> USERS
   GHP -- "cross-origin API (ALLOWED_ORIGINS<br/>+ x-mandate-token)" --> USERS
-  RENDER -- "sandbox REST" --> PP["api-m.sandbox.paypal.com"]
-  PP -- "webhooks → POST /api/paypal/webhook<br/>(verify + dedupe)" --> RENDER
+  VM -- "sandbox REST" --> PP["api-m.sandbox.paypal.com"]
+  RENDER -- "sandbox REST" --> PP
+  VM -- "boot: register webhook" --> PP
+  PP -- "signed events → POST /api/paypal/webhook<br/>(verify + record + dedupe)" --> VM
+  PP -- "live batch status at boot<br/>(reconcile misses)" --> VM
 ```
 
 Security posture: no open CORS (allow-listed origins only), `MANDATE_ADMIN_TOKEN` guards every mutating route, `.env` gitignored, secrets scanned before every push.
