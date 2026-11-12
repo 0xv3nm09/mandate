@@ -48,22 +48,27 @@ Then open **Usecases → "Run all 12 sequentially"** — every trace is a real c
 
 **Built during the Submission Period:** the entire project was created from Oct 28, 2026 onward (see commit history) — first commit is the scaffold, latest commits are live-sandbox evidence.
 
-## Live on Vultr — full stack on one VM
+## See it two ways
 
-**This repo is deployed live right now:** <https://139-84-172-28.sslip.io> — the entire product
-(API + console + auto-HTTPS) on a single Vultr VM, health: `{"ok":true,"mode":{"paypal":"SANDBOX"}}`,
-audit chain verified, all 12 use cases executed from that stack against the real PayPal sandbox
-(payout batch `BVBZA9QYYXHUY` settled SUCCESS, invoices `INV2-HVJL-97RZ-…` created via Invoicing v2).
-
-The live instance is **mutation-guarded**: running use cases / approving payouts prompts for the
-admin token — this public demo's token is **`mandate-live-29f107bffa6e`** (sandbox money; the guard
-demonstrates the pattern, see `MANDATE_ADMIN_TOKEN` in `.env.example`). The server also
+**1 · Live deployment — the full product:** <https://139-84-172-28.sslip.io> — API + console +
+auto-HTTPS on a single Vultr VM, talking to the real PayPal sandbox right now
+(`{"ok":true,"mode":{"paypal":"SANDBOX"}}`, audit chain verified). Run all 12 use cases, approve
+a payout, watch real API calls stream on the **Stack** tab. Mutations prompt once for the admin
+token — this public demo's token is **`mandate-live-29f107bffa6e`** (sandbox money; the guard
+demonstrates the pattern, see `MANDATE_ADMIN_TOKEN` in `.env.example`). The server
 **self-registers its PayPal webhook on boot** (`/v1/notifications/webhooks`, six payout/invoice
 event types verified against PayPal's live catalog) and verifies every inbound event with
 `verify-webhook-signature` — settlements reach the hash-chained ledger in ~40 s with no
 dashboard copy-paste and no `PAYPAL_WEBHOOK_ID` manual step, and boot-time reconciliation
 settles anything a delivery missed. End-to-end proof (PayPal's delivery log + verified events +
 batch statuses): [`evidence/webhooks.json`](evidence/webhooks.json).
+
+**2 · Recorded runs — GitHub Pages, zero backend:** once the repo is public and Pages is enabled
+(Settings → Pages → *Deploy from a branch* → `main` / `(root)`), the console also serves at
+<https://0xv3nm09.github.io/mandate/> as a **read-only snapshot** of real recorded runs —
+Dashboard KPIs, full Usecases traces, the audit ledger — with a banner explaining that mutations
+are disabled. Same experience, no server required; the snapshot is committed at
+[`web/public/demo/mandate-snapshot.json`](web/public/demo/mandate-snapshot.json).
 
 It's reproducible with **one command**: `bash scripts/vultr_deploy.sh root@<VM-IP>` → auto-installs
 Node 24 + Caddy auto-HTTPS via sslip.io (`https://<ip-dashed>.sslip.io` — free hostname from your
@@ -211,11 +216,12 @@ One VM, one command, HTTPS included. Details below.
 
 ### GitHub Pages (read-only snapshot site — zero backend needed)
 
-The build is portable (`base: './'`, hash routing — no server rewrites needed), and the repo
-ships a **read-only snapshot** (`web/public/demo/mandate-snapshot.json`) of the recorded runs:
-with no backend reachable, every GET falls back to the snapshot and a banner explains it.
-Visitors browse real recorded runs — Dashboard, Usecases traces, audit ledger — while mutating
-actions are disabled.
+Enable it once the repo is public: **Settings → Pages → Deploy from a branch → `main` / `(root)`**
+→ live at **https://0xv3nm09.github.io/mandate/**. The build is portable (`base: './'`, hash
+routing — no server rewrites needed), and the repo ships a **read-only snapshot**
+(`web/public/demo/mandate-snapshot.json`) of the recorded runs: with no backend reachable, every
+GET falls back to the snapshot and a banner explains it. Visitors browse real recorded runs —
+Dashboard, Usecases traces, audit ledger — while mutating actions are disabled.
 
 ```bash
 cd server && npm run dev &        # backend running
@@ -240,7 +246,7 @@ stub redirects visitors into `web/dist/index.html` carrying the hash (e.g.
 
 - **Meaningful PayPal use** — three layers: (1) the official [`@paypal/agent-toolkit`](https://developer.paypal.com/ai-tools/toolkit) attached read-only (list/get invoices + disputes — `GET /api/paypal/toolkit` shows status); (2) documented PayPal REST used directly for everything money-moving — Invoicing v2 (create/send/remind), Payouts v1 with `sender_batch_id` idempotency, `verify-webhook-signature`, `simulate-event` — all sandbox-first per PayPal's quickstart; (3) PayPal's own best practices implemented: env-var secrets, system-prompt agent control, human oversight where judgment matters, error handling.
 - **Meaningful AI use** — Vercel AI SDK v5 tool loop (a PayPal-supported framework) with governed tools (`propose_payout` has no `execute`, by design), LLM-written risk explanations / reminders / mandate drafts, NL audit interrogation (UC-09), and a deterministic fallback agent so the trust layer never depends on a model.
-- **Functional demo** — hosted URL (Render blueprint included) or copy-paste repo run steps: `cd server && npm i && npm run dev`.
+- **Functional demo** — hosted URL: the live Vultr deployment (full product) and the GitHub Pages recorded-run site; or copy-paste repo run steps: `cd server && npm i && npm run dev`.
 - **Open source + license** — MIT at repo root, detected by GitHub in the About sidebar.
 - **Video (<3 min, YouTube)** — demonstrates the app end-to-end on the sandbox; no third-party trademarks presented as ours (see footer disclaimer).
 
