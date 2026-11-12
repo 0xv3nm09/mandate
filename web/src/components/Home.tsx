@@ -17,6 +17,7 @@ export function Home({ go }: { go: (page: 'dashboard' | 'console' | 'usecases') 
   const [health, setHealth] = useState<Health | null>(null);
   const [runs, setRuns] = useState<RunSummary[]>([]);
   const [dailyCap, setDailyCap] = useState<number | null>(null);
+  const [stack, setStack] = useState<{ llmModel: string | null; counts: { eventsIngested: number } } | null>(null);
 
   useEffect(() => {
     const load = () => {
@@ -26,6 +27,9 @@ export function Home({ go }: { go: (page: 'dashboard' | 'console' | 'usecases') 
       api<{ mandate: { limits: { dailyTotal: number } } }>('/mandate')
         .then((r) => setDailyCap(r.mandate.limits.dailyTotal))
         .catch(() => {});
+      api<{ llmModel: string | null; counts: { eventsIngested: number } }>('/stack')
+        .then(setStack)
+        .catch(() => {});
     };
     load();
     const t = setInterval(load, 5000);
@@ -34,7 +38,7 @@ export function Home({ go }: { go: (page: 'dashboard' | 'console' | 'usecases') 
 
   return (
     <div className="mx-auto max-w-6xl px-4 pb-16">
-      <Hero go={go} stats={stats} health={health} runs={runs} cap={dailyCap} />
+      <Hero go={go} stats={stats} health={health} runs={runs} cap={dailyCap} stack={stack} />
       <LiveProof stats={stats} />
       <InvestorValue />
       <ForWhom />
@@ -52,7 +56,7 @@ export function Home({ go }: { go: (page: 'dashboard' | 'console' | 'usecases') 
 // ── Hero ─────────────────────────────────────────────────────────────────────
 type GoTo = (p: 'dashboard' | 'console' | 'usecases') => void;
 
-function Hero({ go, stats, health, runs, cap }: { go: GoTo; stats: Stats | null; health: Health | null; runs: RunSummary[]; cap: number | null }) {
+function Hero({ go, stats, health, runs, cap, stack }: { go: GoTo; stats: Stats | null; health: Health | null; runs: RunSummary[]; cap: number | null; stack: { llmModel: string | null; counts: { eventsIngested: number } } | null }) {
   const clean = runs.filter((r) => r.outcome !== 'error').length;
   return (
     <section className="relative mt-6 overflow-hidden rounded-2xl border border-edge bg-raised shadow-card">
@@ -108,6 +112,17 @@ function Hero({ go, stats, health, runs, cap }: { go: GoTo; stats: Stats | null;
                 <p className={`font-display text-2xl font-bold ${x.hot ? 'text-danger' : 'text-ink'}`}>{x.v}</p>
                 <p className="text-[11px] leading-tight text-muted">{x.k}</p>
               </div>
+            ))}
+          </div>
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5 border-t border-edge pt-3 text-center">
+            {[
+              `governed ${stats?.governed ?? '…'}`,
+              `gated ${stats?.gated ?? '…'} → approved ${stats?.approved ?? '…'}`,
+              `hard blocks ${stats?.blocked ?? '…'}`,
+              `webhook events verified ${stack?.counts.eventsIngested ?? '…'}`,
+              ...(stack?.llmModel ? [`LLM: ${stack.llmModel} · Vultr`] : []),
+            ].map((c) => (
+              <span key={c} className="rounded-full border border-edge bg-raised px-2 py-0.5 font-mono text-[10px] text-muted">{c}</span>
             ))}
           </div>
           <p className="mt-4 text-center font-mono text-[10.5px] text-muted">
