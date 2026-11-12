@@ -223,7 +223,8 @@ async function llmChat(message: string): Promise<AgentReply> {
       inputSchema: z.object({ payeeEmail: z.string(), payeeName: z.string().optional(), amount: z.number(), memo: z.string() }),
       execute: async (a) => {
         const res = await handle({ type: 'invoice', amount: a.amount, currency: 'USD', payee: a.payeeEmail, payeeName: a.payeeName, memo: a.memo }, 'chat');
-        return { status: res.status, decision: res.decision?.reasonCode ?? null, paypalRef: res.execution?.paypalRef ?? null };
+        // full HandleResult — usecase runners read .decision/.execution from actions[]
+        return { ...res, kind: 'invoice' as const };
       },
     }),
     propose_payout: ai.tool({
@@ -261,6 +262,14 @@ async function llmChat(message: string): Promise<AgentReply> {
 
   const actions: (HandleResult & { kind: string })[] = [];
   const proposals = steps.flatMap((s) => s.toolCalls).filter((c) => c.toolName !== 'create_invoice');
+  // create_invoice executes inside the tool — surface its full result as an action so
+  // runners (and the reply summary) see the same HandleResult shape as proposal paths
+  for (const s of steps) {
+    for (const tr of ((s as { toolResults?: { toolName?: string; result?: HandleResult & { kind?: string }; output?: HandleResult & { kind?: string } }[] }).toolResults ?? [])) {
+      const r = tr.result ?? tr.output;
+      if (tr.toolName === 'create_invoice' && r?.actionId) actions.push({ ...r, kind: r.kind ?? 'invoice' });
+    }
+  }
   for (const p of proposals) {
     if (p.toolName === 'propose_payout') {
       const input = p.input as { receiver: string; receiverName?: string; amount: number; note: string };

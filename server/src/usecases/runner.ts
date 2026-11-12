@@ -109,16 +109,22 @@ export async function runUsecase(id: string): Promise<UsecaseResult> {
     const reply = await chat('Invoice Acme $1,200 for October design');
     push('Agent parsed instruction', '「Invoice Acme $1,200 for October design」 → {invoice, $1,200, acme@client.test, "October design"}', 'info');
     const act = reply.actions[0];
-    push('Policy engine evaluated', `${act.decision?.decision} · ${act.decision?.reasonCode} — ${act.decision?.reasonText}`, act.decision?.decision === 'ALLOW' ? 'ok' : 'block', { decision: act.decision });
-    const sent = act.execution?.status === 'SENT';
-    push(sent ? 'PayPal invoice created + sent' : 'PayPal invoice created as DRAFT — send pending sandbox recipient',
-      `invoice ${act.execution?.paypalRef} → status ${act.execution?.status}`,
-      act.execution ? 'ok' : 'error', { paypalRef: act.execution?.paypalRef });
-    if (!sent) push('Send pending', 'Set PAYPAL_SANDBOX_RECIPIENT to your sandbox personal account, then hit “resend” in Console → Invoices.', 'info');
-    push('Audit record appended', `seq #${lastAuditSeq()} committed to hash chain`, 'info', { auditSeq: lastAuditSeq() });
-    headline = sent
-      ? `Invoice sent to Acme for $1,200 — decision was ${act.decision?.reasonCode}`
-      : `Real PayPal invoice ${act.execution?.paypalRef} created — send pending sandbox recipient`;
+    if (!act) {
+      push('Agent returned no governed action', 'The LLM emitted no tool call and the parser fallback did not produce one — run again.', 'error');
+      outcome = 'error';
+      headline = 'No governed action returned — run again.';
+    } else {
+      push('Policy engine evaluated', `${act.decision?.decision} · ${act.decision?.reasonCode} — ${act.decision?.reasonText}`, act.decision?.decision === 'ALLOW' ? 'ok' : 'block', { decision: act.decision });
+      const sent = act.execution?.status === 'SENT';
+      push(sent ? 'PayPal invoice created + sent' : 'PayPal invoice created as DRAFT — send pending sandbox recipient',
+        `invoice ${act.execution?.paypalRef} → status ${act.execution?.status}`,
+        act.execution ? 'ok' : 'error', { paypalRef: act.execution?.paypalRef });
+      if (!sent) push('Send pending', 'Set PAYPAL_SANDBOX_RECIPIENT to your sandbox personal account, then hit “resend” in Console → Invoices.', 'info');
+      push('Audit record appended', `seq #${lastAuditSeq()} committed to hash chain`, 'info', { auditSeq: lastAuditSeq() });
+      headline = sent
+        ? `Invoice sent to Acme for $1,200 — decision was ${act.decision?.reasonCode}`
+        : `Real PayPal invoice ${act.execution?.paypalRef} created — send pending sandbox recipient`;
+    }
   }
 
   // ── UC-02: chase + escalating reminder ─────────────────────────────────────
