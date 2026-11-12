@@ -150,10 +150,15 @@ async function handleInvoice(row: ActionRow, action: ProposedAction, decision: D
   });
   // Send may 422 (USER_NOT_FOUND) when the recipient isn't a real sandbox account — the invoice
   // still exists on PayPal as DRAFT. Record honestly; POST /api/invoices/:id/resend completes it.
+  // The gateway skips the call entirely when no sandbox recipient is configured (status CREATED + reason).
   let sendStatus = 'SENT';
   let sendNote: string | undefined;
   try {
-    await paypal.sendInvoice(inv.id);
+    const sent = await paypal.sendInvoice(inv.id);
+    if (sent.status !== 'SENT') {
+      sendStatus = sent.status;
+      sendNote = sent.skipped;
+    }
   } catch (e: unknown) {
     sendStatus = 'CREATED';
     sendNote = String(e).slice(0, 300);

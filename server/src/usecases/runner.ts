@@ -138,11 +138,14 @@ export async function runUsecase(id: string): Promise<UsecaseResult> {
     sweepOverdue();
     const reply = await chat('Chase Globex');
     push('Agent detected overdue + drafted reminder', reply.reply.slice(0, 140), 'info');
-    const ui = reply.ui as { reminder?: { subject: string; tone: string; invoice: string } };
+    const ui = reply.ui as { reminder?: { subject: string; tone: string; invoice: string; delivered?: boolean } };
     if (ui.reminder) {
-      push('Reminder sent autonomously', `「${ui.reminder.subject}」 — tone: ${ui.reminder.tone} (attempt escalation)`, 'ok', { reminder: ui.reminder });
+      const held = ui.reminder.delivered === false;
+      push(held ? 'Reminder drafted — delivery held' : 'Reminder sent autonomously', `「${ui.reminder.subject}」 — tone: ${ui.reminder.tone} (attempt escalation)`, held ? 'info' : 'ok', { reminder: ui.reminder });
       push('Audit record appended', `seq #${lastAuditSeq()}`, 'info', { auditSeq: lastAuditSeq() });
-      headline = `Reminder sent: "${ui.reminder.subject}" (${ui.reminder.tone})`;
+      headline = held
+        ? `Reminder drafted: "${ui.reminder.subject}" — delivery held (invoice not on PayPal)`
+        : `Reminder sent: "${ui.reminder.subject}" (${ui.reminder.tone})`;
     } else {
       outcome = 'error';
       headline = 'No unpaid invoice available to chase — run UC-01 first.';

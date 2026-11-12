@@ -161,7 +161,8 @@ api.post('/invoices/:id/resend', async (c) => {
   if (!inv) return c.json({ error: 'no such invoice' }, 404);
   if (inv.status === 'SENT' || inv.status === 'PAID' || inv.status === 'OVERDUE') return c.json({ ok: true, status: inv.status });
   try {
-    await paypal.sendInvoice(inv.paypalId);
+    const r = await paypal.sendInvoice(inv.paypalId);
+    if (r.status !== 'SENT') return c.json({ ok: false, error: r.skipped ?? 'send unavailable' }, 422);
     db.prepare('UPDATE invoices SET status = ?, updatedAt = ? WHERE id = ?').run('SENT', now(), inv.id);
     publish('invoice.updated', { invoiceId: inv.paypalId, status: 'SENT' });
     return c.json({ ok: true, status: 'SENT' });

@@ -35,7 +35,7 @@ export function pickOverdue(payeeName?: string): InvoiceRow | undefined {
 }
 
 /** UC-02: draft (tone escalating) + send a reminder for an overdue invoice. Autonomous — money-in side. */
-export async function sendReminder(invoiceId: string): Promise<{ invoice: InvoiceRow; subject: string; note: string; tone: string }> {
+export async function sendReminder(invoiceId: string): Promise<{ invoice: InvoiceRow; subject: string; note: string; tone: string; delivered: boolean }> {
   const inv = getInvoice(invoiceId);
   if (!inv) throw new Error('unknown invoice');
   if (isHalted()) throw new Error('Global stop engaged — agent halted (FR-15)');
@@ -43,14 +43,26 @@ export async function sendReminder(invoiceId: string): Promise<{ invoice: Invoic
   const attempt = inv.remindersSent + 1;
   const draft = await reminderDraft(inv.payeeName ?? inv.payee, inv.amount, inv.currency, inv.memo, attempt);
   // Docs: PayPal allows only 2 reminders per invoice per day — a 422 there is the daily cap.
+  // The gateway skips the call entirely when the invoice was never delivered (no sandbox
+  // recipient → still DRAFT on PayPal); both paths surface honestly below.
   let delivered = true;
+  let notDelivered: string | undefined;
   try {
-    await paypal.remindInvoice(inv.paypalId, draft.subject, draft.note);
+    const r = await paypal.remindInvoice(inv.paypalId, draft.subject, draft.note);
+    if (r.status !== 'REMIND_SENT') {
+      delivered = false;
+      notDelivered = r.skipped;
+    }
   } catch (e: unknown) {
     delivered = false;
+    notDelivered = String(e).slice(0, 160);
+  }
+  if (!delivered) {
     appendAudit({
       kind: 'SYSTEM',
-      payload: { event: `Reminder #${attempt} for invoice ${inv.invoiceNumber} rejected by PayPal: ${String(e).slice(0, 160)}` },
+      payload: { event: notDelivered?.startsWith('invoice not delivered')
+        ? `Reminder #${attempt} for invoice ${inv.invoiceNumber} held: ${notDelivered}`
+        : `Reminder #${attempt} for invoice ${inv.invoiceNumber} rejected by PayPal: ${notDelivered}` },
     });
     publish('invoice.updated', { invoiceId: inv.paypalId, status: inv.status, reminderRejected: attempt });
   }
@@ -68,13 +80,16 @@ export async function sendReminder(invoiceId: string): Promise<{ invoice: Invoic
     });
     publish('invoice.updated', { invoiceId: inv.paypalId, status: inv.status, reminder: attempt });
     const fresh = getInvoice(inv.id)!;
-    return { invoice: fresh, subject: draft.subject, note: draft.note, tone: draft.tone };
+    return { invoice: fresh, subject: draft.subject, note: draft.note, tone: draft.tone, delivered: true };
   }
   return {
     invoice: getInvoice(inv.id)!,
     subject: draft.subject,
     note: draft.note,
-    tone: `${draft.tone} (rejected — PayPal daily reminder cap; try again tomorrow)`,
+    tone: `${draft.tone} (${notDelivered?.startsWith('invoice not delivered')
+      ? 'held — invoice was never sent to PayPal; set PAYPAL_SANDBOX_RECIPIENT to enable delivery'
+      : 'rejected — PayPal daily reminder cap; try again tomorrow'})`,
+    delivered: false,
   };
 }
 

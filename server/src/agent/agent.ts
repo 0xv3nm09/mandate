@@ -75,8 +75,8 @@ export async function parserChat(message: string): Promise<AgentReply> {
         break;
       }
       const r = await sendReminder(inv.id);
-      reply = `Chased ${r.invoice.payeeName ?? r.invoice.payee}: "${r.subject}" — reminder #${r.invoice.remindersSent}, tone: ${r.tone}. Autonomously drafted and sent; logged.`;
-      ui.reminder = { subject: r.subject, note: r.note, tone: r.tone, invoice: r.invoice.invoiceNumber };
+      reply = `Chased ${r.invoice.payeeName ?? r.invoice.payee}: "${r.subject}" — reminder #${r.invoice.remindersSent}, tone: ${r.tone}. ${r.delivered ? 'Autonomously drafted and sent; logged.' : 'Autonomously drafted and logged — delivery held (see audit).'}`;
+      ui.reminder = { subject: r.subject, note: r.note, tone: r.tone, invoice: r.invoice.invoiceNumber, delivered: r.delivered };
       break;
     }
 

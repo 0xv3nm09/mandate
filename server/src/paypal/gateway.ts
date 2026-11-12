@@ -28,8 +28,8 @@ export interface GatewayInvoice {
 export interface PaypalGateway {
   readonly mode: 'SANDBOX' | 'MOCK';
   createInvoice(input: InvoiceInput): Promise<GatewayInvoice>;
-  sendInvoice(id: string): Promise<{ status: string }>;
-  remindInvoice(id: string, subject: string, note: string): Promise<{ status: string }>;
+  sendInvoice(id: string): Promise<{ status: string; skipped?: string }>;
+  remindInvoice(id: string, subject: string, note: string): Promise<{ status: string; skipped?: string }>;
   getInvoice(id: string): Promise<GatewayInvoice | null>;
   createPayout(input: {
     payee: string;
@@ -142,14 +142,26 @@ class SandboxGateway implements PaypalGateway {
     };
   }
 
-  async sendInvoice(id: string): Promise<{ status: string }> {
+  async sendInvoice(id: string): Promise<{ status: string; skipped?: string }> {
+    // Sandbox fact: send 422s USER_NOT_FOUND unless the recipient is a real sandbox personal
+    // account. Without PAYPAL_SANDBOX_RECIPIENT the invoice keeps a placeholder recipient —
+    // skip the doomed call (keeps PayPal's API error log clean); the invoice stays DRAFT
+    // and the caller records the honest CREATED state.
+    if (!env.paypal.invoiceRecipient) {
+      return { status: 'CREATED', skipped: 'no sandbox recipient configured (set PAYPAL_SANDBOX_RECIPIENT to deliver for real)' };
+    }
     await this.call('POST', `/v2/invoicing/invoices/${id}/send`, {});
     return { status: 'SENT' };
   }
 
-  async remindInvoice(id: string, subject: string, note: string): Promise<{ status: string }> {
+  async remindInvoice(id: string, subject: string, note: string): Promise<{ status: string; skipped?: string }> {
     // Docs: "API caller can send only 2 reminders in a day" — a 422 here is the daily cap,
     // not a code failure; the caller surfaces it honestly.
+    // An invoice that was never delivered (no sandbox recipient → still DRAFT on PayPal)
+    // rejects remind with 422 — skip instead of making the doomed call.
+    if (!env.paypal.invoiceRecipient) {
+      return { status: 'SKIPPED', skipped: 'invoice not delivered to PayPal (no sandbox recipient configured)' };
+    }
     await this.call('POST', `/v2/invoicing/invoices/${id}/remind`, {
       subject,
       note,
