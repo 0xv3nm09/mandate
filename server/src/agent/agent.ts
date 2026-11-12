@@ -283,6 +283,14 @@ async function llmChat(message: string): Promise<AgentReply> {
     }
   }
 
+  // The model can reply without emitting ANY tool call (open models are
+  // non-deterministic). Scripted use-case runners require an action — degrade to the
+  // deterministic parser for this message rather than crash (chat() catches the throw).
+  // A create_invoice tool call executed inside the tool also counts as action taken.
+  if (actions.length === 0 && steps.flatMap((s) => s.toolCalls).length === 0) {
+    throw new Error('LLM produced no governed action — degrading to deterministic parser');
+  }
+
   // The model's closing text can be terse ("Done.") — always surface the control-plane
   // facts (gate/decision/status) so the operator never loses the verdict in chat.
   const summary = actions
