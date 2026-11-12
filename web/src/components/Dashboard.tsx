@@ -49,7 +49,6 @@ export function Dashboard({ go }: { go: (page: 'console' | 'usecases') => void }
   const [ledger, setLedger] = useState<AuditRecord[]>([]);
   const [chain, setChain] = useState<{ ok: boolean; count: number } | null>(null);
   const [runs, setRuns] = useState<RunSummary[]>([]);
-  const [suiteRunning, setSuiteRunning] = useState(false);
   const [docsOpen, setDocsOpen] = useState(false);
 
   const [verifications, setVerifications] = useState<VerificationRecord[]>([]);
@@ -214,19 +213,14 @@ export function Dashboard({ go }: { go: (page: 'console' | 'usecases') => void }
               right={
                 <span className="flex items-center gap-2">
                   <button
-                    className="text-[11px] text-accent hover:underline disabled:opacity-40"
-                    disabled={suiteRunning}
-                    onClick={async () => {
-                      setSuiteRunning(true);
-                      try {
-                        for (const id of ['UC-01','UC-02','UC-03','UC-04','UC-05','UC-06','UC-07','UC-08','UC-09','UC-10','UC-11','UC-12']) {
-                          await api(`/usecases/${id}/run`, { method: 'POST' });
-                        }
-                        api<RunSummary[]>('/runs').then(setRuns).catch(() => {});
-                      } finally { setSuiteRunning(false); }
+                    className="text-[11px] text-accent hover:underline"
+                    onClick={() => {
+                      // run ON the Usecases page — live progress bar + traces live there
+                      go('usecases');
+                      window.dispatchEvent(new CustomEvent('mandate:run-all'));
                     }}
                   >
-                    {suiteRunning ? 'running…' : 'run suite'}
+                    run suite
                   </button>
                   <button className="text-[11px] text-accent hover:underline" onClick={() => go('usecases')}>open →</button>
                 </span>

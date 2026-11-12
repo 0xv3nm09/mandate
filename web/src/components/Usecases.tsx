@@ -127,6 +127,14 @@ export function Usecases() {
     setTimeout(() => setProgress(null), 1500);
   };
 
+  // the Console / Dashboard "run suite" buttons jump to this page and fire the same run here,
+  // where the live progress bar and traces are
+  useEffect(() => {
+    const h = () => { void runAll(); };
+    window.addEventListener('mandate:run-all', h);
+    return () => window.removeEventListener('mandate:run-all', h);
+  }, []);
+
   const ranCount = Object.keys(results).length;
   const outcomeCounts = Object.values(results).reduce<Record<string, number>>((acc, r) => {
     acc[r.outcome] = (acc[r.outcome] ?? 0) + 1;

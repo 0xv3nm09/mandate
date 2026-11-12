@@ -28,7 +28,6 @@ export function Console({ halted, onHaltChange }: { halted: boolean; onHaltChang
   const [tab, setTab] = useState<(typeof TABS)[number]['id']>('audit');
   const [modes, setModes] = useState<{ paypal: string; llm: string } | null>(null);
   const [mandateVersion, setMandateVersion] = useState<number | null>(null);
-  const [running, setRunning] = useState(false);
 
   useEffect(() => {
     api<{ halted: boolean; mode: { paypal: string; llm: string }; mandateVersion: number }>('/health')
@@ -70,18 +69,14 @@ export function Console({ halted, onHaltChange }: { halted: boolean; onHaltChang
           )}
           <button
             className="btn-primary"
-            disabled={running}
-            onClick={async () => {
-              setRunning(true);
-              try {
-                for (const id of ['UC-01','UC-02','UC-03','UC-04','UC-05','UC-06','UC-07','UC-08','UC-09','UC-10','UC-11','UC-12']) {
-                  await api(`/usecases/${id}/run`, { method: 'POST' });
-                }
-              } finally { setRunning(false); }
+            onClick={() => {
+              // run ON the Usecases page — that's where the live progress bar and traces are
+              location.hash = 'usecases';
+              window.dispatchEvent(new CustomEvent('mandate:run-all'));
             }}
-            title="Execute the full 12-use-case suite live (sandbox)"
+            title="Run the full 12-use-case suite live — watch it on the Usecases page"
           >
-            {running ? <><RefreshCw size={14} className="animate-spin" /> Running…</> : <><FlaskConical size={14} /> Run use cases</>}
+            <FlaskConical size={14} /> Run use cases
           </button>
           <button className={halted ? 'btn-teal' : 'btn-danger'} onClick={() => setHalt(!halted)}>
             {halted ? <><Play size={14} /> Resume agent</> : <><OctagonPause size={14} /> Global stop</>}
