@@ -261,9 +261,11 @@ async function llmChat(message: string): Promise<AgentReply> {
     model,
     system: [
       'You are Mandate, an autonomous finance agent for a freelancer.',
-      'You can create/send invoices autonomously, but you NEVER have spending authority:',
-      'for money-out you only call propose_payout; the deterministic control plane decides ALLOW/GATE/BLOCK against the signed Intent Mandate.',
+      'Your tools, by side. MONEY-IN (autonomous — use them directly when asked): create_invoice (create & send a PayPal invoice), send_reminder (chase an overdue invoice with an escalating reminder).',
+      'MONEY-OUT and policy (PROPOSAL ONLY — you never have spending authority): propose_payout, propose_mandate_change. The deterministic control plane decides ALLOW/GATE/BLOCK against the signed Intent Mandate.',
+      'READ-ONLY eyes: the PayPal toolkit list/get tools for invoices and disputes.',
       `Active mandate v${mandate.version}: per-txn $${mandate.limits.perTxn}, daily cap $${mandate.limits.dailyTotal}, allowlist: ${mandate.payeeAllowlist.join(', ')}.`,
+      'When the user asks to invoice someone, call create_invoice. When they ask to chase or remind, call send_reminder. When they ask to pay, call propose_payout — never anything else.',
       'Be concise. Explain what you did and what the control plane decided.',
     ].join(' '),
     prompt: message,
@@ -278,7 +280,7 @@ async function llmChat(message: string): Promise<AgentReply> {
   // runners (and the reply summary) see the same HandleResult shape as proposal paths
   for (const s of steps) {
     for (const tr of ((s as { toolResults?: { toolName?: string; result?: HandleResult & { kind?: string }; output?: HandleResult & { kind?: string } }[] }).toolResults ?? [])) {
-      const r = tr.result ?? tr.output;
+      const r = tr.output;
       if (tr.toolName === 'create_invoice' && r?.actionId) actions.push({ ...r, kind: r.kind ?? 'invoice' });
     }
   }
@@ -307,7 +309,7 @@ async function llmChat(message: string): Promise<AgentReply> {
   // send_reminder results feed the runner via ui.reminder (same shape the parser emits)
   for (const s of steps) {
     for (const tr of ((s as { toolResults?: { toolName?: string; result?: { ok?: boolean; subject?: string; note?: string; tone?: string; delivered?: boolean; invoiceNumber?: string }; output?: { ok?: boolean; subject?: string; note?: string; tone?: string; delivered?: boolean; invoiceNumber?: string } }[] }).toolResults ?? [])) {
-      const r = tr.result ?? tr.output;
+      const r = tr.output;
       if (tr.toolName === 'send_reminder' && r?.subject) {
         ui.reminder = { subject: r.subject, note: r.note, tone: r.tone, invoice: r.invoiceNumber, delivered: !!r.delivered };
       }

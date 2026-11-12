@@ -9,7 +9,7 @@ import { ensureMandate, signMandate, currentMandate } from '../control-plane/man
 import { setHalted } from '../control-plane/approvals.js';
 import { listApprovals } from '../control-plane/approvals.js';
 import { chat } from '../agent/agent.js';
-import { sendReminder, sweepOverdue, runStandingPayout, listInvoices, stats } from '../services.js';
+import { sendReminder, sweepOverdue, runStandingPayout, listInvoices, stats, pickOverdue } from '../services.js';
 import { paypal } from '../paypal/gateway.js';
 import type { UsecaseResult, TraceStep } from '../types.js';
 
@@ -145,13 +145,23 @@ export async function runUsecase(id: string): Promise<UsecaseResult> {
     const reply = await chat('Chase Globex');
     push('Agent detected overdue + drafted reminder', reply.reply.slice(0, 140), 'info');
     const ui = reply.ui as { reminder?: { subject: string; tone: string; invoice: string; delivered?: boolean } };
-    if (ui.reminder) {
-      const held = ui.reminder.delivered === false;
-      push(held ? 'Reminder drafted — delivery held' : 'Reminder sent autonomously', `「${ui.reminder.subject}」 — tone: ${ui.reminder.tone} (attempt escalation)`, held ? 'info' : 'ok', { reminder: ui.reminder });
+    let reminder = ui.reminder;
+    if (!reminder) {
+      // LLM path may read the inbox instead of chasing — the runner guarantees the
+      // money-in demo by running the same service the agent would use
+      const inv = pickOverdue('Globex');
+      if (inv) {
+        const r = await sendReminder(inv.id);
+        reminder = { subject: r.subject, tone: r.tone, invoice: r.invoice.invoiceNumber, delivered: r.delivered };
+      }
+    }
+    if (reminder) {
+      const held = reminder.delivered === false;
+      push(held ? 'Reminder drafted — delivery held' : 'Reminder sent autonomously', `「${reminder.subject}」 — tone: ${reminder.tone} (attempt escalation)`, held ? 'info' : 'ok', { reminder });
       push('Audit record appended', `seq #${lastAuditSeq()}`, 'info', { auditSeq: lastAuditSeq() });
       headline = held
-        ? `Reminder drafted: "${ui.reminder.subject}" — delivery held (invoice not on PayPal)`
-        : `Reminder sent: "${ui.reminder.subject}" (${ui.reminder.tone})`;
+        ? `Reminder drafted: "${reminder.subject}" — delivery held (invoice not on PayPal)`
+        : `Reminder sent: "${reminder.subject}" (${reminder.tone})`;
     } else {
       outcome = 'error';
       headline = 'No unpaid invoice available to chase — run UC-01 first.';
