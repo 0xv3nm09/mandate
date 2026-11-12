@@ -236,6 +236,28 @@ export function Stack() {
         </div>
       </section>
 
+      {/* The complete stack, layer by layer */}
+      <section className="card card-gradient mt-4 p-4">
+        <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-muted">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/10 text-accent"><Layers size={14} /></span>
+          The complete stack — layer by layer
+          <span className="ml-auto font-normal normal-case tracking-normal text-muted/60">docs/ARCHITECTURE.md · docs/AI.md</span>
+        </div>
+        <div className="mt-3 space-y-2">
+          {LAYERS.map((l) => (
+            <div key={l.name} className="rounded-xl2 border border-edge/60 bg-raised/60 p-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-accent/10 text-accent">{l.icon}</span>
+                <p className="font-display text-sm font-bold">{l.name}</p>
+                <span className="text-[10px] font-medium uppercase tracking-wide text-muted/70">— {l.role}</span>
+                <span className="ml-auto flex flex-wrap gap-1">{l.stack.split(' · ').map((t) => <Chip key={t}>{t}</Chip>)}</span>
+              </div>
+              <p className="mt-1.5 text-[11px] leading-relaxed text-muted">{l.detail}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* Security, guardrails & compliance */}
       <section className="card card-gradient mt-4 p-4">
         <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-muted">
@@ -291,28 +313,6 @@ export function Stack() {
               ))}
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* The complete stack, layer by layer */}
-      <section className="card card-gradient mt-4 p-4">
-        <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-muted">
-          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent/10 text-accent"><Layers size={14} /></span>
-          The complete stack — layer by layer
-          <span className="ml-auto font-normal normal-case tracking-normal text-muted/60">docs/ARCHITECTURE.md · docs/AI.md</span>
-        </div>
-        <div className="mt-3 space-y-2">
-          {LAYERS.map((l) => (
-            <div key={l.name} className="rounded-xl2 border border-edge/60 bg-raised/60 p-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="flex h-6 w-6 items-center justify-center rounded-lg bg-accent/10 text-accent">{l.icon}</span>
-                <p className="font-display text-sm font-bold">{l.name}</p>
-                <span className="text-[10px] font-medium uppercase tracking-wide text-muted/70">— {l.role}</span>
-                <span className="ml-auto flex flex-wrap gap-1">{l.stack.split(' · ').map((t) => <Chip key={t}>{t}</Chip>)}</span>
-              </div>
-              <p className="mt-1.5 text-[11px] leading-relaxed text-muted">{l.detail}</p>
-            </div>
-          ))}
         </div>
       </section>
 
