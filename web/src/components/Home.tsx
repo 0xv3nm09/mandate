@@ -16,12 +16,16 @@ export function Home({ go }: { go: (page: 'dashboard' | 'console' | 'usecases') 
   const [stats, setStats] = useState<Stats | null>(null);
   const [health, setHealth] = useState<Health | null>(null);
   const [runs, setRuns] = useState<RunSummary[]>([]);
+  const [dailyCap, setDailyCap] = useState<number | null>(null);
 
   useEffect(() => {
     const load = () => {
       api<Stats>('/stats').then(setStats).catch(() => {});
       api<Health>('/health').then(setHealth).catch(() => {});
       api<RunSummary[]>('/runs').then(setRuns).catch(() => {});
+      api<{ mandate: { limits: { dailyTotal: number } } }>('/mandate')
+        .then((r) => setDailyCap(r.mandate.limits.dailyTotal))
+        .catch(() => {});
     };
     load();
     const t = setInterval(load, 5000);
@@ -30,7 +34,7 @@ export function Home({ go }: { go: (page: 'dashboard' | 'console' | 'usecases') 
 
   return (
     <div className="mx-auto max-w-6xl px-4 pb-16">
-      <Hero go={go} stats={stats} health={health} runs={runs} />
+      <Hero go={go} stats={stats} health={health} runs={runs} cap={dailyCap} />
       <LiveProof stats={stats} />
       <InvestorValue />
       <ForWhom />
@@ -48,7 +52,7 @@ export function Home({ go }: { go: (page: 'dashboard' | 'console' | 'usecases') 
 // ── Hero ─────────────────────────────────────────────────────────────────────
 type GoTo = (p: 'dashboard' | 'console' | 'usecases') => void;
 
-function Hero({ go, stats, health, runs }: { go: GoTo; stats: Stats | null; health: Health | null; runs: RunSummary[] }) {
+function Hero({ go, stats, health, runs, cap }: { go: GoTo; stats: Stats | null; health: Health | null; runs: RunSummary[]; cap: number | null }) {
   const clean = runs.filter((r) => r.outcome !== 'error').length;
   return (
     <section className="relative mt-6 overflow-hidden rounded-2xl border border-edge bg-raised shadow-card">
@@ -97,7 +101,7 @@ function Hero({ go, stats, health, runs }: { go: GoTo; stats: Stats | null; heal
           <div className="mt-5 grid grid-cols-3 gap-2 border-t border-edge pt-4 text-center">
             {[
               { v: stats ? money(stats.moneyIn) : '…', k: 'money in' },
-              { v: stats ? money(stats.moneyOut) : '…', k: 'paid out · $1,000 cap' },
+              { v: stats ? money(stats.moneyOut) : '…', k: cap ? `paid out · ${money(cap)} cap` : 'paid out' },
               { v: stats ? `${stats.blocked}` : '…', k: 'blocked outright', hot: true },
             ].map((x) => (
               <div key={x.k}>
@@ -107,7 +111,7 @@ function Hero({ go, stats, health, runs }: { go: GoTo; stats: Stats | null; heal
             ))}
           </div>
           <p className="mt-4 text-center font-mono text-[10.5px] text-muted">
-            mandate v{health?.mandateVersion ?? '…'} · JWS · audit {stats?.auditRecords ?? '…'} records ✓{runs.length ? ` · ${clean}/${runs.length} runs clean` : ''}
+            <span className="font-bold text-ok">● live</span> · mandate v{health?.mandateVersion ?? '…'} · JWS · audit {stats?.auditRecords ?? '…'} records ✓{runs.length ? ` · ${clean}/${runs.length} runs clean` : ''} · refreshes every 5s
           </p>
         </div>
       </div>
