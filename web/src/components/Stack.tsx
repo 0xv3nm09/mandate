@@ -74,9 +74,9 @@ const LAYERS: { icon: React.ReactNode; name: string; stack: string; role: string
     detail: '~40 routes, all reads open, mutations guarded by MANDATE_ADMIN_TOKEN, webhook protected by PayPal signature verification. GET /api/stack powers this page.',
   },
   {
-    icon: <Cpu size={13} />, name: 'Agent', stack: 'Vercel AI SDK v5 (optional) · deterministic NL parser · zod',
+    icon: <Cpu size={13} />, name: 'Agent', stack: 'AI SDK v5 tool loop · live LLM: kimi-k2-instruct on Vultr · deterministic parser · zod',
     role: 'proposes only — never executes',
-    detail: 'propose_payout / propose_invoice tools ship with NO execute callback: the model structurally cannot move money. Zero-key fallback agent keeps the trust layer model-independent.',
+    detail: 'Four governed tools: create_invoice / send_reminder run autonomously (money-in); propose_payout / propose_mandate_change are proposal-only — no execute callback, the model structurally cannot move money. Zero-key fallback agent keeps the trust layer model-independent.',
   },
   {
     icon: <ShieldCheck size={13} />, name: 'Control plane', stack: 'pure-function policy engine · approvals (10-min TTL) · hash-chained audit',
