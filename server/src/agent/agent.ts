@@ -283,5 +283,21 @@ async function llmChat(message: string): Promise<AgentReply> {
     }
   }
 
-  return { reply: text || 'Done.', actions, ui: {}, mode: 'LLM' };
+  // The model's closing text can be terse ("Done.") — always surface the control-plane
+  // facts (gate/decision/status) so the operator never loses the verdict in chat.
+  const summary = actions
+    .map((a) => {
+      const d = a.decision;
+      const ref = a.execution?.paypalRef ? ` (batch ${a.execution.paypalRef})` : '';
+      if (a.status === 'AWAIT_APPROVAL') return `Gated — human approval required (${d?.reasonCode ?? 'policy'}). ${d?.reasonText ?? ''}`.trim();
+      if (a.status === 'EXECUTED') return `Executed${ref} — decision ${d?.reasonCode ?? 'n/a'}.`;
+      if (a.status === 'BLOCKED' || a.status === 'DENIED') return `Blocked — ${d?.reasonText ?? d?.reasonCode ?? 'policy refusal'}`;
+      if (a.status === 'SIGNED') return `Mandate re-signed (${a.actionId}).`;
+      return null;
+    })
+    .filter(Boolean)
+    .join(' ');
+  const reply = [text?.trim(), summary].filter(Boolean).join(' — ');
+
+  return { reply: reply || 'Done.', actions, ui: {}, mode: 'LLM' };
 }
