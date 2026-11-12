@@ -235,6 +235,15 @@ api.get('/stack', (c) => {
   return c.json({
     mode: { paypal: paypalMode, llm: llmMode },
     webhook: webhookInfo(),
+    mandate: (() => {
+      const m = currentMandate();
+      return m ? {
+        version: m.version,
+        limits: m.limits,
+        payeeAllowlist: m.payeeAllowlist,
+        standing: m.standing ?? null,
+      } : null;
+    })(),
     counts: {
       auditRecords: one('SELECT COUNT(*) c FROM audit'),
       eventsIngested: one('SELECT COUNT(*) c FROM events'),
